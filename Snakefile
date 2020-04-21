@@ -3,6 +3,7 @@ import pandas as pd
 import os
 
 configfile: "imc-config.yml"
+logdir = "logs/slurm"
 
 output_path = "output/" + config['version'] + "/"
 

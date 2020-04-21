@@ -1,3 +1,5 @@
+.libPaths(c("/home/ltri/campbell/kcampbel/R/x86_64-redhat-linux-gnu-library/3.6", .libPaths()))
+
 suppressPackageStartupMessages({
   library(tidyverse)
   library(SingleCellExperiment)
