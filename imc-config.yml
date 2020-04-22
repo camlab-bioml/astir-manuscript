@@ -1,6 +1,13 @@
 
 version: v1
 
+## Data config for the Basel dataset of Jackson 2020 imc
 basel:
     base_dir: data-raw/jackson-2020/SingleCell_and_Metadata/BaselTMA/
     metadata_file: Basel_PatientMetadata.csv
+
+## Data config for Wagner 2019 cell
+wagner:
+    fcs_dir: data-raw/wagner-2019/fcs_files
+    sample_file: data-raw/wagner-2019/wagner-2019-samples.csv
+

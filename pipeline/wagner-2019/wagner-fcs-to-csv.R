@@ -1,0 +1,66 @@
+
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(SingleCellExperiment)
+  library(argparser)
+  library(devtools)
+  library(flowCore)
+  library(stringr)
+})
+
+select <- dplyr::select
+mutate <- dplyr::mutate
+arrange <- dplyr::arrange
+rename <- dplyr::rename
+filter <- dplyr::filter
+
+devtools::load_all("../taproom")
+
+p <- arg_parser("Read Wagner 2019 data")
+
+p <- add_argument(p, "--input_fcs", "Input fcs file")
+p <- add_argument(p, "--output_rds", "Output rds file")
+p <- add_argument(p, "--output_csv", "Output csv file")
+
+argv <- parse_args(p)
+
+fcs <- read.FCS(argv$input_fcs)
+
+rn <- colnames(exprs(fcs))
+is_protein <- grepl("_", rn, fixed = TRUE)
+fcs <- fcs[, is_protein]
+rn_new <- sapply(strsplit(colnames(fcs), "_", fixed = TRUE), `[`, 2)
+colnames(fcs) <- rn_new
+
+fcs <- fcs[, c(13,14:53)]
+
+sce <- SingleCellExperiment(
+  assays = list('raw_mc' = t(exprs(fcs)))
+)
+
+logcounts(sce) <- log( assay(sce, 'raw_mc') + 1)
+sce <- winsorize(sce, w_limits = c(0.01, 0.99))
+
+## Add in information
+
+guid <- fcs@description$GUID
+colData(sce)$guid <- guid
+
+bb_pos <- str_locate(guid, "BB")[1, 'start']
+patient_id <- str_sub(guid, bb_pos, bb_pos + 4) # patient ID is 5 chars long
+colData(sce)$patient_id <- patient_id
+
+plate_pos <- str_locate(guid, "Plate")[1,'start']
+plate <- str_sub(guid, plate_pos, plate_pos + 5) # plate pos is 6 chars long
+colData(sce)$plate <- plate
+
+
+## Write SingleCellExperiment as rds
+saveRDS(sce, argv$output_rds)
+
+## Write expression as csv
+to_csv(sce, argv$output_csv, include_xy = FALSE) # No spatial data
+  
+
+
+
