@@ -19,6 +19,11 @@ git clone https://github.com/camlab-bioml/imc-2020.git
 
 ### 2. Branch this repo
 
+cd into the repo
+```bash
+cd imc-2020
+```
+
 ```bash
 git checkout -b [name of your branch]
 ```
