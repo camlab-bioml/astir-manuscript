@@ -44,6 +44,8 @@ The usual git rules apply: do some work, add any new or modified files with `git
 
 ### 3. Setup conda environment
 
+Anaconda or Miniconda should be installed on your machine to activate a conda environment.
+
 You can create the necessary conda environment via
 
 ```bash
