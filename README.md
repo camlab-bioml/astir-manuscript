@@ -52,7 +52,7 @@ You can create the necessary conda environment via
 conda create -f envs/imc.yml
 ```
 
-which will install all necessary python packages. This can be then loaded via
+which will install all necessary python packages. Make sure you are in the correct directory before running the above command. This can be then loaded via
 
 ```bash
 conda activate imc
