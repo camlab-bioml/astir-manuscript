@@ -2,6 +2,7 @@
 import pandas as pd
 import os
 
+
 configfile: "imc-config.yml"
 logdir = "logs/slurm"
 
@@ -21,11 +22,15 @@ tmp_wagner_output = expand(output_path +
         "wagner-2019_processed/{sample}.{ext}",
         sample=wagner_samples, ext=['csv','rds'])
 
+
+include: "pipeline/benchmarking/benchmarking.smk"
+
 ## Beginning of rules ----- 
 rule all:
     input:
-        # tmp_basel_output
-        tmp_wagner_output
+        tmp_basel_output,
+        geneset_files
+        # tmp_wagner_output
 
 rule read_wagner_2019:
     input:
