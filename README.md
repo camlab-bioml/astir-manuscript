@@ -19,6 +19,11 @@ git clone https://github.com/camlab-bioml/imc-2020.git
 
 ### 2. Branch this repo
 
+cd into the repo
+```bash
+cd imc-2020
+```
+
 ```bash
 git checkout -b [name of your branch]
 ```
@@ -39,13 +44,15 @@ The usual git rules apply: do some work, add any new or modified files with `git
 
 ### 3. Setup conda environment
 
+Anaconda or Miniconda should be installed on your machine to activate a conda environment.
+
 You can create the necessary conda environment via
 
 ```bash
 conda create -f envs/imc.yml
 ```
 
-which will install all necessary python packages. This can be then loaded via
+which will install all necessary python packages. Make sure you are in the correct directory before running the above command. This can be then loaded via
 
 ```bash
 conda activate imc

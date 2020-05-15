@@ -1,0 +1,55 @@
+cell_types:
+  T cell: 
+    - "CD45"
+    - "CD3"
+    - "CD49f"
+  Macrophage:
+    - "CD45"
+    - "CD68"
+  B cell:
+    - "CD24"
+    - "CD45"
+  Endothelial:
+    - "CD31"
+    - "CD49f"
+  Epithelial (basal):
+    - "ECadherin"
+    - "EpCAM"
+    - "HER2"
+    - "panK"
+    - "K14"
+    - "K5"
+  Epithelial (luminal):
+    - "ECadherin"
+    - "EpCAM"
+    - "HER2"
+    - "panK"
+    - "K5"
+    - "K7"
+    - "K8K18"
+  Stromal:
+    - "Vimentin"
+    - "FAP"
+    - "SMA"
+    
+    
+cell_states:
+  Cell cycle (mitosos):
+    - "CyclinB1"
+  Proliferation:
+    -  "Ki67" 
+  Apoptosis inhibition:
+    - "BCL2"
+    - "Survivin"
+  Hypoxia:
+    - "CA9"
+    
+# Uncharacterized:
+# # "H3K27me3"                "PTEN"           "CD44"               
+# #             "cMYC"                                
+# #                   "AR"             
+# #           "p53"           
+# #                  "PRB"                            
+# # "EZH2"                  "cMET"           "AKT"            "ERa"           
+# #                            "EGFR"                      
+# #   "HLADR"          "clCASP3clPARP1" 
