@@ -1,0 +1,3 @@
+ModuleNotFoundError in line 2 of /Users/jinelles.h/Documents/Camlab/imc-2020/Snakefile:
+No module named 'pandas'
+  File "/Users/jinelles.h/Documents/Camlab/imc-2020/Snakefile", line 2, in <module>

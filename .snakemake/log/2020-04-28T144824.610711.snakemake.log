@@ -1,0 +1,10 @@
+FileNotFoundError in line 11 of /Users/jinelles.h/Documents/Camlab/imc-2020/Snakefile:
+[Errno 2] File data-raw/jackson-2020/SingleCell_and_Metadata/BaselTMA/Basel_PatientMetadata.csv does not exist: 'data-raw/jackson-2020/SingleCell_and_Metadata/BaselTMA/Basel_PatientMetadata.csv'
+  File "/Users/jinelles.h/Documents/Camlab/imc-2020/Snakefile", line 11, in <module>
+  File "/Users/jinelles.h/opt/miniconda3/envs/imc/lib/python3.8/site-packages/pandas/io/parsers.py", line 676, in parser_f
+  File "/Users/jinelles.h/opt/miniconda3/envs/imc/lib/python3.8/site-packages/pandas/io/parsers.py", line 448, in _read
+  File "/Users/jinelles.h/opt/miniconda3/envs/imc/lib/python3.8/site-packages/pandas/io/parsers.py", line 880, in __init__
+  File "/Users/jinelles.h/opt/miniconda3/envs/imc/lib/python3.8/site-packages/pandas/io/parsers.py", line 1114, in _make_engine
+  File "/Users/jinelles.h/opt/miniconda3/envs/imc/lib/python3.8/site-packages/pandas/io/parsers.py", line 1891, in __init__
+  File "pandas/_libs/parsers.pyx", line 374, in pandas._libs.parsers.TextReader.__cinit__
+  File "pandas/_libs/parsers.pyx", line 674, in pandas._libs.parsers.TextReader._setup_parser_source
