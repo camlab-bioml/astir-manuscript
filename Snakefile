@@ -4,7 +4,6 @@ import os
 
 configfile: "imc-config.yml"
 logdir = "logs/slurm"
-
 output_path = "output/" + config['version'] + "/"
 
 # Jackson 2020 metadata
