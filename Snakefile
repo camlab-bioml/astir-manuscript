@@ -11,25 +11,31 @@ output_path = "output/" + config['version'] + "/"
 # Jackson 2020 metadata
 basel_metadata = pd.read_csv(os.path.join(config['basel']['base_dir'], config['basel']['metadata_file']))
 basel_cores = list(basel_metadata.core)
+tmp_basel_output = expand(output_path + "basel_processed/{core}.rds", core=basel_cores)
+
+zurich1_metadata = pd.read_csv(os.path.join(config['zurich1']['base_dir'], config['zurich1']['metadata_file']))
+zurich1_cores = list(zurich1_metadata.core)
+tmp_zurich1_output = expand(output_path + "zurich1_processed/{core}.rds", core=zurich1_cores)
 
 # Wagner 2019 metadata
 wagner_sample_df = pd.read_csv(config['wagner']['sample_file'], header=None)
 wagner_samples = list(wagner_sample_df[0])
 
-tmp_basel_output = expand(output_path + "basel_processed/{core}.rds", core=basel_cores)
+
 
 tmp_wagner_output = expand(output_path + 
         "wagner-2019_processed/{sample}.{ext}",
         sample=wagner_samples, ext=['csv','rds'])
 
 
-include: "pipeline/benchmarking/benchmarking.smk"
+# include: "pipeline/benchmarking/benchmarking.smk"
 
 ## Beginning of rules ----- 
 rule all:
     input:
         tmp_basel_output,
-        geneset_files
+        tmp_zurich1_output,
+        # geneset_files
         # tmp_wagner_output
 
 rule read_wagner_2019:
@@ -58,5 +64,17 @@ rule read_jackson_2020_basel:
         "--input_loc {input.scloc} "
         "--output_dir {output_path}/basel_processed "
 
+rule read_jackson_2020_zurich1:
+    input:
+        scdat=config['zurich1']['base_dir'] + "SC_dat.csv",
+        scloc=config['zurich1']['base_dir'] + "Zurich_SC_locations.csv",
+    output:
+        expand(output_path + "zurich1_processed/{core}.rds", core=zurich1_cores),
+        expand(output_path + "zurich1_processed/{core}.csv", core=zurich1_cores),
+    shell:
+        "Rscript pipeline/jackson-2020/jackson-raw-to-sce-server.R "
+        "--input_sc {input.scdat} "
+        "--input_loc {input.scloc} "
+        "--output_dir {output_path}/zurich1_processed "
 
 
