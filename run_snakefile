@@ -1,2 +1,3 @@
 rm slurm-*
+pip install -e ../astir
 snakemake -k --profile slurm --jobs 100 
