@@ -39,7 +39,8 @@ rule all:
         # tmp_basel_output,
         # tmp_zurich1_output,
         asts.values(),
-        output_path + "looms/basel.loom"
+        expand(output_path + "looms/{dataset}.loom", dataset=datasets),
+        output_path + "summarized_assigments/basel_15k_all.csv"
         # geneset_files
         # tmp_wagner_output
 
@@ -92,6 +93,15 @@ rule basel_to_loom:
         "{output_path}/basel_processed "
         "{output} "
 
+rule zurich1_to_loom:
+    input:
+        expand(output_path + "zurich1_processed/{core}.csv", core=zurich1_cores),
+    output:
+        output_path + "looms/zurich1.loom"
+    shell:
+        "python pipeline/dir-of-csvs-to-loom.py "
+        "{output_path}/zurich1_processed "
+        "{output} "
 
 rule astir_basel:
     params:
@@ -100,14 +110,25 @@ rule astir_basel:
         loom=output_path + "looms/basel.loom",
         markers="markers/jackson-2020-markers.yml"
     output:
-        output_path + "astir_assignments/basel_astir_assignments.csv"
+        csv=output_path + "astir_assignments/basel_astir_assignments.csv"
     run:
         from astir.data_readers import from_loompy_yaml
         from datetime import datetime
         print(f"{datetime.now()}\t Reading loom file ")
         ast = from_loompy_yaml(input.loom, input.markers, include_beta=False)
         print(f"{datetime.now()}\t Fitting model")
-        ast.fit_type(max_epochs = 5, batch_size = 24, learning_rate = 1e-3)
-        ast.type_to_csv(output)
+        ast.fit_type(max_epochs = 8, batch_size = 512, learning_rate = 1e-3)
+        ast.type_to_csv(output.csv)
 
+rule basel_to_15k:
+    input:
+        astir_output=output_path + "astir_assignments/basel_astir_assignments.csv",
+        cell_list="data-raw/15k_cells.csv",
+    output:
+        output_path + "summarized_assigments/basel_15k_all.csv"
+    shell:
+        "python pipeline/subset-to-15k.py "
+        "{input.astir_output} "
+        "{input.cell_list} "
+        "{output}"
 
