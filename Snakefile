@@ -26,12 +26,18 @@ tmp_wagner_output = expand(output_path +
         "wagner-2019_processed/{sample}.{ext}",
         sample=wagner_samples, ext=['csv','rds'])
 
+# Basel 15k reduced set for benchmarking
+basel_15k_cells = pd.read_csv("data-raw/cellsets/cell_ids_15k.csv")
+cores_15k = list(set(list(basel_15k_cells.core)))
+basel_15k_csvs = expand(output_path + "basel_15k_subset/{core}.csv", core=cores_15k)
+
 # Final assignments
 datasets = ['basel', 'zurich1']
 asts = {d: output_path + f"astir_assignments/{d}_astir_assignments.csv" for d in datasets}
 
 
 # include: "pipeline/benchmarking/benchmarking.smk"
+include: "pipeline/robustness/robustness.smk"
 
 ## Beginning of rules ----- 
 rule all:
@@ -41,7 +47,7 @@ rule all:
         asts.values(),
         expand(output_path + "looms/{dataset}.loom", dataset=datasets),
         output_path + "summarized_assigments/basel_15k_all.csv",
-        directory(output_path + "basel_15k_subset"),
+        reduced_assignments
         # geneset_files
         # tmp_wagner_output
 
@@ -109,13 +115,13 @@ rule subset_basel_cells:
         expand(output_path + "basel_processed/{core}.csv", core=basel_cores),
         cell_labels="data-raw/cellsets/cell_ids_15k.csv"
     output:
-        directory(output_path + "basel_15k_subset")
+        basel_15k_csvs
     shell:
         "mkdir -p {output} && "
         "python pipeline/subset-expression-data.py "
         "--input_dir {output_path}/basel_processed "
         "--cell_labels {input.cell_labels} "
-        "--output_dir {output} "
+        "--output_dir {output_path}/basel_15k_subset "
 
 rule astir:
     params:
