@@ -27,7 +27,7 @@ tmp_wagner_output = expand(output_path +
         sample=wagner_samples, ext=['csv','rds'])
 
 # Final assignments
-datasets = ['basel']
+datasets = ['basel', 'zurich1']
 asts = {d: output_path + f"astir_assignments/{d}_astir_assignments.csv" for d in datasets}
 
 
@@ -40,7 +40,8 @@ rule all:
         # tmp_zurich1_output,
         asts.values(),
         expand(output_path + "looms/{dataset}.loom", dataset=datasets),
-        output_path + "summarized_assigments/basel_15k_all.csv"
+        output_path + "summarized_assigments/basel_15k_all.csv",
+        directory(output_path + "basel_15k_subset"),
         # geneset_files
         # tmp_wagner_output
 
@@ -103,21 +104,35 @@ rule zurich1_to_loom:
         "{output_path}/zurich1_processed "
         "{output} "
 
-rule astir_basel:
+rule subset_basel_cells:
+    input:
+        expand(output_path + "basel_processed/{core}.csv", core=basel_cores),
+        cell_labels="data-raw/cellsets/cell_ids_15k.csv"
+    output:
+        directory(output_path + "basel_15k_subset")
+    shell:
+        "mkdir -p {output} && "
+        "python pipeline/subset-expression-data.py "
+        "--input_dir {output_path}/basel_processed "
+        "--cell_labels {input.cell_labels} "
+        "--output_dir {output} "
+
+rule astir:
     params:
         op = output_path
     input:
-        loom=output_path + "looms/basel.loom",
+        loom=output_path + "looms/{dataset}.loom",
         markers="markers/jackson-2020-markers.yml"
     output:
-        csv=output_path + "astir_assignments/basel_astir_assignments.csv"
+        csv=output_path + "astir_assignments/{dataset}_astir_assignments.csv"
     run:
         from astir.data_readers import from_loompy_yaml
         from datetime import datetime
         print(f"{datetime.now()}\t Reading loom file ")
         ast = from_loompy_yaml(input.loom, input.markers, include_beta=False)
         print(f"{datetime.now()}\t Fitting model")
-        ast.fit_type(max_epochs = 8, batch_size = 512, learning_rate = 1e-3)
+        ast.fit_type(max_epochs = 20, batch_size = 512, learning_rate = 1e-3)
+        print(f"{datetime.now()}\t Finished fitting model")
         ast.type_to_csv(output.csv)
 
 rule basel_to_15k:
