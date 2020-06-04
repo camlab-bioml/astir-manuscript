@@ -15,4 +15,5 @@ zurich1:
 wagner:
     fcs_dir: data-raw/wagner-2019/fcs_files
     sample_file: data-raw/wagner-2019/wagner-2019-samples.csv
+    n_subsample: 15000
 

@@ -1,0 +1,172 @@
+---
+title: "Robustness figures"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(devtools)
+  library(glue)
+  library(ggalluvial)
+  library(cowplot)
+})
+
+devtools::load_all('../../../taproom')
+```
+
+# Define palette
+
+```{r}
+pal <- ggthemes::tableau_color_pal(palette = "Classic Green-Orange 12")(12)
+
+celltype_colours <- c(
+  "Stromal" = pal[7],
+  "B cells" = pal[3],
+  "T cells" = pal[8],
+  "Macrophage" = pal[1],
+  "Epithelial (basal)" = pal[9],
+  "Epithelial (luminal)" = pal[10],
+  "Epithelial (other)" = pal[5],
+  "Monocyte" = pal[11],
+  "Other" = "grey60",
+  "Unknown" = "grey70"
+)
+```
+
+
+# Removing cell types
+
+```{r}
+removed_csvs <- dir('../../output/v1/robustness/', pattern = 'removed*.*csv', 
+                    full.names = TRUE)
+```
+
+```{r}
+read_to_mat <- function(f) {
+  df <- read_csv(f)
+  mat <- as.matrix(select(df, -X1))
+  celltypes <- get_cell_assignments(mat, threshold = 0.8)
+
+  condition <- strsplit(f, "-")[[1]]
+  condition <- condition[length(condition)]
+  condition <- gsub(".csv", "", condition, fixed=TRUE)
+ 
+  tibble(
+    cell = df$X1,
+    cell_type = celltypes,
+    condition = condition
+  ) 
+}
+```
+
+```{r}
+df <- map_dfr(removed_csvs, read_to_mat)
+
+df$condition <- gsub("_", " ", df$condition)
+
+df$condition <- factor(df$condition,
+                       levels = c(
+                         "None",
+                         "Stromal only",
+                         "Stromal Macrophage",
+                         "Stromal Macrophage Monocyte"
+                       ))
+```
+```{r}
+cells_stromal_none <- filter(df, 
+                             condition == "None", 
+                             cell_type %in% c("Stromal", "Macrophage", "Monocyte")) %>% 
+  .$cell
+```
+
+
+```{r}
+filter(df, cell %in% cells_stromal_none) %>% 
+  ggplot(aes(x = condition, stratum = cell_type, alluvium = cell,
+               fill = cell_type, label = cell_type)) +
+  geom_stratum(alpha = .5) +
+  geom_label(stat = "stratum", size = 3) +
+  cowplot::theme_cowplot(font_size = 12) +
+  stat_flow() +
+  scale_x_discrete(expand = c(0,0)) +
+  scale_y_discrete(expand = c(0,0)) +
+  scale_fill_manual(values = celltype_colours, name = "Cell type\nassigned") +
+  theme(axis.text.x = element_text(angle = -45, hjust = 0, vjust = 0.5)) +
+  labs(x = "Celltype removed")
+```
+
+```{r}
+ggplot(df, aes(x = condition, stratum = cell_type, alluvium = cell,
+               fill = cell_type, label = cell_type)) +
+  geom_stratum(alpha = .5) +
+  geom_label(stat = "stratum", size = 3) +
+  cowplot::theme_cowplot(font_size = 12) +
+  stat_flow() +
+  scale_x_discrete(expand = c(0,0)) +
+  scale_y_discrete(expand = c(0,0)) +
+  scale_fill_manual(values = celltype_colours, name = "Cell type\nassigned") +
+  theme(axis.text.x = element_text(angle = -45, hjust = 0, vjust = 0.5)) +
+  labs(x = "Celltype removed")
+```
+
+
+# Adding celltypes
+
+
+```{r}
+added_csvs <- dir('../../output/v1/robustness/', pattern = 'added*.*csv', 
+                    full.names = TRUE)
+```
+
+```{r}
+read_to_mat <- function(f) {
+  df <- read_csv(f)
+  mat <- as.matrix(select(df, -X1))
+  celltypes <- get_cell_assignments(mat, threshold = 0.8)
+
+  condition <- strsplit(f, "-")[[1]]
+  condition <- condition[length(condition)]
+  condition <- gsub(".csv", "", condition, fixed=TRUE)
+ 
+  tibble(
+    cell = df$X1,
+    cell_type = celltypes,
+    condition = condition
+  ) 
+}
+```
+
+```{r}
+df <- map_dfr(added_csvs, read_to_mat)
+
+df$condition <- gsub("_", " ", df$condition)
+
+df$condition <- factor(df$condition,
+                       levels = c(
+                         "One additional",
+                         "Two additional",
+                         "Three additional"
+                       ))
+```
+
+
+```{r}
+count(df, condition, cell_type)
+```
+
+```{r}
+ggplot(df, aes(x = condition, stratum = cell_type, alluvium = cell,
+               fill = cell_type, label = cell_type)) +
+  geom_stratum(alpha = .5) +
+  geom_label(stat = "stratum", size = 3) +
+  cowplot::theme_cowplot(font_size = 12) +
+  stat_flow() +
+  scale_x_discrete(expand = c(0,0)) +
+  scale_y_discrete(expand = c(0,0)) +
+  scale_fill_manual(values = celltype_colours, name = "Cell type\nassigned") +
+  theme(axis.text.x = element_text(angle = -45, hjust = 0, vjust = 0.5)) +
+  labs(x = "Celltype removed")
+```

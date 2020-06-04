@@ -44,7 +44,9 @@ sce <- winsorize(sce, w_limits = c(0.01, 0.99))
 ## Add in information
 
 guid <- fcs@description$GUID
-colData(sce)$guid <- guid
+colData(sce)$guid <- gsub(".fcs", "", guid, fixed = TRUE)
+
+colnames(sce) <- paste0(sce$guid, "_cell_", seq_along(sce$guid))
 
 bb_pos <- str_locate(guid, "BB")[1, 'start']
 patient_id <- str_sub(guid, bb_pos, bb_pos + 4) # patient ID is 5 chars long

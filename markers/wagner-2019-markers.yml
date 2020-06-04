@@ -15,20 +15,16 @@ cell_types:
   Epithelial (basal):
     - "ECadherin"
     - "EpCAM"
-    - "HER2"
     - "panK"
     - "K14"
     - "K5"
   Epithelial (luminal):
     - "ECadherin"
     - "EpCAM"
-    - "HER2"
     - "panK"
-    - "K5"
     - "K7"
     - "K8K18"
-  Stromal:
-    - "Vimentin"
+  Fibroblasts:
     - "FAP"
     - "SMA"
     
