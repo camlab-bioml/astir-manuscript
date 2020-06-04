@@ -9,7 +9,7 @@ logdir = "logs/slurm"
 output_path = "output/" + config['version'] + "/"
 
 # Final assignments
-datasets = ['basel', 'zurich1']
+datasets = ['basel', 'zurich1', 'wagner']
 asts = {d: output_path + f"astir_assignments/{d}_astir_assignments.csv" for d in datasets}
 
 
@@ -36,7 +36,7 @@ rule all:
 
 
 
-rule astir:
+rule run_astir:
     params:
         op = output_path,
         max_epochs = config['astir_opts']['max_epochs'],
@@ -44,7 +44,7 @@ rule astir:
         learning_rate = config['astir_opts']['learning_rate'],
     input:
         loom=ancient(output_path + "looms/{dataset}.loom"),
-        markers="markers/jackson-2020-markers.yml"
+        markers=lambda wildcards: config[wildcards.dataset]['marker_file'],
     output:
         csv=output_path + "astir_assignments/{dataset}_astir_assignments.csv"
     run:
@@ -53,9 +53,9 @@ rule astir:
         print(f"{datetime.now()}\t Reading loom file ")
         ast = from_loompy_yaml(input.loom, input.markers, include_beta=False)
         print(f"{datetime.now()}\t Fitting model")
-        ast.fit_type(max_epochs = params.max_epochs, 
-        batch_size = params.batch_size, 
-        learning_rate = params.learning_rate)
+        ast.fit_type(max_epochs = int(params.max_epochs), 
+        batch_size = int(params.batch_size), 
+        learning_rate = float(params.learning_rate))
         print(f"{datetime.now()}\t Finished fitting model")
         ast.type_to_csv(output.csv)
 

@@ -10,15 +10,17 @@ astir_opts:
 basel:
     base_dir: data-raw/jackson-2020/SingleCell_and_Metadata/BaselTMA/
     metadata_file: Basel_PatientMetadata.csv
+    marker_file: markers/jackson-2020-markers.yml
 
 zurich1:
     base_dir: data-raw/jackson-2020/SingleCell_and_Metadata/ZurichTMA/
     metadata_file: Zuri_PatientMetadata.csv
     n_subsample: 15000
+    marker_file: markers/jackson-2020-markers.yml
 
 ## Data config for Wagner 2019 cell
 wagner:
     fcs_dir: data-raw/wagner-2019/fcs_files
     sample_file: data-raw/wagner-2019/wagner-2019-samples.csv
     n_subsample: 15000
-
+    marker_file: markers/wagner-2019-markers.yml
