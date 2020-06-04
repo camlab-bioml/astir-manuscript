@@ -12,7 +12,8 @@ tmp_wagner_output = expand(output_path +
 
 wagner_output = {
     'rds_csv': tmp_wagner_output,
-    'loom': output_path + "looms/wagner.loom"
+    'loom': output_path + "looms/wagner.loom",
+    'subset': output_path + "wagner_subset/wagner_subset_expression.csv"
 }
 
 
@@ -37,3 +38,30 @@ rule wagner_to_loom:
         "python pipeline/dir-of-csvs-to-loom.py "
         "{output_path}/wagner-2019_processed "
         "{output} "
+
+
+
+rule subset_wagner:
+    input:
+        csvs=expand(output_path + "wagner-2019_processed/{core}.csv", core=wagner_samples),
+        assignments=output_path + "astir_assignments/wagner_astir_assignments.csv",
+    output:
+        assignments=output_path + "wagner_subset/wagner_subset_assignments.csv",
+        expression=output_path + "wagner_subset/wagner_subset_expression.csv"
+    run:
+        import pandas as pd
+
+        dfs = [pd.read_csv(f,index_col=0) for f in input.csvs]
+        df = pd.concat(dfs)
+
+        df = df.sample(n=config['n_subsample'],
+        replace=False,random_state=1234)
+
+        subset_cell_ids = list(df.index)
+
+        df.to_csv(output.expression)
+
+        ## Subsample assignments
+        assignments = pd.read_csv(input.assignments, index_col=0)
+        assignments_subset = assignments.loc[subset_cell_ids]
+        assignments_subset.to_csv(output.assignments)

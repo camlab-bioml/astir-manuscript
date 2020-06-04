@@ -12,7 +12,8 @@ basel_15k_csvs = expand(output_path + "basel_15k_subset/{core}.csv", core=cores_
 
 basel_output = {
     'csv_rds': tmp_basel_output,
-    'loom': output_path + "looms/basel.loom"
+    'loom': output_path + "looms/basel.loom",
+    'subset': output_path + "basel_subset/basel_subset_expression.csv"
 }
 
 
@@ -41,28 +42,29 @@ rule basel_to_loom:
         "{output} "
 
 
-rule subset_basel_cells:
+rule basel_subset_cells:
     input:
-        expand(output_path + "basel_processed/{core}.csv", core=basel_cores),
-        cell_labels="data-raw/cellsets/cell_ids_15k.csv"
+        csvs=expand(output_path + "basel_processed/{core}.csv", core=basel_cores),
+        assignments=output_path + "astir_assignments/basel_astir_assignments.csv",
     output:
-        basel_15k_csvs
-    shell:
-        "mkdir -p {output} && "
-        "python pipeline/subset-expression-data.py "
-        "--input_dir {output_path}/basel_processed "
-        "--cell_labels {input.cell_labels} "
-        "--output_dir {output_path}/basel_15k_subset "
+        assignments=output_path + "basel_subset/basel_subset_assignments.csv",
+        expression=output_path + "basel_subset/basel_subset_expression.csv"
+    run:
+        import pandas as pd
+
+        dfs = [pd.read_csv(f,index_col=0) for f in input.csvs]
+        df = pd.concat(dfs)
+
+        df = df.sample(n=config['n_subsample'],
+        replace=False,random_state=1234)
+
+        subset_cell_ids = list(df.index)
+
+        df.to_csv(output.expression)
+
+        ## Subsample assignments
+        assignments = pd.read_csv(input.assignments, index_col=0)
+        assignments_subset = assignments.loc[subset_cell_ids]
+        assignments_subset.to_csv(output.assignments)
 
 
-rule basel_to_15k:
-    input:
-        astir_output=output_path + "astir_assignments/basel_astir_assignments.csv",
-        cell_list="data-raw/15k_cells.csv",
-    output:
-        output_path + "summarized_assigments/basel_15k_all.csv"
-    shell:
-        "python pipeline/subset-to-15k.py "
-        "{input.astir_output} "
-        "{input.cell_list} "
-        "{output}"
