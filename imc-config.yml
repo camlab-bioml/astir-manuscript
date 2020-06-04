@@ -9,6 +9,7 @@ basel:
 zurich1:
     base_dir: data-raw/jackson-2020/SingleCell_and_Metadata/ZurichTMA/
     metadata_file: Zuri_PatientMetadata.csv
+    n_subsample: 15000
 
 ## Data config for Wagner 2019 cell
 wagner:

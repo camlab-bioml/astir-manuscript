@@ -16,6 +16,7 @@ tmp_basel_output = expand(output_path + "basel_processed/{core}.rds", core=basel
 zurich1_metadata = pd.read_csv(os.path.join(config['zurich1']['base_dir'], config['zurich1']['metadata_file']))
 zurich1_cores = list(zurich1_metadata.core)
 tmp_zurich1_output = expand(output_path + "zurich1_processed/{core}.rds", core=zurich1_cores)
+zurch1_subset_cell_ids = cell_ids=output_path + "zurich1_subset/zurich1_subset_cells.csv"
 
 # Wagner 2019 metadata
 wagner_sample_df = pd.read_csv(config['wagner']['sample_file'], header=None)
@@ -38,6 +39,7 @@ asts = {d: output_path + f"astir_assignments/{d}_astir_assignments.csv" for d in
 
 # include: "pipeline/benchmarking/benchmarking.smk"
 include: "pipeline/robustness/robustness.smk"
+include: "analysis/analysis.smk"
 
 ## Beginning of rules ----- 
 rule all:
@@ -45,9 +47,11 @@ rule all:
         # tmp_basel_output,
         # tmp_zurich1_output,
         asts.values(),
-        expand(output_path + "looms/{dataset}.loom", dataset=datasets),
-        output_path + "summarized_assigments/basel_15k_all.csv",
-        reduced_assignments
+        # expand(output_path + "looms/{dataset}.loom", dataset=datasets),
+        # output_path + "summarized_assigments/basel_15k_all.csv",
+        # reduced_assignments, added_assignments,
+        zurch1_subset_cell_ids,
+        analysis_deliverables,
         # geneset_files
         # tmp_wagner_output
 
@@ -127,7 +131,7 @@ rule astir:
     params:
         op = output_path
     input:
-        loom=output_path + "looms/{dataset}.loom",
+        loom=ancient(output_path + "looms/{dataset}.loom"),
         markers="markers/jackson-2020-markers.yml"
     output:
         csv=output_path + "astir_assignments/{dataset}_astir_assignments.csv"
@@ -153,3 +157,25 @@ rule basel_to_15k:
         "{input.cell_list} "
         "{output}"
 
+
+rule subset_zurich1:
+    input:
+        loom=output_path + "looms/zurich1.loom",
+        sc_dat="data-raw/jackson-2020/SingleCell_and_Metadata/ZurichTMA/" + "SC_dat.csv",
+        assignments=output_path + "astir_assignments/zurich1_astir_assignments.csv",
+    output:
+        cell_ids=output_path + "zurich1_subset/zurich1_subset_cells.csv",
+        assignments=output_path + "zurich1_subset/zurich1_subset_assignments.csv",
+    run:
+        import loompy
+        sc_dat = pd.read_csv(input.sc_dat)
+
+        ## Cell IDs we're going to subsample
+        cell_ids = list(sc_dat.id.sample(config['zurich1']['n_subsample'], replace=False, random_state=1234))
+        cell_df = pd.DataFrame({'id': cell_ids})
+        cell_df.to_csv(output.cell_ids)
+
+        ## Subsample assignments
+        assignments = pd.read_csv(input.assignments, index_col=0)
+        assignments_subset = assignments.loc[cell_ids]
+        assignments_subset.to_csv(output.assignments)
