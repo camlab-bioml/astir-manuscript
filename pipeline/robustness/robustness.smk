@@ -45,6 +45,11 @@ celltypes_to_add = {
 added_assignments = expand(output_path + "robustness/assignments-15k-added-{added}.csv",
     added=celltypes_to_add.keys())
 
+robustness_output = {
+    'added_assignments': added_assignments,
+    'reduced_assignments': reduced_assignments
+}
+
 rule create_reduced_sets:
     input:
         markers="markers/jackson-2020-markers.yml",
