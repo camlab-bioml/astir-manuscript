@@ -1,10 +1,10 @@
 
-version: v1
+version: v2
 
 astir_opts:
-    max_epochs: 20
+    max_epochs: 50
     batch_size: 512
-    learning_rate: 1e-3
+    learning_rate: 5e-3
 
 n_subsample: 15000
 

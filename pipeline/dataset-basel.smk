@@ -13,7 +13,8 @@ basel_15k_csvs = expand(output_path + "basel_15k_subset/{core}.csv", core=cores_
 basel_output = {
     'csv_rds': tmp_basel_output,
     'loom': output_path + "looms/basel.loom",
-    'subset': output_path + "basel_subset/basel_subset_expression.csv"
+    'subset': output_path + "basel_subset/basel_subset_expression.csv",
+    'subset_csvs': expand(output_path + "basel_subset_separate_csvs/{core}.csv", core=basel_cores[0:30])
 }
 
 
@@ -44,23 +45,35 @@ rule basel_to_loom:
 
 rule basel_subset_cells:
     input:
-        csvs=expand(output_path + "basel_processed/{core}.csv", core=basel_cores),
+        csvs=expand(output_path + "basel_processed/{core}.csv", core=basel_cores[0:30]),
         assignments=output_path + "astir_assignments/basel_astir_assignments.csv",
     output:
         assignments=output_path + "basel_subset/basel_subset_assignments.csv",
-        expression=output_path + "basel_subset/basel_subset_expression.csv"
+        expression=output_path + "basel_subset/basel_subset_expression.csv",
+        csvs=basel_output['subset_csvs'],
     run:
         import pandas as pd
 
-        dfs = [pd.read_csv(f,index_col=0) for f in input.csvs]
-        df = pd.concat(dfs)
+        core_dict = dict(zip(basel_cores, input.csvs))
 
-        df = df.sample(n=config['n_subsample'],
-        replace=False,random_state=1234)
+        dfs = {c: pd.read_csv(f,index_col=0) for (c,f) in core_dict.items()}
+
+        df = pd.concat(dfs.values())
+
+        # df = df.sample(n=config['n_subsample'],
+        # replace=False,random_state=1234)
 
         subset_cell_ids = list(df.index)
 
         df.to_csv(output.expression)
+
+        ## Output each to csv
+        for c in dfs.keys():
+            df_core = dfs[c]
+            cells_select = [ x for x in list(df.index) if x in list(df_core.index)]
+            df_core = df_core.loc[ cells_select ]
+            output_csv = output_path + f"basel_subset_separate_csvs/{c}.csv"
+            df_core.to_csv(output_csv)
 
         ## Subsample assignments
         assignments = pd.read_csv(input.assignments, index_col=0)

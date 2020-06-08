@@ -12,6 +12,8 @@ suppressPackageStartupMessages({
   library(glue)
   library(ggalluvial)
   library(cowplot)
+  library(matrixStats) 
+  library(pheatmap)
 })
 
 devtools::load_all('../../../taproom')
@@ -20,35 +22,46 @@ devtools::load_all('../../../taproom')
 # Define palette
 
 ```{r}
-pal <- ggthemes::tableau_color_pal(palette = "Classic Green-Orange 12")(12)
-
-celltype_colours <- c(
-  "Stromal" = pal[7],
-  "B cells" = pal[3],
-  "T cells" = pal[8],
-  "Macrophage" = pal[1],
-  "Epithelial (basal)" = pal[9],
-  "Epithelial (luminal)" = pal[10],
-  "Epithelial (other)" = pal[5],
-  "Monocyte" = pal[11],
-  "Other" = "grey60",
-  "Unknown" = "grey70"
-)
+celltype_colours <- taproom::jackson_basel_colours()
 ```
 
 
 # Removing cell types
 
 ```{r}
-removed_csvs <- dir('../../output/v1/robustness/', pattern = 'removed*.*csv', 
+removed_csvs <- dir('../../output/v2/robustness/', pattern = 'removed*.*csv', 
                     full.names = TRUE)
 ```
+
+
+Have a look at the full assigned celltypes
+```{r}
+mat <- read_csv(removed_csvs[1])
+mat <- arrange(mat, X1)
+mat$X1 <- NULL
+```
+
+```{r}
+mat_all <- read_csv("../../output/v1/basel_subset/basel_subset_assignments.csv")
+mat_all <- arrange(mat_all, X1)
+mat_all$X1 <- NULL
+```
+
+```{r}
+table(
+  get_celltypes(mat, thresh = 0.95),
+  get_celltypes(mat_all, thresh = 0.95)
+)
+```
+
+
+# Subsets
 
 ```{r}
 read_to_mat <- function(f) {
   df <- read_csv(f)
   mat <- as.matrix(select(df, -X1))
-  celltypes <- get_cell_assignments(mat, threshold = 0.8)
+  celltypes <- get_celltypes(mat, thresh = 0.95)
 
   condition <- strsplit(f, "-")[[1]]
   condition <- condition[length(condition)]
@@ -75,6 +88,7 @@ df$condition <- factor(df$condition,
                          "Stromal Macrophage Monocyte"
                        ))
 ```
+
 ```{r}
 cells_stromal_none <- filter(df, 
                              condition == "None", 
@@ -112,6 +126,10 @@ ggplot(df, aes(x = condition, stratum = cell_type, alluvium = cell,
   labs(x = "Celltype removed")
 ```
 
+```{r}
+ggsave("robustness-removed.png", width = 12, height = 10)
+```
+
 
 # Adding celltypes
 
@@ -125,7 +143,7 @@ added_csvs <- dir('../../output/v1/robustness/', pattern = 'added*.*csv',
 read_to_mat <- function(f) {
   df <- read_csv(f)
   mat <- as.matrix(select(df, -X1))
-  celltypes <- get_cell_assignments(mat, threshold = 0.8)
+  celltypes <- get_celltypes(mat, thresh = 0.95)
 
   condition <- strsplit(f, "-")[[1]]
   condition <- condition[length(condition)]
@@ -154,7 +172,7 @@ df$condition <- factor(df$condition,
 
 
 ```{r}
-count(df, condition, cell_type)
+dplyr::count(df, condition, cell_type)
 ```
 
 ```{r}

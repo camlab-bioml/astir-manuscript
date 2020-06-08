@@ -2,6 +2,7 @@
 suppressPackageStartupMessages({
   library(tidyverse)
   library(SingleCellExperiment)
+  library(scater)
   library(argparser)
   library(devtools)
   library(flowCore)
@@ -55,6 +56,9 @@ colData(sce)$patient_id <- patient_id
 plate_pos <- str_locate(guid, "Plate")[1,'start']
 plate <- str_sub(guid, plate_pos, plate_pos + 5) # plate pos is 6 chars long
 colData(sce)$plate <- plate
+
+sce <- calculateQCMetrics(sce, exprs_values = "logcounts")
+sce <- sce[, sce$total_logcounts > 55]
 
 
 ## Write SingleCellExperiment as rds

@@ -7,6 +7,7 @@
 ## (2)  
 
 import yaml
+import numpy as np
 
 
 ## Removal of cell types
@@ -50,14 +51,20 @@ robustness_output = {
     'reduced_assignments': reduced_assignments
 }
 
-rule create_reduced_sets:
+rule remove_celltypes:
+    params:
+        max_epochs = config['astir_opts']['max_epochs'],
+        batch_size = config['astir_opts']['batch_size'],
+        learning_rate = config['astir_opts']['learning_rate'],
     input:
         markers="markers/jackson-2020-markers.yml",
-        csvs=basel_15k_csvs
+        csvs=basel_output['subset_csvs'],
     output:
         markers=output_path + "robustness/{removed}.yml",
         assignments = output_path + "robustness/assignments-15k-removed-{removed}.csv",
+        fig=output_path + "robustness/{removed}_loss.png" ,       diagnostics=output_path + "robustness/{removed}_diagnostics.csv"
     run:
+
         marker_dict = None
         with open(input.markers, "r") as stream:
             marker_dict = yaml.safe_load(stream)
@@ -69,18 +76,36 @@ rule create_reduced_sets:
             
         from astir.data_readers import from_csv_dir_yaml
 
-        ast = from_csv_dir_yaml(os.path.join(output_path, "basel_15k_subset"), output.markers, include_beta=False)
-        ast.fit_type(max_epochs = 50, batch_size = 512, learning_rate = 5e-3)
+        ast = from_csv_dir_yaml(os.path.join(output_path, "basel_subset_separate_csvs"), output.markers, include_beta=False)
+        ast.fit_type(max_epochs = int(params.max_epochs), 
+        batch_size = int(params.batch_size), 
+        learning_rate = float(params.learning_rate))
         ast.type_to_csv(output.assignments)
+
+        # run diagnostics
+        ast.diagnostics_celltype().to_csv(output.diagnostics)
+
+        import matplotlib.pyplot as plt
+        plt.figure(figsize=(5,4))
+        plt.plot(np.arange(len(ast.get_type_losses())), ast.get_type_losses())
+        plt.ylabel("Loss")
+        plt.xlabel("Epoch")
+        plt.tight_layout()
+        plt.savefig(output.fig, dpi=300)
 
 
 rule add_celltypes:
+    params:
+        max_epochs = config['astir_opts']['max_epochs'],
+        batch_size = config['astir_opts']['batch_size'],
+        learning_rate = config['astir_opts']['learning_rate'],
     input:
         markers="markers/jackson-2020-markers.yml",
-        csvs=basel_15k_csvs
+        csvs=basel_output['subset_csvs'],
     output:
         markers=output_path + "robustness/{added}.yml",
         assignments = output_path + "robustness/assignments-15k-added-{added}.csv",
+        fig=output_path + "robustness/{added}_loss.png",       diagnostics=output_path + "robustness/{added}_diagnostics.csv"
     run:
         marker_dict = None
         with open(input.markers, "r") as stream:
@@ -93,6 +118,19 @@ rule add_celltypes:
             
         from astir.data_readers import from_csv_dir_yaml
 
-        ast = from_csv_dir_yaml(os.path.join(output_path, "basel_15k_subset"), output.markers, include_beta=False)
-        ast.fit_type(max_epochs = 50, batch_size = 512, learning_rate = 5e-3)
+        ast = from_csv_dir_yaml(os.path.join(output_path, "basel_subset_separate_csvs"), output.markers, include_beta=False)
+        ast.fit_type(max_epochs = int(params.max_epochs), 
+        batch_size = int(params.batch_size), 
+        learning_rate = float(params.learning_rate))
         ast.type_to_csv(output.assignments)
+
+        # run diagnostics
+        ast.diagnostics_celltype().to_csv(output.diagnostics)
+
+        import matplotlib.pyplot as plt
+        plt.figure(figsize=(5,4))
+        plt.plot(np.arange(len(ast.get_type_losses())), ast.get_type_losses())
+        plt.ylabel("Loss")
+        plt.xlabel("Epoch")
+        plt.tight_layout()
+        plt.savefig(output.fig, dpi=300)
