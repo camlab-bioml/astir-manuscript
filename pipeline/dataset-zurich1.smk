@@ -42,9 +42,11 @@ rule zurich1_to_loom:
 rule zurich1_subset_cells:
     input:
         csvs=expand(output_path + "zurich1_processed/{core}.csv", core=zurich1_cores),
-        assignments=output_path + "astir_assignments/zurich1_astir_assignments.csv",
+        assignments_type=output_path + "astir_assignments/zurich1_astir_assignments.csv",
+        assignments_state=output_path + "astir_assignments/zurich1_astir_assignments_state.csv",
     output:
-        assignments=output_path + "zurich1_subset/zurich1_subset_assignments.csv",
+        assignments_type=output_path + "zurich1_subset/zurich1_subset_assignments_type.csv",
+        assignments_state=output_path + "zurich1_subset/zurich1_subset_assignments_state.csv",
         expression=output_path + "zurich1_subset/zurich1_subset_expression.csv"
     run:
         import pandas as pd
@@ -59,9 +61,14 @@ rule zurich1_subset_cells:
 
         df.to_csv(output.expression)
 
-        ## Subsample assignments
-        assignments = pd.read_csv(input.assignments, index_col=0)
+        ## Subsample type assignments
+        assignments = pd.read_csv(input.assignments_type, index_col=0)
         assignments_subset = assignments.loc[subset_cell_ids]
-        assignments_subset.to_csv(output.assignments)
+        assignments_subset.to_csv(output.assignments_type)
+
+        ## Subsample astatessignments
+        assignments = pd.read_csv(input.assignments_state, index_col=0)
+        assignments_subset = assignments.loc[subset_cell_ids]
+        assignments_subset.to_csv(output.assignments_state)
 
 

@@ -46,9 +46,11 @@ rule basel_to_loom:
 rule basel_subset_cells:
     input:
         csvs=expand(output_path + "basel_processed/{core}.csv", core=basel_cores[0:30]),
-        assignments=output_path + "astir_assignments/basel_astir_assignments.csv",
+        assignments_type=output_path + "astir_assignments/basel_astir_assignments.csv",
+        assignments_state=output_path + "astir_assignments/basel_astir_assignments_state.csv",
     output:
-        assignments=output_path + "basel_subset/basel_subset_assignments.csv",
+        assignments_type=output_path + "basel_subset/basel_subset_assignments_type.csv",
+        assignments_state=output_path + "basel_subset/basel_subset_assignments_state.csv",
         expression=output_path + "basel_subset/basel_subset_expression.csv",
         csvs=basel_output['subset_csvs'],
     run:
@@ -75,9 +77,13 @@ rule basel_subset_cells:
             output_csv = output_path + f"basel_subset_separate_csvs/{c}.csv"
             df_core.to_csv(output_csv)
 
-        ## Subsample assignments
-        assignments = pd.read_csv(input.assignments, index_col=0)
+        ## Subsample type assignments
+        assignments = pd.read_csv(input.assignments_type, index_col=0)
         assignments_subset = assignments.loc[subset_cell_ids]
-        assignments_subset.to_csv(output.assignments)
-
+        assignments_subset.to_csv(output.assignments_type)
+        
+        ## Subsample state assignments
+        assignments = pd.read_csv(input.assignments_state, index_col=0)
+        assignments_subset = assignments.loc[subset_cell_ids]
+        assignments_subset.to_csv(output.assignments_state)
 
