@@ -9,7 +9,8 @@ zurch1_subset_cell_ids = cell_ids=output_path + "zurich1_subset/zurich1_subset_c
 zurich1_output = {
     'rds_csv': tmp_zurich1_output,
     'loom': output_path + "looms/zurich1.loom",
-    'subset': output_path + "zurich1_subset/zurich1_subset_expression.csv"
+    'subset': output_path + "zurich1_subset/zurich1_subset_expression.csv",
+    'subset_sce': output_path + "zurich1_subset/zurich1_subset_sce.rds"
 }
 
 
@@ -70,5 +71,19 @@ rule zurich1_subset_cells:
         assignments = pd.read_csv(input.assignments_state, index_col=0)
         assignments_subset = assignments.loc[subset_cell_ids]
         assignments_subset.to_csv(output.assignments_state)
+
+rule subset_zurich1_sce:
+    params:
+        input_dir = output_path + "zurich1_processed"
+    input:
+        expand(output_path + "zurich1_processed/{core}.rds", core=zurich1_cores),
+        csv=output_path + "zurich1_subset/zurich1_subset_expression.csv",
+    output:
+        output_path + "zurich1_subset/zurich1_subset_sce.rds"
+    shell:
+        "Rscript pipeline/subset-sces.R "
+        "--input_dir {params.input_dir} "
+        "--input_csv {input.csv} "
+        "--output_rds {output} "
 
 

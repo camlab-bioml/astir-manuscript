@@ -14,7 +14,8 @@ basel_output = {
     'csv_rds': tmp_basel_output,
     'loom': output_path + "looms/basel.loom",
     'subset': output_path + "basel_subset/basel_subset_expression.csv",
-    'subset_csvs': expand(output_path + "basel_subset_separate_csvs/{core}.csv", core=basel_cores[0:30])
+    'subset_csvs': expand(output_path + "basel_subset_separate_csvs/{core}.csv", core=basel_cores[0:30]),
+    'subset_sce': output_path + "basel_subset/basel_subset_sce.rds"
 }
 
 
@@ -86,4 +87,18 @@ rule basel_subset_cells:
         assignments = pd.read_csv(input.assignments_state, index_col=0)
         assignments_subset = assignments.loc[subset_cell_ids]
         assignments_subset.to_csv(output.assignments_state)
+
+rule subset_basel_sce:
+    params:
+        input_dir = output_path + "basel_processed"
+    input:
+        expand(output_path + "basel_processed/{core}.rds", core=basel_cores),
+        csv=output_path + "basel_subset/basel_subset_expression.csv",
+    output:
+        output_path + "basel_subset/basel_subset_sce.rds"
+    shell:
+        "Rscript pipeline/subset-sces.R "
+        "--input_dir {params.input_dir} "
+        "--input_csv {input.csv} "
+        "--output_rds {output} "
 

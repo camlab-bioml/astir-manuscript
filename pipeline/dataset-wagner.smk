@@ -13,7 +13,8 @@ tmp_wagner_output = expand(output_path +
 wagner_output = {
     'rds_csv': tmp_wagner_output,
     'loom': output_path + "looms/wagner.loom",
-    'subset': output_path + "wagner_subset/wagner_subset_expression.csv"
+    'subset': output_path + "wagner_subset/wagner_subset_expression.csv",
+    'subset_sce': output_path + "wagner_subset/wagner_subset_sce.rds"
 }
 
 
@@ -72,3 +73,17 @@ rule subset_wagner:
         assignments = pd.read_csv(input.assignments_state, index_col=0)
         assignments_subset = assignments.loc[subset_cell_ids]
         assignments_subset.to_csv(output.assignments_state)
+
+rule subset_wagner_sce:
+    params:
+        input_dir = output_path + "wagner_processed"
+    input:
+        expand(output_path + "wagner-2019_processed/{sample}.rds", sample=wagner_samples),
+        csv=output_path + "wagner_subset/wagner_subset_expression.csv",
+    output:
+        output_path + "wagner_subset/wagner_subset_sce.rds"
+    shell:
+        "Rscript pipeline/subset-sces.R "
+        "--input_dir {params.input_dir} "
+        "--input_csv {input.csv} "
+        "--output_rds {output} "
