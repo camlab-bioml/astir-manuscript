@@ -1,6 +1,4 @@
 
-
-
 cell_states:
   RTK_signalling:
     - Her2
@@ -22,11 +20,9 @@ cell_types:
   B cells:
     - CD45
     - CD20
-    - Vimentin
   T cells:
     - CD45
     - CD3
-    - Vimentin
   Epithelial (basal):
     - E-Cadherin
     - pan Cytokeratin
@@ -44,15 +40,9 @@ cell_types:
   Macrophage:
     - CD45
     - CD68
+  Endothelial:
+    - vWF
     - Vimentin
-  Monocyte:
-    - CD45
-    - CD31
-    - Vimentin
-
-
-#      Macrophage:
-#    - CD45
-#    - CD68
-
+    
+    
 

@@ -76,7 +76,7 @@ rule subset_wagner:
 
 rule subset_wagner_sce:
     params:
-        input_dir = output_path + "wagner_processed"
+        input_dir = output_path + "wagner-2019_processed"
     input:
         expand(output_path + "wagner-2019_processed/{sample}.rds", sample=wagner_samples),
         csv=output_path + "wagner_subset/wagner_subset_expression.csv",

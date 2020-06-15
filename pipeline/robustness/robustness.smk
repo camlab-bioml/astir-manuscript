@@ -14,7 +14,7 @@ import numpy as np
 celltypes_to_remove = {
     'Stromal_only': ['Stromal'],
     'Stromal_Macrophage': ['Stromal', 'Macrophage'],
-    'Stromal_Macrophage_Monocyte': ['Stromal', 'Macrophage', 'Monocyte'],
+    'Stromal_Macrophage_Monocyte': ['Stromal', 'Macrophage', 'Endothelial'],
     'None': []
 }
 

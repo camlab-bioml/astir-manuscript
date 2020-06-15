@@ -36,11 +36,13 @@ colnames(fcs) <- rn_new
 fcs <- fcs[, c(13,14:53)]
 
 sce <- SingleCellExperiment(
-  assays = list('raw_mc' = t(exprs(fcs)))
+  assays = list('raw_imc' = t(exprs(fcs)))
 )
 
-logcounts(sce) <- log( assay(sce, 'raw_mc') + 1)
-sce <- winsorize(sce, w_limits = c(0.01, 0.99))
+# logcounts(sce) <- log( assay(sce, 'raw_mc') + 1)
+# sce <- winsorize(sce, w_limits = c(0.01, 0.99))
+logcounts(sce) <- asinh( assay(sce, 'raw_imc') / 5 )
+sce <- winsorize(sce, w_limits = c(0, 0.999))
 
 ## Add in information
 

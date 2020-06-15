@@ -30,7 +30,7 @@ include: "pipeline/reports/reports.smk"
 rule all:
     input:
         asts_type.values(),
-        asts_state.values(),
+        # asts_state.values(),
         robustness_output.values(),
         analysis_output.values(),
         wagner_output.values(),
@@ -46,6 +46,7 @@ rule run_astir_type:
         max_epochs = config['astir_opts']['max_epochs'],
         batch_size = config['astir_opts']['batch_size'],
         learning_rate = config['astir_opts']['learning_rate'],
+        n_initial_epochs = config['astir_opts']['n_initial_epochs']
     input:
         loom=ancient(output_path + "looms/{dataset}.loom"),
         markers=lambda wildcards: config[wildcards.dataset]['marker_file'],
@@ -62,7 +63,8 @@ rule run_astir_type:
         print(f"{datetime.now()}\t Fitting model")
         ast.fit_type(max_epochs = int(params.max_epochs), 
         batch_size = int(params.batch_size), 
-        learning_rate = float(params.learning_rate))
+        learning_rate = float(params.learning_rate),
+        n_initial_epochs=int(params.n_initial_epochs))
         print(f"{datetime.now()}\t Finished fitting model")
         ast.type_to_csv(output.csv)
 
@@ -88,6 +90,7 @@ rule run_astir_state:
     input:
         loom=ancient(output_path + "looms/{dataset}.loom"),
         markers=lambda wildcards: config[wildcards.dataset]['marker_file'],
+        type_diagnostic=output_path + "astir_assignments/{dataset}_diagnostics.csv", # make sure state doesn't run concurrently with type
     output:
         csv=output_path + "astir_assignments/{dataset}_astir_assignments_state.csv",
         fig=output_path + "astir_assignments/{dataset}_astir_loss_state.png",

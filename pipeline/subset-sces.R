@@ -14,6 +14,7 @@ subset_sce <- function(rds_file, cell_ids) {
   sce <- readRDS(rds_file)
   if(any(cell_ids %in% colnames(sce))) {
     cell_ids <- intersect(cell_ids, colnames(sce))
+    rowData(sce) <- NULL
     return( sce[, cell_ids] )
   } else {
     return(NULL)

@@ -17,7 +17,7 @@ devtools::load_all("../taproom")
 
 
 write_one_sce <- function(core_test, df_sc, df_loc, output_dir) {
-  message(paste("Writting core", core_test))
+  message(paste("Writing core", core_test))
   df_loc <- filter(df_loc, core == core_test)
   
   df_count <- df_sc %>% 
@@ -47,9 +47,11 @@ write_one_sce <- function(core_test, df_sc, df_loc, output_dir) {
 
   sce <- tidy_rownames_jackson(sce)
 
-  logcounts(sce) <- log( assay(sce, 'raw_imc') + 1)
-  sce <- winsorize(sce, w_limits = c(0.01, 0.99))
-  
+  #logcounts(sce) <- log( assay(sce, 'raw_imc') + 1)
+  #sce <- winsorize(sce, w_limits = c(0.01, 0.99))
+  logcounts(sce) <- asinh( assay(sce, 'raw_imc') / 5 )
+  sce <- winsorize(sce, w_limits = c(0, 0.999))
+
   ## Write SingleCellExperiment as rds
   saveRDS(sce, file.path(output_dir, paste0(core_test, ".rds")))
 
