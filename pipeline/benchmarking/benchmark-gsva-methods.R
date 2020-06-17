@@ -13,7 +13,12 @@ parser$add_argument('--input_dir', type = 'character')
 parser$add_argument('--markers', type = 'character')
 parser$add_argument('--n_cells', type = 'integer')
 parser$add_argument('--method', type = 'character')
+parser$add_argument('--dataset', type = 'character')
 parser$add_argument('--output_file', type = 'character')
+parser$add_argument('--max_epochs', type='integer')
+parser$add_argument('--batch_size', type='integer')
+parser$add_argument('--learning_rate', type='double')
+parser$add_argument('--n_initial_epochs', type='integer')
 
 args <- parser$parse_args()
 
@@ -48,13 +53,16 @@ if(args$method == "astir") {
     as.matrix() %>% 
     t()
   
-  python <- "/home/ltri/campbell/kcampbel/.conda/envs/imc/bin/python"
-  cmd <- paste(python,
-              "pipeline/benchmarking/astir-state-benchmark.py",
-               csv_file,
-               args$markers,
-               output_file,
-               "--epochs 5000 --learning_rate 0.001 --print_loss_every 1000")
+  cmd <- paste("astir state",
+              csv_file,
+              args$markers,
+              output_file,
+              "--max_epochs", args$max_epochs,
+              "--batch_size", args$batch_size,
+              "--learning_rate", args$learning_rate,
+              "--n_init_epochs", args$n_initial_epochs
+  )
+
   st <- system.time({
     system(cmd)
   })
@@ -88,6 +96,7 @@ cors <- unlist(cors)
 
 df_res <- tibble(
   method = args$method,
+  dataset = args$dataset,
   n_cells = args$n_cells,
   elapsed = st['elapsed'],
   mean_correlation = mean(cors)

@@ -25,6 +25,7 @@ include: "analysis/analysis.smk"
 # include: "pipeline/benchmarking/benchmarking.smk"
 include: "pipeline/robustness/robustness.smk"
 include: "pipeline/reports/reports.smk"
+include: "pipeline/benchmarking/benchmarking.smk"
 
 ## Beginning of rules ----- 
 rule all:
@@ -36,6 +37,7 @@ rule all:
         wagner_output.values(),
         basel_output.values(),
         zurich1_output.values(),
+        benchmarking_output.values(),
         # reports_output.values(),
 
 
