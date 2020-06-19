@@ -1,0 +1,23 @@
+
+
+cell_states:
+    proliferation:
+        - Ki-67
+    EMT:
+        - Twist
+
+cell_types:
+    Epithelial (luminal):
+        - E-cadherin
+        - EpCAM
+        - Cytokeratin7
+        - Cytokeratin8-18
+    Epithelial (other):
+        - E-cadherin
+        - EpCAM
+    Macrophage:
+        - CD68
+    Stromal:
+        - Vimentin
+        - Fibronectin
+
