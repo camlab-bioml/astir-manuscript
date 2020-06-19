@@ -23,13 +23,14 @@ devtools::load_all('../../../taproom')
 
 ```{r}
 celltype_colours <- taproom::jackson_basel_colours()
+celltype_colours <- c(celltype_colours, "Endothelial"="red")
 ```
 
 
 # Removing cell types
 
 ```{r}
-removed_csvs <- dir('../../output/v2/robustness/', pattern = 'removed*.*csv', 
+removed_csvs <- dir('../../output/v4/robustness/', pattern = 'removed*.*csv', 
                     full.names = TRUE)
 ```
 
@@ -42,7 +43,7 @@ mat$X1 <- NULL
 ```
 
 ```{r}
-mat_all <- read_csv("../../output/v1/basel_subset/basel_subset_assignments.csv")
+mat_all <- read_csv("../../output/v4/basel_subset/basel_subset_assignments.csv")
 mat_all <- arrange(mat_all, X1)
 mat_all$X1 <- NULL
 ```
@@ -85,14 +86,14 @@ df$condition <- factor(df$condition,
                          "None",
                          "Stromal only",
                          "Stromal Macrophage",
-                         "Stromal Macrophage Monocyte"
+                         "Stromal Macrophage Endothelial"
                        ))
 ```
 
 ```{r}
 cells_stromal_none <- filter(df, 
                              condition == "None", 
-                             cell_type %in% c("Stromal", "Macrophage", "Monocyte")) %>% 
+                             cell_type %in% c("Stromal", "Macrophage", "Endothelial")) %>% 
   .$cell
 ```
 
@@ -109,7 +110,7 @@ filter(df, cell %in% cells_stromal_none) %>%
   scale_y_discrete(expand = c(0,0)) +
   scale_fill_manual(values = celltype_colours, name = "Cell type\nassigned") +
   theme(axis.text.x = element_text(angle = -45, hjust = 0, vjust = 0.5)) +
-  labs(x = "Celltype removed")
+  labs(x = "Cell type removed")
 ```
 
 ```{r}
@@ -135,7 +136,7 @@ ggsave("robustness-removed.png", width = 12, height = 10)
 
 
 ```{r}
-added_csvs <- dir('../../output/v1/robustness/', pattern = 'added*.*csv', 
+added_csvs <- dir('../../output/v4/robustness/', pattern = 'added*.*csv', 
                     full.names = TRUE)
 ```
 
@@ -186,5 +187,5 @@ ggplot(df, aes(x = condition, stratum = cell_type, alluvium = cell,
   scale_y_discrete(expand = c(0,0)) +
   scale_fill_manual(values = celltype_colours, name = "Cell type\nassigned") +
   theme(axis.text.x = element_text(angle = -45, hjust = 0, vjust = 0.5)) +
-  labs(x = "Celltype removed")
+  labs(x = "Cell type added")
 ```

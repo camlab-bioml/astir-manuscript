@@ -1,25 +1,37 @@
 library(tidyverse)
+library(cowplot)
 
-input_dir <- "../../output/v1/benchmarking/geneset/"
+input_dir <- "../../output/v4/benchmarking/geneset/"
 
 csv_files <- dir(input_dir, full.names = TRUE)
 
 
-df <- map_dfr(csv_files, read_csv)
-print(length(csv_files))
 
-df <- group_by(df, method, n_cells) %>% 
+df <- map_dfr(csv_files, read_csv)
+
+xs <- sort(unique(df$n_cells))
+
+dfg <- group_by(df, method, dataset, n_cells) %>% 
   summarise(elapsed = mean(elapsed),
             mean_correlation = mean(mean_correlation)) %>% 
   ungroup()
 
-ggplot(df, aes(x = n_cells, y = elapsed, colour = method)) + 
+plt1 <- ggplot(dfg, aes(x = n_cells, y = elapsed, colour = method)) + 
   geom_line() +
   geom_point() +
-  scale_x_log10() +
-  scale_y_log10()
+  scale_x_log10(breaks=xs) +
+  scale_y_log10() +
+  facet_wrap(~ dataset)
 
-ggplot(df, aes(x = n_cells, y = abs(mean_correlation), colour = method)) + 
+plt2 <- ggplot(dfg, aes(x = n_cells, y = abs(mean_correlation), colour = method)) + 
   geom_line() +
   geom_point() +
-  scale_x_log10()
+  scale_x_log10(breaks=xs) +
+  facet_wrap(~ dataset)
+
+plot_grid(
+  plt1,
+  plt2,
+  ncol = 1
+)
+

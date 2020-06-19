@@ -37,7 +37,7 @@ rule all:
         wagner_output.values(),
         basel_output.values(),
         zurich1_output.values(),
-        benchmarking_output.values(),
+        # benchmarking_output.values(),
         # reports_output.values(),
 
 
@@ -51,7 +51,7 @@ rule run_astir_type:
         n_initial_epochs = config['astir_opts']['n_initial_epochs']
     input:
         loom=ancient(output_path + "looms/{dataset}.loom"),
-        markers=lambda wildcards: config[wildcards.dataset]['marker_file'],
+        markers=ancient(lambda wildcards: config[wildcards.dataset]['marker_file']),
     output:
         csv=output_path + "astir_assignments/{dataset}_astir_assignments.csv",
         fig=output_path + "astir_assignments/{dataset}_astir_loss.png",
@@ -61,12 +61,12 @@ rule run_astir_type:
         from astir.data_readers import from_loompy_yaml
         from datetime import datetime
         print(f"{datetime.now()}\t Reading loom file ")
-        ast = from_loompy_yaml(input.loom, input.markers, include_beta=False)
+        ast = from_loompy_yaml(input.loom, input.markers)
         print(f"{datetime.now()}\t Fitting model")
         ast.fit_type(max_epochs = int(params.max_epochs), 
         batch_size = int(params.batch_size), 
         learning_rate = float(params.learning_rate),
-        n_initial_epochs=int(params.n_initial_epochs))
+        n_init_epochs=int(params.n_initial_epochs))
         print(f"{datetime.now()}\t Finished fitting model")
         ast.type_to_csv(output.csv)
 
@@ -102,7 +102,7 @@ rule run_astir_state:
         from astir.data_readers import from_loompy_yaml
         from datetime import datetime
         print(f"{datetime.now()}\t Reading loom file ")
-        ast = from_loompy_yaml(input.loom, input.markers, include_beta=False)
+        ast = from_loompy_yaml(input.loom, input.markers)
         print(f"{datetime.now()}\t Fitting model")
         ast.fit_state(max_epochs = int(params.max_epochs), 
         batch_size = int(params.batch_size), 

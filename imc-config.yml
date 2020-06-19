@@ -13,12 +13,12 @@ n_subsample: 15000
 basel:
     base_dir: data-raw/jackson-2020/SingleCell_and_Metadata/BaselTMA/
     metadata_file: Basel_PatientMetadata.csv
-    marker_file: markers/jackson-2020-markers.yml
+    marker_file: markers/jackson-2020-markers-v2.yml
 
 zurich1:
     base_dir: data-raw/jackson-2020/SingleCell_and_Metadata/ZurichTMA/
     metadata_file: Zuri_PatientMetadata.csv
-    marker_file: markers/jackson-2020-markers.yml
+    marker_file: markers/jackson-2020-markers-v2.yml
 
 ## Data config for Wagner 2019 cell
 wagner:

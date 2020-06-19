@@ -43,17 +43,24 @@ expr_csv <- sample_n(expr_csv, args$n_cells)
 
 g <- st <- expr_mat <- NULL
 
+
+expr_mat <- select(expr_csv, -X1, -X, -Y) %>% 
+  as.matrix() %>% 
+  t()
+
 if(args$method == "astir") {
-  csv_file <- tempfile()
-  output_file <- tempfile()
+  csv_file <- tempfile(tmpdir='tmp')
+  output_file <- tempfile(tmpdir='tmp')
   select(expr_csv, -X, -Y) %>% 
     write_csv(csv_file)
   
-  expr_mat <- select(expr_csv, -X, -Y, -X1) %>% 
-    as.matrix() %>% 
-    t()
+  # expr_mat <- select(expr_csv, -X, -Y, -X1) %>% 
+  #   as.matrix() %>% 
+  #   t()
   
-  cmd <- paste("astir state",
+  cmd <- paste("/home/ltri/campbell/kcampbel/.conda/envs/imc/bin/python",
+              "/home/ltri/campbell/kcampbel/.conda/envs/imc/bin/astir",
+              "state",
               csv_file,
               args$markers,
               output_file,
@@ -73,9 +80,6 @@ if(args$method == "astir") {
   
 } else {
 
-  expr_mat <- select(expr_csv, -X1, -X, -Y) %>% 
-    as.matrix() %>% 
-    t()
   
   st <- system.time({
   g <- gsva(expr_mat, 

@@ -14,7 +14,7 @@ import numpy as np
 celltypes_to_remove = {
     'Stromal_only': ['Stromal'],
     'Stromal_Macrophage': ['Stromal', 'Macrophage'],
-    'Stromal_Macrophage_Monocyte': ['Stromal', 'Macrophage', 'Endothelial'],
+    'Stromal_Macrophage_Endothelial': ['Stromal', 'Macrophage', 'Endothelial'],
     'None': []
 }
 
@@ -76,7 +76,7 @@ rule remove_celltypes:
             
         from astir.data_readers import from_csv_dir_yaml
 
-        ast = from_csv_dir_yaml(os.path.join(output_path, "basel_subset_separate_csvs"), output.markers, include_beta=False)
+        ast = from_csv_dir_yaml(os.path.join(output_path, "basel_subset_separate_csvs"), output.markers)
         ast.fit_type(max_epochs = int(params.max_epochs), 
         batch_size = int(params.batch_size), 
         learning_rate = float(params.learning_rate))
@@ -118,7 +118,7 @@ rule add_celltypes:
             
         from astir.data_readers import from_csv_dir_yaml
 
-        ast = from_csv_dir_yaml(os.path.join(output_path, "basel_subset_separate_csvs"), output.markers, include_beta=False)
+        ast = from_csv_dir_yaml(os.path.join(output_path, "basel_subset_separate_csvs"), output.markers)
         ast.fit_type(max_epochs = int(params.max_epochs), 
         batch_size = int(params.batch_size), 
         learning_rate = float(params.learning_rate))

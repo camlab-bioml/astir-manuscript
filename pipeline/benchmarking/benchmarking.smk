@@ -4,8 +4,8 @@
 
 
 
-repeats = 20
-gsva_methods = ["gsva", "ssgsea", "zscore", "plage", "astir"]
+repeats = 5
+gsva_methods = ["gsva", "ssgsea", "plage", "astir"]
 
 n_cells = [1000, 5000, 10000, 50000]
 
@@ -17,9 +17,10 @@ geneset_files = expand(output_path_benchmarking + "geneset_benchmark_{d}_{m}_{n}
                 d=datasets,
                 m=gsva_methods, n=n_cells, r = range(repeats))
 
-# geneset_files = geneset_files + \
-#     expand(output_path_benchmarking + "geneset_benchmark_{m}_{n}_{r}.csv",
-#             m=['plage', 'astir'], n=[50000,100000,200000], r = range(repeats))
+geneset_files = geneset_files + \
+    expand(output_path_benchmarking + "geneset_benchmark_{d}_{m}_{n}_{r}.csv",
+            d=datasets,
+            m=['plage', 'astir'], n=[50000,100000,200000], r = range(repeats))
 
 benchmarking_output = {
     'files': geneset_files
