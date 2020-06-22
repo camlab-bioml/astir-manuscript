@@ -1,0 +1,457 @@
+---
+title: "Rphenograph"
+author: "Michael Geuenich"
+date: "May 29, 2020"
+output: html_document
+params:
+  markers: "specified_markers"
+  create_csv: FALSE
+  cells: "../../output/v4/zurich1_subset/zurich1_subset_sce.rds"
+  celltypes: "../../output/v4/zurich1_subset/zurich1_subset_assignments_type.csv"
+  cellstates: "../../output/v4/zurich1_subset/zurich1_subset_assignments_state.csv" 
+  cohort: "zurich1"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(SingleCellExperiment)
+library(tidyverse)
+library(devtools)
+library(factoextra)
+library(ComplexHeatmap)
+library(scater)
+library(dichromat)
+library(randomcoloR)
+library(viridis)
+devtools::load_all('../../../taproom/')
+source("scripts/functions.R")
+
+library(cytofkit)
+library(ggalluvial)
+```
+
+
+First read in all sc data and assign cell type
+```{r message=F, warning=F}
+# read in data
+sce <- assignIdentity2(params$cells, params$celltypes, params$cellstates)
+pathways <- sce$pathways
+sce <- sce$sce
+
+# Just for the time being until we switch everything over to remove s' at the end
+sce$cell_type[which(sce$cell_type == "B cell")] <- "B cells"
+sce$cell_type[which(sce$cell_type == "T cell")] <- "T cells"
+```
+
+```{r include=F}
+if(params$markers == "all_markers"){
+  imc.data <- t(logcounts(sce))
+  
+  # I will use this variable in the future to evaluate whether sections of code
+  # should be executed
+  evalStatement <- F
+}else if(params$markers == "specified_markers"){
+  if(params$cohort == "basel" | params$cohort == "zurich1"){
+    markers <- read_markers("../../markers/jackson-2020-markers.yml")
+  }else if(params$cohort == "wagner"){
+    markers <- read_markers("../../markers/wagner-2019-markers.yml")
+  }
+  
+  imc.data <- t(logcounts(sce[unique(unlist(markers$cell_types)),]))
+  evalStatement <- T
+}
+```
+
+```{r}
+# Find clusters using different methods
+imc.pheno.cluster.k20 <- cytof_cluster(xdata = imc.data, method = "Rphenograph",
+                                   Rphenograph_k = 20)
+imc.pheno.cluster.k30 <- cytof_cluster(xdata = imc.data, method = "Rphenograph",
+                                   Rphenograph_k = 30)
+imc.pheno.cluster.k40 <- cytof_cluster(xdata = imc.data, method = "Rphenograph",
+                                   Rphenograph_k = 40)
+imc.pheno.cluster.k50 <- cytof_cluster(xdata = imc.data, method = "Rphenograph",
+                                   Rphenograph_k = 50)
+
+# Add newly defined clusters to sc data
+sce$phenograph.k20 <- imc.pheno.cluster.k20
+sce$phenograph.k30 <- imc.pheno.cluster.k30
+sce$phenograph.k40 <- imc.pheno.cluster.k40
+sce$phenograph.k50 <- imc.pheno.cluster.k50
+```
+
+Write out the results to csv files.
+
+```{r eval = params$create_csv, include=F}
+phenograph.k20 <- sce %>% colData() %>% as.data.frame() %>% select(id, "phenograph.k20")
+rownames(phenograph.k20) <- c()
+phenograph.k20$method <- "Phenograph"
+phenograph.k20$params <- paste(params$markers, "k20", sep = "_")
+write.csv(phenograph.k20, file = paste0("../../output/v4/results/Phenograph_clusters_", 
+                                        params$cohort, "_", params$markers, "_k20.csv"),
+          col.names = T, row.names = F, sep = ",")
+
+phenograph.k30 <- sce %>% colData() %>% as.data.frame() %>% select(id, "phenograph.k30")
+rownames(phenograph.k30) <- c()
+phenograph.k30$method <- "Phenograph"
+phenograph.k30$params <- paste(params$markers, "k30", sep = "_")
+write.csv(phenograph.k30, file = paste0("../../output/v4/results/Phenograph_clusters_", 
+                                        params$cohort, "_", params$markers, "_k30.csv"),
+          col.names = T, row.names = F, sep = ",")
+
+phenograph.k40 <- sce %>% colData() %>% as.data.frame() %>% select(id, "phenograph.k40")
+rownames(phenograph.k40) <- c()
+phenograph.k40$method <- "Phenograph"
+phenograph.k40$params <- paste(params$markers, "k40", sep = "_")
+write.csv(phenograph.k40, file = paste0("../../output/v4/results/Phenograph_clusters_",
+                                        params$cohort, "_", params$markers, "_k40.csv"),
+          col.names = T, row.names = F, sep = ",")
+
+phenograph.k50 <- sce %>% colData() %>% as.data.frame() %>% select(id, "phenograph.k50")
+rownames(phenograph.k50) <- c()
+phenograph.k50$method <- "Phenograph"
+phenograph.k50$params <- paste(params$markers, "k50", sep = "_")
+write.csv(phenograph.k50, file = paste0("../../output/v4/results/Phenograph_clusters_",
+                                        params$cohort, "_", params$markers, "_k50.csv"),
+          col.names = T, row.names = F, sep = ",")
+
+```
+
+Start alluvial plots to compare phenograph clusters to astir celltype/states.
+```{r}
+phenograph.k20.alluv <- sce %>% colData() %>% as.data.frame() %>% 
+    select(cell_type, phenograph.k20) %>% group_by(cell_type, phenograph.k20) %>% 
+  count()
+
+phenograph.k30.alluv <- sce %>% colData() %>% as.data.frame() %>% 
+    select(cell_type, phenograph.k30) %>% group_by(cell_type, phenograph.k30) %>% 
+  count()
+
+phenograph.k40.alluv <- sce %>% colData() %>% as.data.frame() %>% 
+    select(cell_type, phenograph.k40) %>% group_by(cell_type, phenograph.k40) %>% 
+  count()
+
+phenograph.k50.alluv <- sce %>% colData() %>% as.data.frame() %>% 
+    select(cell_type, phenograph.k50) %>% group_by(cell_type, phenograph.k50) %>% 
+  count()
+```
+
+Plot alluvial plots for cell types
+```{r}
+create.alluvial(phenograph.k20.alluv, "Cell type - phenograph (k20)")
+create.alluvial(phenograph.k30.alluv, "Cell type - phenograph (k30)")
+create.alluvial(phenograph.k40.alluv, "Cell type - phenograph (k40)")
+create.alluvial(phenograph.k50.alluv, "Cell type - phenograph (k50)")
+```
+
+
+Next, cell state
+```{r}
+phenograph.k20.alluv <- sce %>% colData() %>% as.data.frame() %>% 
+    select(type_state, phenograph.k20) %>% group_by(type_state, phenograph.k20) %>% 
+  count()
+
+phenograph.k30.alluv <- sce %>% colData() %>% as.data.frame() %>% 
+    select(type_state, phenograph.k30) %>% group_by(type_state, phenograph.k30) %>% 
+  count()
+
+phenograph.k40.alluv <- sce %>% colData() %>% as.data.frame() %>% 
+    select(type_state, phenograph.k40) %>% group_by(type_state, phenograph.k40) %>% 
+  count()
+
+phenograph.k50.alluv <- sce %>% colData() %>% as.data.frame() %>% 
+    select(type_state, phenograph.k50) %>% group_by(type_state, phenograph.k50) %>% 
+  count()
+
+```
+
+```{r}
+create.alluvial(phenograph.k20.alluv, "Cell state - phenograph (k20)")
+create.alluvial(phenograph.k30.alluv, "Cell state - phenograph (k30)")
+create.alluvial(phenograph.k40.alluv, "Cell state - phenograph (k40)")
+create.alluvial(phenograph.k50.alluv, "Cell state - phenograph (k50)")
+```
+
+
+```{r eval = evalStatement, include = evalStatement, fig.width=10}
+lc <- scale(imc.data)
+thresh <- 2
+lc[lc > thresh] <- thresh
+lc[lc < -thresh] <- -thresh
+
+phenograph.k20.ha <- 
+  HeatmapAnnotation(`Cell type` = sce$cell_type,
+                    `phenograph cluster` = as.factor(sce$phenograph.k20),
+                    which="column",
+                    col = list(`Cell type` = jackson_basel_colours()),
+                    `phenograph cluster` = distinctColorPalette(length(unique(sce$phenograph.k20))))
+
+phenograph.k30.ha <- 
+  HeatmapAnnotation(`Cell type` = sce$cell_type,
+                    `phenograph cluster` = as.factor(sce$phenograph.k30),
+                    which="column",
+                    col = list(`Cell type` = jackson_basel_colours()),
+                    `phenograph cluster` = distinctColorPalette(length(unique(sce$phenograph.k30))))
+
+phenograph.k40.ha <- 
+  HeatmapAnnotation(`Cell type` = sce$cell_type,
+                    `phenograph cluster` = as.factor(sce$phenograph.k40),
+                    which="column",
+                    col = list(`Cell type` = jackson_basel_colours()),
+                    `phenograph cluster` = distinctColorPalette(length(unique(sce$phenograph.k40))))
+
+phenograph.k50.ha <- 
+  HeatmapAnnotation(`Cell type` = sce$cell_type,
+                    `phenograph cluster` = as.factor(sce$phenograph.k50),
+                    which="column",
+                    col = list(`Cell type` = jackson_basel_colours()),
+                    `phenograph cluster` = distinctColorPalette(length(unique(sce$phenograph.k50))))
+
+
+phenograph.k20.type_exprs <- Heatmap(t(lc), 
+                                    name = "Expression",
+                                    column_title = "Cell",
+                                    col=viridis(100),
+                                    top_annotation = phenograph.k20.ha,
+                                    show_column_names = FALSE,
+                                    column_order = order(sce$phenograph.k20))
+
+phenograph.k30.type_exprs <- Heatmap(t(lc), 
+                                    name = "Expression",
+                                    column_title = "Cell",
+                                    col=viridis(100),
+                                    top_annotation = phenograph.k30.ha,
+                                    show_column_names = FALSE,
+                                    column_order = order(sce$phenograph.k30))
+
+phenograph.k40.type_exprs <- Heatmap(t(lc), 
+                                    name = "Expression",
+                                    column_title = "Cell",
+                                    col=viridis(100),
+                                    top_annotation = phenograph.k40.ha,
+                                    show_column_names = FALSE,
+                                    column_order = order(sce$phenograph.k40))
+
+phenograph.k50.type_exprs <- Heatmap(t(lc), 
+                                    name = "Expression",
+                                    column_title = "Cell",
+                                    col=viridis(100),
+                                    top_annotation = phenograph.k50.ha,
+                                    show_column_names = FALSE,
+                                    column_order = order(sce$phenograph.k50))
+
+# Plot heatmaps
+draw(phenograph.k20.type_exprs)
+draw(phenograph.k30.type_exprs)
+draw(phenograph.k40.type_exprs)
+draw(phenograph.k50.type_exprs)
+```
+
+Next up boxplots:
+
+```{r eval = evalStatement, include= evalStatement, fig.width=30, fig.height=20}
+# start creating theme
+phenograph.violin <- sce %>% 
+  colData() %>% 
+  as.data.frame %>% 
+  select(pathways, 
+         phenograph.k20, phenograph.k30,
+         phenograph.k40, phenograph.k50) %>% 
+  pivot_longer(cols = pathways, 
+               names_to = "pathway", values_to = "activation") %>% 
+  pivot_longer(cols = phenograph.k20:phenograph.k50,
+               names_to = "Iteration", values_to = "clusterID")
+
+phenograph.violin$clusterID <- as.factor(phenograph.violin$clusterID)
+
+
+ggplot(phenograph.violin, aes(x = clusterID, y = activation)) +
+  geom_violin() +
+  facet_wrap(c("Iteration", "pathway")) +
+  astir_paper_theme()
+
+ggplot(phenograph.violin, aes(x = clusterID, y = activation)) +
+  geom_boxplot() +
+  facet_wrap(c("Iteration", "pathway")) +
+  astir_paper_theme()
+```
+
+
+Create plots to evaluate the accuracy of astir.
+```{r eval = evalStatement, include=evalStatement}
+imc.data <- as.data.frame(imc.data)
+  
+imc.data$cell_type <- sce$cell_type
+imc.data$phenograph.k20 <- sce$phenograph.k20
+imc.data$phenograph.k30 <- sce$phenograph.k30
+imc.data$phenograph.k40 <- sce$phenograph.k40
+imc.data$phenograph.k50 <- sce$phenograph.k50
+
+if(params$cohort == "wagner"){
+  selMarkers <- c("CD45", "FAP")
+}else if(params$cohort == "basel" | params$cohort == "zurich1"){
+  selMarkers <- c("Vimentin", "Cytokeratin 19")
+}
+
+
+astir.mean <- imc.data %>% 
+                    group_by(cell_type) %>% 
+                    summarise_at(vars(selMarkers[1]:selMarkers[2]), mean) %>% 
+                    dplyr::rename(cluster = cell_type) %>% 
+                    mutate(algorithm = "astir")
+
+phenograph.mean.k20 <- imc.data %>% 
+                          group_by(phenograph.k20) %>% 
+                          summarise_at(vars(selMarkers[1]:selMarkers[2]), mean) %>% 
+                          dplyr::rename(cluster = phenograph.k20) %>% 
+                          mutate(algorithm = "phenograph.k20") %>% 
+                          mutate(cluster = as.character(cluster))
+
+phenograph.mean.k30 <- imc.data %>% 
+                          group_by(phenograph.k30) %>% 
+                          summarise_at(vars(selMarkers[1]:selMarkers[2]), mean) %>% 
+                          dplyr::rename(cluster = phenograph.k30) %>% 
+                          mutate(algorithm = "phenograph.k30") %>% 
+                          mutate(cluster = as.character(cluster))
+
+phenograph.mean.k40 <- imc.data %>% 
+                          group_by(phenograph.k40) %>% 
+                          summarise_at(vars(selMarkers[1]:selMarkers[2]), mean) %>% 
+                          dplyr::rename(cluster = phenograph.k40) %>% 
+                          mutate(algorithm = "phenograph.k40") %>% 
+                          mutate(cluster = as.character(cluster))
+
+phenograph.mean.k50 <- imc.data %>% 
+                          group_by(phenograph.k50) %>% 
+                          summarise_at(vars(selMarkers[1]:selMarkers[2]), mean) %>% 
+                          dplyr::rename(cluster = phenograph.k50) %>% 
+                          mutate(algorithm = "phenograph.k50") %>% 
+                          mutate(cluster = as.character(cluster))
+
+
+
+comparison.summary <- bind_rows(astir.mean, phenograph.mean.k20, 
+                                phenograph.mean.k30, 
+                                phenograph.mean.k40, phenograph.mean.k50)
+
+# Removing all of this for now since we will use the data in comparison summary
+#if(params$cohort == "basel" | params$cohort == "zurich1"){
+#   evalMarkers = list(ECadherin = "`E-Cadherin`")
+# }else if(params$cohort == "wagner"){
+#   evalMarkers = list(ECadherin = "ECadherin")
+# }
+# 
+# t <- "ECadherin"
+# 
+# ggplot(comparison.summary, aes(x = evalMarkers$ECadherin, y = CD45)) +
+#   geom_point() +
+#   facet_wrap("algorithm") + 
+#   xlim(0, max(imc.data[[t]])) +
+#   ylim(0, max(imc.data$CD45)) +
+#   ggtitle("Mutually exclusive markers")
+# 
+# ggplot(comparison.summary, aes(x = CD3, y = CD45)) +
+#   geom_point() +
+#   facet_wrap("algorithm") + 
+#   xlim(0, max(imc.data$CD3)) +
+#   ylim(0, max(imc.data$CD45)) +
+#   ggtitle("Co-occuring markers")
+
+```
+
+
+Save the comparison file for future analyses.
+```{r eval = evalStatement, include=evalStatement}
+write.csv(comparison.summary, paste0("../../output/v4/results/Phenograph_astirComparison_", 
+                                    params$cohort, ".csv"),
+          row.names = F)
+```
+
+
+```{r eval = evalStatement, include=evalStatement}
+all.cells <- sce %>% colData() %>% as.data.frame() %>% 
+                      select(cell_type, pathways,
+                             phenograph.k20, phenograph.k30, 
+                             phenograph.k40, phenograph.k50) %>% 
+                      mutate(phenograph.k20 = as.character(phenograph.k20))
+
+luminal.cluster.k20 <- all.cells %>% 
+      select(cell_type, phenograph.k20) %>% 
+      dplyr::add_count(phenograph.k20) %>% 
+      dplyr::rename(totalCells_perCluster = n) %>% 
+      group_by(cell_type) %>% 
+      dplyr::add_count(phenograph.k20) %>% 
+      dplyr::rename(totalCell_perTypeandCluster = n) %>% 
+      mutate(ratio = totalCell_perTypeandCluster/totalCells_perCluster) %>% 
+      filter(cell_type == "Epithelial (luminal)" & ratio > 0.9) %>% 
+      pull(phenograph.k20) %>% unique()
+
+luminal.cluster.k30 <- all.cells %>% 
+      select(cell_type, phenograph.k30) %>% 
+      dplyr::add_count(phenograph.k30) %>% 
+      dplyr::rename(totalCells_perCluster = n) %>% 
+      group_by(cell_type) %>% 
+      dplyr::add_count(phenograph.k30) %>% 
+      dplyr::rename(totalCell_perTypeandCluster = n) %>% 
+      mutate(ratio = totalCell_perTypeandCluster/totalCells_perCluster) %>% 
+      filter(cell_type == "Epithelial (luminal)" & ratio > 0.9) %>% 
+      pull(phenograph.k30) %>% unique()
+
+luminal.cluster.k40 <- all.cells %>% 
+      select(cell_type, phenograph.k40) %>% 
+      dplyr::add_count(phenograph.k40) %>% 
+      dplyr::rename(totalCells_perCluster = n) %>% 
+      group_by(cell_type) %>% 
+      dplyr::add_count(phenograph.k40) %>% 
+      dplyr::rename(totalCell_perTypeandCluster = n) %>% 
+      mutate(ratio = totalCell_perTypeandCluster/totalCells_perCluster) %>% 
+      filter(cell_type == "Epithelial (luminal)" & ratio > 0.9) %>% 
+      pull(phenograph.k40) %>% unique()
+
+luminal.cluster.k50 <- all.cells %>% 
+      select(cell_type, phenograph.k50) %>% 
+      dplyr::add_count(phenograph.k50) %>% 
+      dplyr::rename(totalCells_perCluster = n) %>% 
+      group_by(cell_type) %>% 
+      dplyr::add_count(phenograph.k50) %>% 
+      dplyr::rename(totalCell_perTypeandCluster = n) %>% 
+      mutate(ratio = totalCell_perTypeandCluster/totalCells_perCluster) %>% 
+      filter(cell_type == "Epithelial (luminal)" & ratio > 0.9) %>% 
+      pull(phenograph.k50) %>% unique()
+
+
+k20.cells <- all.cells %>% 
+                filter(phenograph.k20 %in% luminal.cluster.k20) %>% 
+                select(cell_type, pathways, phenograph.k20) %>% 
+                dplyr::rename(cluster = phenograph.k20) %>% 
+                mutate(algorithm = "phenograph.k20")
+
+k30.cells <- all.cells %>% 
+                filter(phenograph.k30 %in% luminal.cluster.k30) %>% 
+                select(cell_type, pathways, phenograph.k30) %>% 
+                dplyr::rename(cluster = phenograph.k30) %>% 
+                mutate(algorithm = "phenograph.k30")
+
+k40.cells <- all.cells %>% 
+                filter(phenograph.k40 %in% luminal.cluster.k40) %>% 
+                select(cell_type, pathways, phenograph.k40) %>% 
+                dplyr::rename(cluster = phenograph.k40) %>% 
+                mutate(algorithm = "phenograph.k40")
+
+k50.cells <- all.cells %>% 
+                filter(phenograph.k50 %in% luminal.cluster.k50) %>% 
+                select(cell_type, pathways, phenograph.k50) %>% 
+                dplyr::rename(cluster = phenograph.k50) %>% 
+                mutate(algorithm = "phenograph.k50")
+
+all.clusters <- rbind(k20.cells, k30.cells, k40.cells, k50.cells)
+
+all.clusters <- all.clusters %>% pivot_longer(cols = pathways, 
+                              names_to = "pathway", values_to = "activation")
+```
+
+```{r eval = evalStatement, include=evalStatement, fig.height=10}
+ggplot(all.clusters, aes(x = cluster, y = activation)) +
+  geom_boxplot() +
+  facet_wrap(c("algorithm", "pathway"), ncol = 4)
+```
