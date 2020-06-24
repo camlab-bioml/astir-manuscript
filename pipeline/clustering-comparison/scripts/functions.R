@@ -29,7 +29,7 @@ assignIdentity2 <- function(raw.sce, types, states){
     as.data.frame()
   rownames(types_mat) <- types$X1
   
-  assignments <- get_celltypes(types_mat) %>% as.data.frame()
+  assignments <- taproom::get_celltypes(types_mat) %>% as.data.frame()
   colnames(assignments) <- "cell_type"
   assignments$id <- rownames(assignments)
   

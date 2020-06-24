@@ -21,7 +21,6 @@ library(factoextra)
 library(ComplexHeatmap)
 library(scater)
 library(dichromat)
-library(randomcoloR)
 library(viridis)
 devtools::load_all('../../../taproom/')
 source("scripts/functions.R")
@@ -52,7 +51,7 @@ if(params$markers == "all_markers"){
   evalStatement <- F
 }else if(params$markers == "specified_markers"){
   if(params$cohort == "basel" | params$cohort == "zurich1"){
-    markers <- read_markers("../../markers/jackson-2020-markers.yml")
+    markers <- read_markers("../../markers/jackson-2020-markers-v2.yml")
   }else if(params$cohort == "wagner"){
     markers <- read_markers("../../markers/wagner-2019-markers.yml")
   }
