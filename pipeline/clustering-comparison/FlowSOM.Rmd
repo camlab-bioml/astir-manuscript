@@ -188,28 +188,28 @@ FlowSOM.k8.ha <-
                     `phenograph cluster` = as.factor(sce$FlowSOM.k8),
                     which="column",
                     col = list(`Cell type` = jackson_basel_colours()),
-                    `phenograph cluster` = distinctColorPalette(length(unique(sce$FlowSOM.k8))))
+                    `phenograph cluster` = sce$FlowSOM.k8)
 
 FlowSOM.k12.ha <- 
   HeatmapAnnotation(`Cell type` = sce$cell_type,
                     `phenograph cluster` = as.factor(sce$FlowSOM.k12),
                     which="column",
                     col = list(`Cell type` = jackson_basel_colours()),
-                    `phenograph cluster` = distinctColorPalette(length(unique(sce$FlowSOM.k12))))
+                    `phenograph cluster` = sce$FlowSOM.k12)
 
 FlowSOM.k15.ha <- 
   HeatmapAnnotation(`Cell type` = sce$cell_type,
                     `phenograph cluster` = as.factor(sce$FlowSOM.k15),
                     which="column",
                     col = list(`Cell type` = jackson_basel_colours()),
-                    `phenograph cluster` = distinctColorPalette(length(unique(sce$FlowSOM.k15))))
+                    `phenograph cluster` = sce$FlowSOM.k15)
 
 FlowSOM.k20.ha <- 
   HeatmapAnnotation(`Cell type` = sce$cell_type,
                     `phenograph cluster` = as.factor(sce$FlowSOM.k20),
                     which="column",
                     col = list(`Cell type` = jackson_basel_colours()),
-                    `phenograph cluster` = distinctColorPalette(length(unique(sce$FlowSOM.k20))))
+                    `phenograph cluster` = sce$FlowSOM.k20)
 
 
 FlowSOM.k8.type_exprs <- Heatmap(t(lc), 

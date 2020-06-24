@@ -108,7 +108,7 @@ clusterX.ha <-
                     `clusterX cluster` = as.factor(sce$clusterX),
                     which="column",
                     col = list(`Cell type` = jackson_basel_colours()),
-                    `clusterX cluster` = distinctColorPalette(length(unique(sce$clusterX))))
+                    `clusterX cluster` = sce$clusterX)
 
 clusterX.type_exprs <- Heatmap(t(lc), 
                                 name = "Expression",
