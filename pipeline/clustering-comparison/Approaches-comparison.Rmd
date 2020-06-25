@@ -1,0 +1,132 @@
+---
+title: "Approaches-comparison"
+author: "Michael Geuenich"
+date: "June 7, 2020"
+output: html_document
+params:
+  cells: "raw_data/wagner/wagner_subset_sce.rds"
+  celltypes: "raw_data/wagner/wagner_subset_assignments_type.csv"
+  cohort: "wagner"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = '../')
+library(tidyverse)
+library(cowplot)
+library(SingleCellExperiment)
+library(yaml)
+library(GSVA)
+library(pheatmap)
+devtools::load_all('../../../taproom/')
+```
+
+This notebook is used to compare the accuracy of different approaches based on the expression of marker genes.
+
+```{r}
+# REad in markers
+if(params$cohort == "basel" | params$cohort == "zurich1"){
+    markers <- read_markers("../markers/jackson-2020-markers.yml")
+  }else if(params$cohort == "wagner"){
+    markers <- read_markers("../markers/wagner-2019-markers.yml")
+}
+
+# Read in RDS file
+sce <- readRDS(params$cells)
+
+# Get cell types
+astir_types <- read_csv(params$celltypes)
+cell_names <- astir_types$X1
+astir_types$X1 <- NULL
+astir_types <- get_celltypes(astir_types)
+names(astir_types) <- cell_names
+
+# Add cell types to sce
+sce$cluster <- astir_types[colnames(sce)]
+
+# Create list of files to be read in
+files <- dir("../output/v4/results/", 
+             pattern=paste0("clusters_", params$cohort, "*.*"), 
+             full.names = TRUE)
+```
+
+
+Gene set enrichment analysis
+```{r}
+gsva <- gsva(logcounts(sce),
+          markers$cell_types,
+          method="gsva")
+
+df_gsva <- t(gsva) %>% 
+  as.data.frame() %>% 
+  rownames_to_column("id") %>% 
+  gather(pathway, score, -id) %>% 
+  as_tibble()
+```
+
+
+```{r message=F}
+# Read in and concatenate all output files
+methodOutputs <- lapply(files, function(f) {
+  cluster_df <- read_csv(f)
+  names(cluster_df)[2] <- "cluster"
+  cluster_df$cluster <- as.character(cluster_df$cluster)
+  cluster_df$method <- paste0(cluster_df$method, "-", cluster_df$params)
+  cluster_df$params <- NULL
+  cluster_df
+}) %>% 
+  bind_rows()
+
+# Create analogous df for astir
+astir_df <- tibble(
+  id = colnames(sce),
+  cluster = astir_types[colnames(sce)],
+  method = "astir"
+)
+
+# combine everything into one dataframe
+methods <- bind_rows(methodOutputs, astir_df) %>% 
+  inner_join(df_gsva, methods, by = "id")
+```
+
+
+Plotting
+```{r message = F, fig.height=12}
+# Boxplot: gsva scores per cell type
+filter(methods, method == "astir") %>% 
+  ggplot(aes(x = cluster, y = score)) +
+  geom_boxplot() +
+  facet_wrap(~ pathway) +
+  astir_paper_theme()
+
+
+# Create summary with mean score per pathway/method/cluster
+# Normalize mean scores
+# Remove other & unknown cells
+methods.summary <- group_by(methods, pathway, method, cluster) %>% 
+  summarize(mean_score = mean(score)) %>% 
+  ungroup() %>% 
+  filter(!grepl("Other|Unknown", cluster)) %>% 
+  group_by(pathway, method) %>% 
+  mutate(mean_score = (mean_score - mean(mean_score)) / sd(mean_score)) %>% 
+  ungroup() %>% 
+  group_by(cluster, method) %>% 
+  mutate(thresh_score = mean_score == max(mean_score))
+
+# Plot heatmap
+methods.summary %>% 
+  ggplot(aes(x = cluster, y = pathway, fill = mean_score)) +
+  geom_tile() +
+  scale_fill_viridis_c() +
+  facet_wrap(~ method, scales = "free_x") +
+  astir_paper_theme()
+
+# Plot boolean heatmap
+methods.summary %>% 
+  filter(!grepl("Other|Unknown", cluster)) %>% 
+  ggplot(aes(x = cluster, y = pathway, fill = thresh_score)) +
+  geom_tile() +
+  scale_fill_viridis_d() +
+  facet_wrap(~ method, scales = "free_x", ncol = 3) +
+  astir_paper_theme()
+```
