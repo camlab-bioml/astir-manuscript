@@ -15,6 +15,7 @@ params:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = '../')
 library(SingleCellExperiment)
 library(tidyverse)
 library(devtools)
@@ -51,9 +52,9 @@ if(params$markers == "all_markers"){
   evalStatement <- F
 }else if(params$markers == "specified_markers"){
   if(params$cohort == "basel" | params$cohort == "zurich1"){
-    markers <- read_markers("../../markers/jackson-2020-markers-v2.yml")
+    markers <- read_markers("../markers/jackson-2020-markers-v2.yml")
   }else if(params$cohort == "wagner"){
-    markers <- read_markers(../../"markers/wagner-2019-markers.yml")
+    markers <- read_markers(../"markers/wagner-2019-markers.yml")
   }
   
   imc.data <- t(logcounts(sce[unique(unlist(markers$cell_types)),]))
@@ -91,7 +92,7 @@ flowSOM_k8 <- sce %>% colData() %>% as.data.frame() %>% select(id, "FlowSOM.k8")
 rownames(flowSOM_k8) <- c()
 flowSOM_k8$method <- "FlowSOM"
 flowSOM_k8$params <- paste(params$markers, "k8", sep = "_")
-write.csv(flowSOM_k8, file = paste0("../../output/v4/results/FlowSOM_clusters_", 
+write.csv(flowSOM_k8, file = paste0("../output/v4/results/FlowSOM_clusters_", 
                                     params$cohort, "_", params$markers, "_k8.csv"),
           col.names = T, row.names = F, sep = ",")
 
@@ -100,7 +101,7 @@ flowSOM_k8 <- sce %>% colData() %>% as.data.frame() %>% select(id, "FlowSOM.k12"
 rownames(flowSOM_k8) <- c()
 flowSOM_k8$method <- "FlowSOM"
 flowSOM_k8$params <- paste(params$markers, "k12", sep = "_")
-write.csv(flowSOM_k8, file = paste0("../../output/v4/results/FlowSOM_clusters_",
+write.csv(flowSOM_k8, file = paste0("../output/v4/results/FlowSOM_clusters_",
                                     params$cohort, "_", params$markers, "_k12.csv"),
           col.names = T, row.names = F, sep = ",")
 
@@ -109,7 +110,7 @@ flowSOM_k8 <- sce %>% colData() %>% as.data.frame() %>% select(id, "FlowSOM.k15"
 rownames(flowSOM_k8) <- c()
 flowSOM_k8$method <- "FlowSOM"
 flowSOM_k8$params <- paste(params$markers, "k15", sep = "_")
-write.csv(flowSOM_k8, file = paste0("../../output/v4/results/FlowSOM_clusters_", 
+write.csv(flowSOM_k8, file = paste0("../output/v4/results/FlowSOM_clusters_", 
                                     params$cohort, "_", params$markers, "_k15.csv"),
           col.names = T, row.names = F, sep = ",")
 
@@ -118,7 +119,7 @@ flowSOM_k8 <- sce %>% colData() %>% as.data.frame() %>% select(id, "FlowSOM.k20"
 rownames(flowSOM_k8) <- c()
 flowSOM_k8$method <- "FlowSOM"
 flowSOM_k8$params <- paste(params$markers, "k20", sep = "_")
-write.csv(flowSOM_k8, file = paste0("../../output/v4/results/FlowSOM_clusters_", 
+write.csv(flowSOM_k8, file = paste0("../output/v4/results/FlowSOM_clusters_", 
                                     params$cohort, "_", params$markers, "_k20.csv"),
           col.names = T, row.names = F, sep = ",")
 
@@ -353,7 +354,7 @@ comparison.summary <- bind_rows(astir.mean, FlowSOM.mean.k8, FlowSOM.mean.k12,
 
 Save the comparison file for future analyses.
 ```{r eval = evalStatement, include=evalStatement}
-write.csv(comparison.summary, paste0("../../output/v4/results/FlowSOM_astirComparison_", 
+write.csv(comparison.summary, paste0("../output/v4/results/FlowSOM_astirComparison_", 
                                     params$cohort, ".csv"),
           row.names = F)
 ```

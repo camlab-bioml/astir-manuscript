@@ -14,6 +14,7 @@ params:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = '../')
 library(SingleCellExperiment)
 library(tidyverse)
 library(devtools)
@@ -51,9 +52,9 @@ if(params$markers == "all_markers"){
   evalStatement <- F
 }else if(params$markers == "specified_markers"){
   if(params$cohort == "basel" | params$cohort == "zurich1"){
-    markers <- read_markers("../../markers/jackson-2020-markers-v2.yml")
+    markers <- read_markers("../markers/jackson-2020-markers-v2.yml")
   }else if(params$cohort == "wagner"){
-    markers <- read_markers("../../markers/wagner-2019-markers.yml")
+    markers <- read_markers("../markers/wagner-2019-markers.yml")
   }
   
   imc.data <- t(logcounts(sce[unique(unlist(markers$cell_types)),]))
@@ -75,7 +76,7 @@ ClusterX <- sce %>% colData() %>% as.data.frame() %>% select(id, "clusterX")
 rownames(ClusterX) <- c()
 ClusterX$method <- "ClusterX"
 ClusterX$params <- paste(params$markers, "Default", sep = "_")
-write.csv(ClusterX, file = paste0("../../output/v4/results/ClusterX_clusters_", params$cohort,
+write.csv(ClusterX, file = paste0("../output/v4/results/ClusterX_clusters_", params$cohort,
                                   "_", params$markers, "_default.csv"),
           col.names = T, row.names = F, sep = ",")
 ```
@@ -199,7 +200,7 @@ comparison.summary <- bind_rows(astir.mean, clusterX.mean)
 
 Save the comparison file for future analyses.
 ```{r eval = evalStatement, include=evalStatement}
-write.csv(comparison.summary, paste0("../../output/v4/results/ClusterX_astirComparison_", 
+write.csv(comparison.summary, paste0("../output/v4/results/ClusterX_astirComparison_", 
                                     params$cohort, ".csv"),
           row.names = F)
 ```
