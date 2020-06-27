@@ -4,9 +4,9 @@ author: "Michael Geuenich"
 date: "June 7, 2020"
 output: html_document
 params:
-  cells: "../output/v4/zurich1_subset/zurich1_subset_sce.rds"
-  celltypes: "../output/v4/zurich1_subset/zurich1_subset_assignments_type.csv"
-  cohort: "zurich1"
+  cells: "../output/v4/basel_subset/basel_subset_sce.rds"
+  celltypes: "../output/v4/basel_subset/basel_subset_assignments_type.csv"
+  cohort: "basel"
 ---
 
 ```{r setup, include=FALSE}
@@ -164,8 +164,8 @@ clPerType.mat <- clPerType %>%
 # Colour palette
 gradient<- colorRampPalette(c("#FFEBEE", "#F50025"))
 pal <- c("#FCCB1F", "#454E9E", 
-         gradient(max(as.integer(df4$clusters_per_cell_type)) - 1))
-names(pal) <- c(0:max(as.integer(df4$clusters_per_cell_type)))
+         gradient(max(as.integer(levels(df4$clusters_per_cell_type))) - 1))
+names(pal) <- c(0:max(as.integer(levels(df4$clusters_per_cell_type))))
 
 # Heatmap annotation
 plottingOrder = clPerType %>% 
