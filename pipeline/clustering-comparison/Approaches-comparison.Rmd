@@ -91,7 +91,7 @@ methods <- bind_rows(methodOutputs, astir_df) %>%
 
 
 Plotting
-```{r message = F, fig.height=12}
+```{r message = F, fig.height=12, fig.width = 10}
 # Boxplot: gsva scores per cell type
 filter(methods, method == "astir") %>% 
   ggplot(aes(x = cluster, y = score)) +
