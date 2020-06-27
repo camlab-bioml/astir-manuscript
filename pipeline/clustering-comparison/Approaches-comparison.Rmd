@@ -4,9 +4,9 @@ author: "Michael Geuenich"
 date: "June 7, 2020"
 output: html_document
 params:
-  cells: "raw_data/wagner/wagner_subset_sce.rds"
-  celltypes: "raw_data/wagner/wagner_subset_assignments_type.csv"
-  cohort: "wagner"
+  cells: "../output/v4/zurich1_subset/zurich1_subset_sce.rds"
+  celltypes: "../output/v4/zurich1_subset/zurich1_subset_assignments_type.csv"
+  cohort: "zurich1"
 ---
 
 ```{r setup, include=FALSE}
@@ -14,6 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_knit$set(root.dir = '../')
 library(tidyverse)
 library(cowplot)
+library(ComplexHeatmap)
 library(SingleCellExperiment)
 library(yaml)
 library(GSVA)
@@ -33,6 +34,7 @@ if(params$cohort == "basel" | params$cohort == "zurich1"){
 
 # Read in RDS file
 sce <- readRDS(params$cells)
+#sce <- readRDS("C:/Users/micha/CampbellLab/imc-2020/output/v4/basel_subset/basel_subset_sce.rds")
 
 # Get cell types
 astir_types <- read_csv(params$celltypes)
@@ -129,4 +131,55 @@ methods.summary %>%
   scale_fill_viridis_d() +
   facet_wrap(~ method, scales = "free_x", ncol = 3) +
   astir_paper_theme()
+```
+
+
+```{r fig.height=6}
+df4 <- group_by(methods.summary, pathway, method) %>% 
+  summarise(clusters_per_cell_type = sum(thresh_score)) %>% 
+  dplyr::mutate(clusters_per_cell_type = as.factor(clusters_per_cell_type))
+
+#Calculate the scores for each method
+scores <- df4 %>%
+  mutate(score = case_when(
+    clusters_per_cell_type == 1 ~ 1,
+    clusters_per_cell_type != 1 ~ -1
+  )) %>%
+  group_by(method) %>%
+  dplyr::summarise(score = sum(score))
+
+clPerType <- pivot_wider(df4, names_from = pathway, 
+                         values_from = clusters_per_cell_type) %>% 
+  left_join(scores, by = "method") %>%
+  mutate(method = str_replace(method, "_", " ")) %>% 
+  mutate(method = str_replace(method, "_", "-")) %>% 
+  mutate(method = str_replace(method, "astir", "Astir")) %>% 
+  column_to_rownames(var = "method")
+
+# Create matrix
+clPerType.mat <- clPerType %>% 
+  select(-score) %>% 
+  as.matrix()
+
+# Colour palette
+gradient<- colorRampPalette(c("#FFEBEE", "#F50025"))
+pal <- c("#FCCB1F", "#454E9E", 
+         gradient(max(as.integer(df4$clusters_per_cell_type)) - 1))
+names(pal) <- c(0:max(as.integer(df4$clusters_per_cell_type)))
+
+# Heatmap annotation
+plottingOrder = clPerType %>% 
+  arrange(desc(score)) %>% 
+  rownames()
+
+ha = rowAnnotation(Score = anno_barplot(clPerType$score, gp = gpar(fill = "lightgrey")),
+                   width = unit(2, "cm"))
+
+Heatmap(clPerType.mat, col = pal,
+        right_annotation = ha,
+        row_names_side = "left",
+        row_order = plottingOrder,
+        width = unit(5.5, "cm"),
+        height = unit(8, "cm"),
+        name = "# of clusters")
 ```
