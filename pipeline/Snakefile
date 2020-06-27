@@ -30,7 +30,7 @@ rule all:
         ClusterX_analysis_report_all = expand(output_dir_reports + "ClusterX-analysis-{cohort}-all_markers.html", cohort = cohort_list),
         ClusterX_clusters_output_all = expand("../output/v4/results/ClusterX_clusters_{cohort}_all_markers_default.csv", cohort = cohort_list),
 
-        #Other_approaches_report = expand(output_dir_reports + "Approaches-comparison-{cohort}.html", cohort = cohort_list)
+        Other_approaches_report = expand(output_dir_reports + "Approaches-comparison-{cohort}.html", cohort = cohort_list)
 
 rule phenograph_analysis:
     # This rule creates the performance data for phenograph as it only uses specified markers
