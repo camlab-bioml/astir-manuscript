@@ -23,11 +23,10 @@ library(ComplexHeatmap)
 library(scater)
 library(dichromat)
 library(viridis)
-devtools::load_all('../../../taproom/')
-source("scripts/functions.R")
-
 library(cytofkit)
 library(ggalluvial)
+devtools::load_all('../../../taproom/')
+source("../scripts/functions.R")
 ```
 
 

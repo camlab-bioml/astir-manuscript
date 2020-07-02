@@ -1,0 +1,176 @@
+---
+title: "Quantitative approaches assesment"
+author: "Michael Geuenich"
+date: "June 27, 2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = '../')
+library(tidyverse)
+library(cowplot)
+library(ggpubr)
+library(ComplexHeatmap)
+devtools::load_all('../../../taproom/')
+```
+
+Read in data
+```{r}
+basel <- read_csv("../output/v4/results/Assessment-heatmap-basel.csv") %>% 
+  mutate_if(colnames(.) != "score", as.factor) %>% 
+  column_to_rownames("X1")
+
+wagner <- read_csv("../output/v4/results/Assessment-heatmap-wagner.csv") %>% 
+  mutate_if(colnames(.) != "score", as.factor) %>% 
+  column_to_rownames("X1")
+
+zurich1 <- read_csv("../output/v4/results/Assessment-heatmap-zurich1.csv") %>% 
+  mutate_if(colnames(.) != "score", as.factor) %>% 
+  column_to_rownames("X1")
+
+```
+
+```{r fig.width=11}
+# Find largest level
+basel.max <- lapply(basel[basel %>% 
+              select(-score) %>% 
+              colnames], FUN = levels) %>% 
+  unlist() %>% 
+  as.numeric() %>% 
+  max()
+
+zurich1.max <- lapply(zurich1[zurich1 %>% 
+              select(-score) %>% 
+              colnames], FUN = levels) %>% 
+  unlist() %>% 
+  as.numeric() %>% 
+  max()
+
+wagner.max <- lapply(wagner[wagner %>% 
+              select(-score) %>% 
+              colnames], FUN = levels) %>% 
+  unlist() %>% 
+  as.numeric() %>% 
+  max()
+
+max.clusters <- max(basel.max, zurich1.max, wagner.max)
+
+
+# Create colour palette
+gradient<- colorRampPalette(c("#FFEBEE", "#F50025"))
+pal <- c("#FFB60A", "#648FFF", 
+         gradient(max.clusters - 1))
+names(pal) <- c(0:max(max.clusters))
+
+# Create matrices to plot
+basel.mat <- basel %>%
+  select(-score) %>% 
+  as.matrix()
+zurich1.mat <- zurich1 %>%
+  select(-score) %>% 
+  as.matrix()
+wagner.mat <- wagner %>% 
+  select(-score) %>% 
+  as.matrix()
+
+# Create heatmap annotations
+# define plotting order
+plottingOrder = basel %>% 
+  arrange(desc(score)) %>% 
+  rownames()
+
+# Annotations
+basel.ha = rowAnnotation(Score = anno_barplot(basel$score, 
+                                              gp = gpar(fill = "lightgrey")),
+                   width = unit(2, "cm"))
+wagner.ha = rowAnnotation(Score = anno_barplot(wagner$score, 
+                                              gp = gpar(fill = "lightgrey")),
+                   width = unit(2, "cm"))
+zurich1.ha = rowAnnotation(Score = anno_barplot(zurich1$score, 
+                                              gp = gpar(fill = "lightgrey")),
+                   width = unit(2, "cm"))
+
+
+basel.hm <- Heatmap(basel.mat, col = pal,
+                    row_order = plottingOrder,
+                    right_annotation = basel.ha,
+                    column_title = "Basel",
+                    row_names_side = "left",
+                    row_names_max_width = unit(7, "cm"),
+                    name = "# of clusters")
+wagner.hm <- Heatmap(wagner.mat, col = pal,
+                     row_order = plottingOrder,
+                     right_annotation = wagner.ha,
+                     show_heatmap_legend = F,
+                     column_title = "Wagner",
+                     show_row_names = F)
+zurich1.hm <- Heatmap(zurich1.mat, col = pal,
+                      row_order = plottingOrder,
+                      right_annotation = zurich1.ha,
+                      show_heatmap_legend = F,
+                      column_title = "Zurich1",
+                      show_row_names = F)
+
+basel.hm + wagner.hm + zurich1.hm
+```
+
+
+
+Create individual heatmaps
+```{r fig.width=40, fig.height=10}
+basel <- read_csv("../output/v4/results/Assessment-individual-heatmap-basel.csv")
+basel <- basel %>% 
+  mutate(method = str_replace(method, "_", "\n")) %>% 
+  mutate(method = str_replace(method, "_", "-")) %>% 
+  mutate(method = str_replace(method, "astir", "Astir"))
+
+wagner <- read_csv("../output/v4/results/Assessment-individual-heatmap-wagner.csv")
+wagner <- wagner %>% 
+  mutate(method = str_replace(method, "_", "\n")) %>% 
+  mutate(method = str_replace(method, "_", "-")) %>% 
+  mutate(method = str_replace(method, "astir", "Astir"))
+
+zurich1 <- read_csv("../output/v4/results/Assessment-individual-heatmap-zurich1.csv")
+zurich1 <- zurich1 %>% 
+  mutate(method = str_replace(method, "_", "\n")) %>% 
+  mutate(method = str_replace(method, "_", "-")) %>% 
+  mutate(method = str_replace(method, "astir", "Astir"))
+
+summary.heatmap.theme <- function(){
+  astir_paper_theme() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank())
+  #scale_color_discrete("Corresponds to cellytpe")
+  #scale_colour_discrete("Continents")
+}
+
+basel.hm <- basel %>% 
+  filter(!grepl("Other|Unknown", cluster)) %>% 
+  ggplot(aes(x = cluster, y = pathway, fill = thresh_score)) +
+  geom_tile() +
+  scale_fill_viridis_d() +
+  facet_wrap(~ method, scales = "free_x", nrow = 1) +
+  summary.heatmap.theme()
+
+wagner.hm <- wagner %>% 
+  filter(!grepl("Other|Unknown", cluster)) %>% 
+  ggplot(aes(x = cluster, y = pathway, fill = thresh_score)) +
+  geom_tile() +
+  scale_fill_viridis_d() +
+  facet_wrap(~ method, scales = "free_x", nrow = 1) +
+  summary.heatmap.theme()
+
+zurich1.hm <- zurich1 %>% 
+  filter(!grepl("Other|Unknown", cluster)) %>% 
+  ggplot(aes(x = cluster, y = pathway, fill = thresh_score)) +
+  geom_tile() +
+  scale_fill_viridis_d() +
+  facet_wrap(~ method, scales = "free_x", nrow = 1) +
+  summary.heatmap.theme()
+
+
+ggarrange(basel.hm, wagner.hm, zurich1.hm,
+          nrow = 3)
+```
