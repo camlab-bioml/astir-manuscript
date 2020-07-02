@@ -1,25 +1,40 @@
-### [PURPOSE OF THIS SCRIPT] #####
-# This script reads in the original sc proteomics data and cell type and state 
-# are then assigned. For cell states, in addition to the continuous value
-# (between 0 and 1), an additional column is added classifying each cell as 
-# either high or low for that state. This happens in a cell type specific manner.
-# Finally, cell identity is a columnt that is composed of the cell type, followed
-# by boolean classifications for each state, e.g: Macrophage_RTK-hi_proliferation-lo...
-
-# This script returns a single cell experiment object and can be called by any 
-# subsequent script.
+combineRDS <- function(metadata, path){
+  # Testing combining rds files
+  # First, select all the cores that are non-tumour for subsequent exclusion
+  nonTumourCores <- metadata %>% 
+    filter(diseasestatus == "non-tumor") %>% 
+    pull(core)
+  
+  # List all RDS files
+  RDSfiles <- dir(path, pattern = ".rds")
+  
+  RDSfiles <- RDSfiles[-grep("Liver", RDSfiles)] # remove liver samples
+  
+  # Remove non tumour cores
+  RDSfiles <- RDSfiles[-which(str_remove_all(RDSfiles, ".rds") %in% nonTumourCores)]
+  
+  listSCE <- lapply(RDSfiles, readRDS)
+  sce <- do.call('cbind', listSCE)
+  
+  sce
+}
 
 assignIdentity2 <- function(raw.sce, types, states){
   #### REad in data
   # raw.sce <- "output/v4/zurich1_subset/zurich1_subset_sce.rds"
   # types <- "output/v4/zurich1_subset/zurich1_subset_assignments_type.csv"
   # states <- "output/v4/zurich1_subset/zurich1_subset_assignments_state.csv"
-  sce <- readRDS(raw.sce)
   
-  ### Make sure wagner has id field
-  if(any(colnames(colData(sce)) == "id") == F & grepl("wagner", raw.sce)){
-    id <- sce %>% colData() %>% as.data.frame() %>% rownames()
-    sce$id <- id
+  if(is.character(raw.sce)){
+    sce <- readRDS(raw.sce)
+    
+    ### Make sure wagner has id field
+    if(any(colnames(colData(sce)) == "id") == F & grepl("wagner", raw.sce)){
+      id <- sce %>% colData() %>% as.data.frame() %>% rownames()
+      sce$id <- id
+    }
+  }else{
+    sce <- raw.sce
   }
   
   #### ASSIGN CELL TYPES
