@@ -11,7 +11,7 @@ combineRDS <- function(metadata, path){
   RDSfiles <- RDSfiles[-grep("Liver", RDSfiles)] # remove liver samples
   
   # Remove non tumour cores
-  RDSfiles <- RDSfiles[-which(str_remove_all(RDSfiles, ".rds") %in% nonTumourCores)]
+  RDSfiles <- RDSfiles[-grep(paste(nonTumourCores, collapse="|"), RDSfiles)]
   
   listSCE <- lapply(RDSfiles, readRDS)
   sce <- do.call('cbind', listSCE)
