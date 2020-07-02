@@ -6,7 +6,7 @@ combineRDS <- function(metadata, path){
     pull(core)
   
   # List all RDS files
-  RDSfiles <- dir(path, pattern = ".rds")
+  RDSfiles <- dir(path, pattern = ".rds", full.names = T)
   
   RDSfiles <- RDSfiles[-grep("Liver", RDSfiles)] # remove liver samples
   
