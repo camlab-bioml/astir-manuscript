@@ -30,7 +30,11 @@ rule all:
         ClusterX_analysis_report_all = expand(output_dir_reports + "ClusterX-analysis-{cohort}-all_markers.html", cohort = cohort_list),
         ClusterX_clusters_output_all = expand("../output/v4/results/ClusterX_clusters_{cohort}_all_markers_default.csv", cohort = cohort_list),
 
-        Other_approaches_report = expand(output_dir_reports + "Approaches-comparison-{cohort}.html", cohort = cohort_list)
+        Other_approaches_report = expand(output_dir_reports + "Approaches-comparison-{cohort}.html", cohort = cohort_list),
+        Other_approaches_heatmaps = expand("../output/v4/results/Assessment-individual-heatmap-{cohort}.csv", cohort = cohort_list),
+        Other_approaches_summary_heatmap = expand("../output/v4/results/Assessment-heatmap-{cohort}.csv", cohort = cohort_list),
+
+        Survival_analysis = output_dir_reports + "Survival-analysis-basel.html"
 
 rule phenograph_analysis:
     # This rule creates the performance data for phenograph as it only uses specified markers
@@ -167,9 +171,25 @@ rule compare_approaches:
         cohort = "{cohort}"
 
     output:
-        output_dir_reports + "Approaches-comparison-{cohort}.html"
+        html = output_dir_reports + "Approaches-comparison-{cohort}.html",
+        heatmap_individual = "../output/v4/results/Assessment-individual-heatmap-{cohort}.csv",
+        heatmap_summary = "../output/v4/results/Assessment-heatmap-{cohort}.csv"
 
     shell:
         "Rscript -e \" Sys.setenv(RSTUDIO_PANDOC='/home/ltri/campbell/share/software/pandoc-2.9.2.1/bin');"
-        "rmarkdown::render('clustering-comparison/Approaches-comparison.Rmd', output_file = '{output}', output_dir = '" + output_dir_reports + "',"
+        "rmarkdown::render('clustering-comparison/Approaches-comparison.Rmd', output_file = '{output.html}', output_dir = '" + output_dir_reports + "',"
         "params = list(cells = '{input.cells}', celltypes = '{input.celltypes}', cohort = '{params.cohort}' ))\" "
+
+rule survival_analysis:
+    input:
+        cells = "../output/v4/basel_subset/basel_subset_sce.rds",
+        cellTypes = "../output/v4/basel_subset/basel_subset_assignments_type.csv",
+        cellStates = "../output/v4/basel_subset/basel_subset_assignments_state.csv"
+
+    output:
+        html = output_dir_reports + "Survival-analysis-basel.html"
+
+    shell:
+        "Rscript -e \" Sys.setenv(RSTUDIO_PANDOC='/home/ltri/campbell/share/software/pandoc-2.9.2.1/bin');"
+        "rmarkdown::render('Survival-analysis.Rmd', output_file = '{output.html}', output_dir = '" + output_dir_reports + "',"
+        "params = list(cells = '{input.cells}', celltypes = '{input.celltypes}', cellstates = '{input.cellStates}' ))\" "

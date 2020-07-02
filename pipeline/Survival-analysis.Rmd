@@ -1,0 +1,156 @@
+---
+title: "Survival-analysis"
+author: "Michael Geuenich"
+date: "July 1, 2020"
+output: html_document
+params:
+  cells: "../output/v4/basel_subset/basel_subset_sce.rds"
+  celltypes: "../output/v4/basel_subset/basel_subset_assignments_type.csv"
+  cellstates: "../output/v4/basel_subset/basel_subset_assignments_state.csv" 
+  metadata: "../output/v4/basel_subset/basel_PatientMetadata.csv"
+  #/home/ltri/campbell/share/projects/imc-2020/data-raw/jackson-2020/SingleCell_and_Metadata/BaselTMA
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(SingleCellExperiment)
+library(scater)
+library(broom)
+library(survival)
+library(devtools)
+devtools::load_all('../../taproom/')
+source("clustering-comparison/scripts/functions.R")
+```
+
+
+Read in data
+```{r}
+metadata <- read_csv(params$metadata)
+metadata$censored <- ifelse(metadata$Patientstatus == "death" | 
+                              metadata$Patientstatus == "death by primary disease", 
+                            1, 0)
+
+sce <- combineRDS(metadata, ".")
+
+sce <- assignIdentity2(sce, params$celltypes, params$cellstates)
+pathways <- sce$pathways
+sce <- sce$sce
+
+sce.Tcells <- sce[, which(sce$cell_type == "T cells")]
+sce.Bcells <- sce[, which(sce$cell_type == "B cells")]
+```
+
+## T cell analysis
+```{r}
+patientCells <- sce.Tcells %>% 
+  colData() %>%
+  as.data.frame %>% 
+  select(core, id, ends_with(".fac")) %>% 
+  left_join(select(metadata, core, PID), by = "core")
+
+pc_tidy <- pathwayFreq <- patientCells %>% 
+  gather(pathway, activation, -core, -id, -PID)
+
+cell_freqs_per_patient <- group_by(pc_tidy, PID, pathway) %>% 
+  summarize(freq = sum(activation == "hi") / n()) %>% 
+  ungroup()
+
+df_test <- select(metadata, PID, DFSmonth, Patientstatus) %>% 
+  mutate(censored = 1*(Patientstatus == "death" | Patientstatus == "death by primary disease"))
+df_test <- inner_join(cell_freqs_per_patient, df_test, by = "PID")
+df_test <- df_test[which(duplicated(df_test %>% select(PID, pathway)) == F),]
+
+# Plot
+coxphs <- df_test %>% 
+  group_by(pathway) %>% 
+  do(glance(coxph(Surv(DFSmonth, censored) ~ freq, data = .))) %>% 
+  select(pathway, starts_with("p.value")) %>% 
+  ungroup() 
+qplot(coxphs$p.value.wald, bins = 100) + astir_paper_theme()
+
+# Print out actual values for each pathway 
+coxphs %>% 
+  arrange(p.value.wald)
+```
+
+
+Next, randomize the survival of patients
+```{r}
+rand <- sample(1:nrow(df_test), nrow(df_test))
+initialTimes <- df_test[rand, c("PID", "DFSmonth")] %>% 
+  unique()
+
+df_test <- df_test %>% 
+  arrange(PID) %>% 
+  mutate(DFSmonth2 = rep(initialTimes$DFSmonth, each = 19))
+
+# Plot
+coxphs <- df_test %>% 
+  group_by(pathway) %>% 
+  do(glance(coxph(Surv(DFSmonth2, censored) ~ freq, data = .))) %>% 
+  select(pathway, starts_with("p.value")) %>% 
+  ungroup() 
+qplot(coxphs$p.value.wald, bins = 100) + astir_paper_theme()
+
+# Print out actual values for each pathway 
+coxphs %>% 
+  arrange(p.value.wald)
+```
+
+## B cell analysis
+```{r}
+patientCells <- sce.Bcells %>% 
+  colData() %>%
+  as.data.frame %>% 
+  select(core, id, ends_with(".fac")) %>% 
+  left_join(select(metadata, core, PID), by = "core")
+
+pc_tidy <- pathwayFreq <- patientCells %>% 
+  gather(pathway, activation, -core, -id, -PID)
+
+cell_freqs_per_patient <- group_by(pc_tidy, PID, pathway) %>% 
+  summarize(freq = sum(activation == "hi") / n()) %>% 
+  ungroup()
+
+df_test <- select(metadata, PID, DFSmonth, Patientstatus) %>% 
+  mutate(censored = 1*(Patientstatus == "death" | Patientstatus == "death by primary disease"))
+df_test <- inner_join(cell_freqs_per_patient, df_test, by = "PID")
+df_test <- df_test[which(duplicated(df_test %>% select(PID, pathway)) == F),]
+
+# Plot
+coxphs <- df_test %>% 
+  group_by(pathway) %>% 
+  do(glance(coxph(Surv(DFSmonth, censored) ~ freq, data = .))) %>% 
+  select(pathway, starts_with("p.value")) %>% 
+  ungroup() 
+qplot(coxphs$p.value.wald, bins = 100)
+
+# Print out actual values for each pathway 
+coxphs %>% 
+  arrange(p.value.wald)
+```
+
+
+Next, randomize the survival of patients
+```{r}
+rand <- sample(1:nrow(df_test), nrow(df_test))
+initialTimes <- df_test[rand, c("PID", "DFSmonth")] %>% 
+  unique()
+
+df_test <- df_test %>% 
+  arrange(PID) %>% 
+  mutate(DFSmonth2 = rep(initialTimes$DFSmonth, each = 19))
+
+# Plot
+coxphs <- df_test %>% 
+  group_by(pathway) %>% 
+  do(glance(coxph(Surv(DFSmonth2, censored) ~ freq, data = .))) %>% 
+  select(pathway, starts_with("p.value")) %>% 
+  ungroup() 
+qplot(coxphs$p.value.wald, bins = 100) + astir_paper_theme()
+
+# Print out actual values for each pathway 
+coxphs %>% 
+  arrange(p.value.wald)
+```
