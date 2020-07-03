@@ -54,6 +54,8 @@ if(params$markers == "all_markers"){
     markers <- read_markers("../markers/jackson-2020-markers-v2.yml")
   }else if(params$cohort == "wagner"){
     markers <- read_markers("../markers/wagner-2019-markers.yml")
+  }else if(params$cohort == "schapiro"){
+    markers <- read_markers("../markers/schapiro-markers.yml")
   }
   
   imc.data <- t(logcounts(sce[unique(unlist(markers$cell_types)),]))

@@ -28,8 +28,10 @@ This notebook is used to compare the accuracy of different approaches based on t
 # REad in markers
 if(params$cohort == "basel" | params$cohort == "zurich1"){
     markers <- read_markers("../markers/jackson-2020-markers.yml")
-  }else if(params$cohort == "wagner"){
+}else if(params$cohort == "wagner"){
     markers <- read_markers("../markers/wagner-2019-markers.yml")
+}else if(params$cohort == "schapiro"){
+    markers <- read_markers("../markers/schapiro-markers.yml")
 }
 
 # Read in RDS file
