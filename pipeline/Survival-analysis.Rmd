@@ -4,11 +4,10 @@ author: "Michael Geuenich"
 date: "July 1, 2020"
 output: html_document
 params:
-  cells: "../output/v4/basel_subset/basel_subset_sce.rds"
-  celltypes: "../output/v4/basel_subset/basel_subset_assignments_type.csv"
-  cellstates: "../output/v4/basel_subset/basel_subset_assignments_state.csv" 
-  metadata: "../output/v4/basel_subset/basel_PatientMetadata.csv"
-  #/home/ltri/campbell/share/projects/imc-2020/data-raw/jackson-2020/SingleCell_and_Metadata/BaselTMA
+  path: "../output/v4/basel_processed"
+  metadata: "../data-raw/jackson-2020/SingleCell_and_Metadata/BaselTMA/Basel_PatientMetadata.csv"
+  celltypes: "../output/v4/basel_astir_assignments.csv"
+  cellstates: "../output/v4/basel_astir_assignments_state.csv" 
 ---
 
 ```{r setup, include=FALSE}
@@ -20,7 +19,7 @@ library(broom)
 library(survival)
 library(devtools)
 devtools::load_all('../../taproom/')
-source("clustering-comparison/scripts/functions.R")
+source("../scripts/functions.R")
 ```
 
 
@@ -31,9 +30,9 @@ metadata$censored <- ifelse(metadata$Patientstatus == "death" |
                               metadata$Patientstatus == "death by primary disease", 
                             1, 0)
 
-sce <- combineRDS(metadata, ".")
+sce <- combineRDS(metadata, params$path)
 
-sce <- assignIdentity2(sce, params$celltypes, params$cellstates)
+sce <- assignIdentity(sce, params$celltypes, params$cellstates)
 pathways <- sce$pathways
 sce <- sce$sce
 
@@ -99,7 +98,7 @@ coxphs %>%
 ```
 
 ## B cell analysis
-```{r}
+```{r eval = F}
 patientCells <- sce.Bcells %>% 
   colData() %>%
   as.data.frame %>% 
@@ -133,7 +132,7 @@ coxphs %>%
 
 
 Next, randomize the survival of patients
-```{r}
+```{r eval = F}
 rand <- sample(1:nrow(df_test), nrow(df_test))
 initialTimes <- df_test[rand, c("PID", "DFSmonth")] %>% 
   unique()
