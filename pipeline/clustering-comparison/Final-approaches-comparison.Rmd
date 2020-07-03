@@ -1,8 +1,12 @@
 ---
-title: "Quantitative approaches assesment"
+title: "Final approaches comparison"
 author: "Michael Geuenich"
 date: "June 27, 2020"
 output: html_document
+params:
+  basel: "../output/v4/results/Assessment-heatmap-basel.csv"
+  wagner: "../output/v4/results/Assessment-heatmap-wagner.csv"
+  zurich1: "../output/v4/results/Assessment-heatmap-zurich1.csv"
 ---
 
 ```{r setup, include=FALSE}
@@ -17,15 +21,15 @@ devtools::load_all('../../../taproom/')
 
 Read in data
 ```{r}
-basel <- read_csv("../output/v4/results/Assessment-heatmap-basel.csv") %>% 
+basel <- read_csv(params$basel) %>% 
   mutate_if(colnames(.) != "score", as.factor) %>% 
   column_to_rownames("X1")
 
-wagner <- read_csv("../output/v4/results/Assessment-heatmap-wagner.csv") %>% 
+wagner <- read_csv(params$wagner) %>% 
   mutate_if(colnames(.) != "score", as.factor) %>% 
   column_to_rownames("X1")
 
-zurich1 <- read_csv("../output/v4/results/Assessment-heatmap-zurich1.csv") %>% 
+zurich1 <- read_csv(params$zurich1) %>% 
   mutate_if(colnames(.) != "score", as.factor) %>% 
   column_to_rownames("X1")
 
