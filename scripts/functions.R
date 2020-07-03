@@ -69,7 +69,7 @@ assignIdentity <- function(raw.sce, types, states){
   states_df$id <- rownames(states_df)
   
   
-  typeState <- left_join(assignments, states_df) %>% 
+  typeState <- inner_join(assignments, states_df) %>% 
     pivot_longer(is.numeric, names_to = "state", values_to = "activation") %>% 
     group_by(cell_type, state) %>% 
     dplyr::mutate(activation.med = median(activation)) %>% 
@@ -105,8 +105,8 @@ assignIdentity <- function(raw.sce, types, states){
   colData(sce)[newColNames] <- typeState[colnames(sce), ]
   
   ### [PCA & UMAP PROJECTIONS] #####
-  sce <- runPCA(sce, ncomponents = 10)
-  sce <- runUMAP(sce)
+  #sce <- runPCA(sce, ncomponents = 10)
+  #sce <- runUMAP(sce)
   
   return(list(sce = sce, pathways = paste0(stateNames, ".activation")))
 }
