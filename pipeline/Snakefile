@@ -182,9 +182,10 @@ rule compare_approaches:
 
 rule survival_analysis:
     input:
-        cells = "../output/v4/basel_subset/basel_subset_sce.rds",
-        cellTypes = "../output/v4/basel_subset/basel_subset_assignments_type.csv",
-        cellStates = "../output/v4/basel_subset/basel_subset_assignments_state.csv"
+        path = "../output/v4/basel_processed",
+        metadata: "../data-raw/jackson-2020/SingleCell_and_Metadata/BaselTMA/Basel_PatientMetadata.csv",
+        cellTypes: "../output/v4/basel_astir_assignments.csv",
+        cellStates: "../output/v4/basel_astir_assignments_state.csv"
 
     output:
         html = output_dir_reports + "Survival-analysis-basel.html"
@@ -192,4 +193,4 @@ rule survival_analysis:
     shell:
         "Rscript -e \" Sys.setenv(RSTUDIO_PANDOC='/home/ltri/campbell/share/software/pandoc-2.9.2.1/bin');"
         "rmarkdown::render('Survival-analysis.Rmd', output_file = '{output.html}', output_dir = '" + output_dir_reports + "',"
-        "params = list(cells = '{input.cells}', celltypes = '{input.celltypes}', cellstates = '{input.cellStates}' ))\" "
+        "params = list(path = '{input.path}', metadata = '{input.metadata}', celltypes = '{input.cellTypes}', cellstates = '{input.cellStates}' ))\" "
