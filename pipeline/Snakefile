@@ -1,7 +1,7 @@
 cohort_list = ['basel', 'zurich1', 'wagner']
 FlowSOM_Cluster_sizes = ['8', '12', '15', '20']
 Phenograph_Cluster_sizes = ['20', '30', '40', '50']
-cell_types_regex = ["Stromal", "Epithelial"]
+cell_types = ["Epithelial (other)", "Epithelial (luminal)", "Stromal", "B cells", "T cells", "Epithelial (basal)", "Macrophage", "Endothelial"]
 
 output_dir_reports = "../output/v4/reports/"
 
@@ -36,7 +36,7 @@ rule all:
 
         Final_approaches_comparison = expand(output_dir_reports + "Final-approaches-comparison.html"),
 
-        #Survival_analysis = output_dir_reports + "Survival-analysis-basel.html"
+        Survival_analysis = expand(output_dir_reports + "Survival-analysis-basel-{subsetCells}.html", subsetCells = cell_types)
 
 rule phenograph_analysis:
     # This rule creates the performance data for phenograph as it only uses specified markers
@@ -205,10 +205,14 @@ rule survival_analysis:
         cellTypes = "../output/v4/astir_assignments/basel_astir_assignments.csv",
         cellStates = "../output/v4/astir_assignments/basel_astir_assignments_state.csv"
 
+    params:
+        subsetCells = "{subsetCells}"
+
     output:
-        html = output_dir_reports + "Survival-analysis-basel.html"
+        html = output_dir_reports + "Survival-analysis-basel-{subsetCells}.html"
 
     shell:
         "Rscript -e \" Sys.setenv(RSTUDIO_PANDOC='/home/ltri/campbell/share/software/pandoc-2.9.2.1/bin');"
         "rmarkdown::render('Survival-analysis.Rmd', output_file = '{output.html}', output_dir = '" + output_dir_reports + "',"
-        "params = list(path = '{input.path}', metadata = '{input.metadata}', celltypes = '{input.cellTypes}', cellstates = '{input.cellStates}' ))\" "
+        "params = list(celltype_analysis = '{params.subsetCells}', path = '{input.path}', metadata = '{input.metadata}', celltypes = '{input.cellTypes}', "
+        "cellstates = '{input.cellStates}' ))\" "
