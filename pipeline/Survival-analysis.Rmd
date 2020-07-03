@@ -4,10 +4,15 @@ author: "Michael Geuenich"
 date: "July 1, 2020"
 output: html_document
 params:
+  celltype_analysis: "T cells"
   path: "../output/v4/basel_processed"
-  metadata: "../data-raw/jackson-2020/SingleCell_and_Metadata/BaselTMA/Basel_PatientMetadata.csv"
-  celltypes: "../output/v4/basel_astir_assignments.csv"
-  cellstates: "../output/v4/basel_astir_assignments_state.csv" 
+  #path: "../../"
+  metadata: "../data-raw/jackson-imc/SingleCell_and_Metadata/BaselTMA/Basel_PatientMetadata.csv"
+  #metadata: "../../imc-prototype-analysis/raw_data/basel/Basel_PatientMetadata.csv"
+  celltypes: "../output/v4/astir_assignments/basel_astir_assignments.csv"
+  #celltypes: "../../imc-prototype-analysis/raw_data/basel_subset/basel_subset_assignments_type.csv"
+  cellstates: "../output/v4/astir_assignments/basel_astir_assignments_state.csv" 
+  #cellstates: "../../imc-prototype-analysis/raw_data/basel_subset/basel_subset_assignments_state.csv" 
 ---
 
 ```{r setup, include=FALSE}
@@ -18,6 +23,7 @@ library(scater)
 library(broom)
 library(survival)
 library(devtools)
+library(knitr)
 devtools::load_all('../../taproom/')
 source("../scripts/functions.R")
 ```
@@ -36,43 +42,55 @@ sce <- assignIdentity(sce, params$celltypes, params$cellstates)
 pathways <- sce$pathways
 sce <- sce$sce
 
-print(unique(sce$cell_type))
-
-sce.Tcells <- sce[, which(sce$cell_type == "T cells")]
-sce.Bcells <- sce[, which(sce$cell_type == "B cells")]
+sce.subset <- sce[, sce$cell_type == params$celltype_analysis]
 ```
 
 ## T cell analysis
 ```{r}
-patientCells <- sce.Tcells %>% 
+patientCells <- sce.subset %>% 
   colData() %>%
   as.data.frame %>% 
-  select(core, id, ends_with(".fac")) %>% 
+  select(core, id, ends_with(".activation")) %>% 
   left_join(select(metadata, core, PID), by = "core")
 
-pc_tidy <- pathwayFreq <- patientCells %>% 
+pc_tidy <- patientCells %>% 
   gather(pathway, activation, -core, -id, -PID)
 
-cell_freqs_per_patient <- group_by(pc_tidy, PID, pathway) %>% 
-  summarize(freq = sum(activation == "hi") / n()) %>% 
+activation_per_patient <- group_by(pc_tidy, PID, pathway) %>% 
+  summarize(mean_activation = mean(activation)) %>% 
   ungroup()
+
+# patientCells <- sce.Tcells %>% 
+#   colData() %>%
+#   as.data.frame %>% 
+#   select(core, id, ends_with(".fac")) %>% 
+#   left_join(select(metadata, core, PID), by = "core")
+# 
+# pc_tidy <- pathwayFreq <- patientCells %>% 
+#   gather(pathway, activation, -core, -id, -PID)
+# 
+# cell_freqs_per_patient <- group_by(pc_tidy, PID, pathway) %>% 
+#   summarize(freq = sum(activation == "hi") / n()) %>% 
+#   ungroup()
 
 df_test <- select(metadata, PID, DFSmonth, Patientstatus) %>% 
   mutate(censored = 1*(Patientstatus == "death" | Patientstatus == "death by primary disease"))
-df_test <- inner_join(cell_freqs_per_patient, df_test, by = "PID")
-df_test <- df_test[which(duplicated(df_test %>% select(PID, pathway)) == F),]
+df_test <- distinct(df_test)
+#df_test <- inner_join(cell_freqs_per_patient, df_test, by = "PID")
+df_test <- inner_join(activation_per_patient, df_test, by = "PID")
 
 # Plot
 coxphs <- df_test %>% 
   group_by(pathway) %>% 
-  do(glance(coxph(Surv(DFSmonth, censored) ~ freq, data = .))) %>% 
+  do(glance(coxph(Surv(DFSmonth, censored) ~ mean_activation, data = .))) %>% 
   select(pathway, starts_with("p.value")) %>% 
   ungroup() 
 qplot(coxphs$p.value.wald, bins = 100) + astir_paper_theme()
 
 # Print out actual values for each pathway 
 coxphs %>% 
-  arrange(p.value.wald)
+  arrange(p.value.wald) %>% 
+  kable()
 ```
 
 
@@ -89,69 +107,13 @@ df_test <- df_test %>%
 # Plot
 coxphs <- df_test %>% 
   group_by(pathway) %>% 
-  do(glance(coxph(Surv(DFSmonth2, censored) ~ freq, data = .))) %>% 
+  do(glance(coxph(Surv(DFSmonth2, censored) ~ mean_activation, data = .))) %>% 
   select(pathway, starts_with("p.value")) %>% 
   ungroup() 
 qplot(coxphs$p.value.wald, bins = 100) + astir_paper_theme()
 
 # Print out actual values for each pathway 
 coxphs %>% 
-  arrange(p.value.wald)
-```
-
-## B cell analysis
-```{r eval = F}
-patientCells <- sce.Bcells %>% 
-  colData() %>%
-  as.data.frame %>% 
-  select(core, id, ends_with(".fac")) %>% 
-  left_join(select(metadata, core, PID), by = "core")
-
-pc_tidy <- pathwayFreq <- patientCells %>% 
-  gather(pathway, activation, -core, -id, -PID)
-
-cell_freqs_per_patient <- group_by(pc_tidy, PID, pathway) %>% 
-  summarize(freq = sum(activation == "hi") / n()) %>% 
-  ungroup()
-
-df_test <- select(metadata, PID, DFSmonth, Patientstatus) %>% 
-  mutate(censored = 1*(Patientstatus == "death" | Patientstatus == "death by primary disease"))
-df_test <- inner_join(cell_freqs_per_patient, df_test, by = "PID")
-df_test <- df_test[which(duplicated(df_test %>% select(PID, pathway)) == F),]
-
-# Plot
-coxphs <- df_test %>% 
-  group_by(pathway) %>% 
-  do(glance(coxph(Surv(DFSmonth, censored) ~ freq, data = .))) %>% 
-  select(pathway, starts_with("p.value")) %>% 
-  ungroup() 
-qplot(coxphs$p.value.wald, bins = 100)
-
-# Print out actual values for each pathway 
-coxphs %>% 
-  arrange(p.value.wald)
-```
-
-
-Next, randomize the survival of patients
-```{r eval = F}
-rand <- sample(1:nrow(df_test), nrow(df_test))
-initialTimes <- df_test[rand, c("PID", "DFSmonth")] %>% 
-  unique()
-
-df_test <- df_test %>% 
-  arrange(PID) %>% 
-  mutate(DFSmonth2 = rep(initialTimes$DFSmonth, each = 19))
-
-# Plot
-coxphs <- df_test %>% 
-  group_by(pathway) %>% 
-  do(glance(coxph(Surv(DFSmonth2, censored) ~ freq, data = .))) %>% 
-  select(pathway, starts_with("p.value")) %>% 
-  ungroup() 
-qplot(coxphs$p.value.wald, bins = 100) + astir_paper_theme()
-
-# Print out actual values for each pathway 
-coxphs %>% 
-  arrange(p.value.wald)
+  arrange(p.value.wald) %>% 
+  kable()
 ```
