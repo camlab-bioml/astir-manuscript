@@ -30,9 +30,9 @@ rule all:
         ClusterX_analysis_report_all = expand(output_dir_reports + "ClusterX-analysis-{cohort}-all_markers.html", cohort = cohort_list),
         ClusterX_clusters_output_all = expand("../output/v4/results/ClusterX_clusters_{cohort}_all_markers_default.csv", cohort = cohort_list),
 
-        Other_approaches_report = expand(output_dir_reports + "Approaches-comparison-{cohort}.html", cohort = cohort_list),
-        Other_approaches_heatmaps = expand("../output/v4/results/Assessment-individual-heatmap-{cohort}.csv", cohort = cohort_list),
-        Other_approaches_summary_heatmap = expand("../output/v4/results/Assessment-heatmap-{cohort}.csv", cohort = cohort_list),
+        #Other_approaches_report = expand(output_dir_reports + "Approaches-comparison-{cohort}.html", cohort = cohort_list),
+        #Other_approaches_heatmaps = expand("../output/v4/results/Assessment-individual-heatmap-{cohort}.csv", cohort = cohort_list),
+        #Other_approaches_summary_heatmap = expand("../output/v4/results/Assessment-heatmap-{cohort}.csv", cohort = cohort_list),
 
         Survival_analysis = output_dir_reports + "Survival-analysis-basel.html"
 
@@ -183,9 +183,9 @@ rule compare_approaches:
 rule survival_analysis:
     input:
         path = "../output/v4/basel_processed",
-        metadata: "../data-raw/jackson-2020/SingleCell_and_Metadata/BaselTMA/Basel_PatientMetadata.csv",
-        cellTypes: "../output/v4/basel_astir_assignments.csv",
-        cellStates: "../output/v4/basel_astir_assignments_state.csv"
+        metadata = "../data-raw/jackson-imc/SingleCell_and_Metadata/BaselTMA/Basel_PatientMetadata.csv",
+        cellTypes = "../output/v4/astir_assignments/basel_astir_assignments.csv",
+        cellStates = "../output/v4/astir_assignments/basel_astir_assignments_state.csv"
 
     output:
         html = output_dir_reports + "Survival-analysis-basel.html"
