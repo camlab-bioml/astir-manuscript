@@ -36,6 +36,8 @@ sce <- assignIdentity(sce, params$celltypes, params$cellstates)
 pathways <- sce$pathways
 sce <- sce$sce
 
+print(unique(sce$cell_type))
+
 sce.Tcells <- sce[, which(sce$cell_type == "T cells")]
 sce.Bcells <- sce[, which(sce$cell_type == "B cells")]
 ```
