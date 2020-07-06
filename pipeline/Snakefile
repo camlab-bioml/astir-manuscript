@@ -1,0 +1,195 @@
+cohort_list = ['basel', 'zurich1', 'wagner']
+FlowSOM_Cluster_sizes = ['8', '12', '15', '20']
+Phenograph_Cluster_sizes = ['20', '30', '40', '50']
+cell_types_regex = ["Stromal", "Epithelial"]
+
+output_dir_reports = "../output/v4/reports/"
+
+rule all:
+    input:
+        # These also create the performance comparison data as they only run on specified markers
+        Rphenograph_analysis_report = expand(output_dir_reports + "Rphenograph-analysis-{cohort}-specified_markers.html", cohort = cohort_list),
+        Rphenograph_clusters_output = expand("../output/v4/results/Phenograph_clusters_{cohort}_specified_markers_k{cluster}.csv", cohort = cohort_list, cluster = Phenograph_Cluster_sizes),
+        Rphenograph_performance = expand("../output/v4/results/Phenograph_astirComparison_{cohort}.csv", cohort = cohort_list),
+
+        FlowSOM_analysis_report = expand(output_dir_reports + "FlowSOM-analysis-{cohort}-specified_markers.html", cohort = cohort_list),
+        FlowSOM_clusters_output = expand("../output/v4/results/FlowSOM_clusters_{cohort}_specified_markers_k{cluster}.csv", cohort = cohort_list, cluster = FlowSOM_Cluster_sizes),
+        FlowSOM_performance = expand("../output/v4/results/FlowSOM_astirComparison_{cohort}.csv", cohort = cohort_list),
+
+        ClusterX_analysis_report = expand(output_dir_reports + "ClusterX-analysis-{cohort}-specified_markers.html", cohort = cohort_list),
+        ClusterX_clusters_output = expand("../output/v4/results/ClusterX_clusters_{cohort}_specified_markers_default.csv", cohort = cohort_list),
+        ClusterX_performance = expand("../output/v4/results/ClusterX_astirComparison_{cohort}.csv", cohort = cohort_list),
+
+        # These do not create performance comparison data as they are run over all available markers
+        Rphenograph_analysis_report_all = expand(output_dir_reports + "Rphenograph-analysis-{cohort}-all_markers.html", cohort = cohort_list),
+        Rphenograph_clusters_output_all = expand("../output/v4/results/Phenograph_clusters_{cohort}_all_markers_k{cluster}.csv", cohort = cohort_list, cluster = Phenograph_Cluster_sizes),
+        
+        FlowSOM_analysis_report_all = expand(output_dir_reports + "FlowSOM-analysis-{cohort}-all_markers.html", cohort = cohort_list),
+        FlowSOM_clusters_output_all = expand("../output/v4/results/FlowSOM_clusters_{cohort}_all_markers_k{cluster}.csv", cohort = cohort_list, cluster = FlowSOM_Cluster_sizes),
+        
+        ClusterX_analysis_report_all = expand(output_dir_reports + "ClusterX-analysis-{cohort}-all_markers.html", cohort = cohort_list),
+        ClusterX_clusters_output_all = expand("../output/v4/results/ClusterX_clusters_{cohort}_all_markers_default.csv", cohort = cohort_list),
+
+        Other_approaches_report = expand(output_dir_reports + "Approaches-comparison-{cohort}.html", cohort = cohort_list),
+        Other_approaches_heatmaps = expand("../output/v4/results/Assessment-individual-heatmap-{cohort}.csv", cohort = cohort_list),
+        Other_approaches_summary_heatmap = expand("../output/v4/results/Assessment-heatmap-{cohort}.csv", cohort = cohort_list),
+
+        Survival_analysis = output_dir_reports + "Survival-analysis-basel.html"
+
+rule phenograph_analysis:
+    # This rule creates the performance data for phenograph as it only uses specified markers
+    input:
+        cells = "../output/v4/{cohort}_subset/{cohort}_subset_sce.rds",
+        cellTypes = "../output/v4/{cohort}_subset/{cohort}_subset_assignments_type.csv",
+        cellStates = "../output/v4/{cohort}_subset/{cohort}_subset_assignments_state.csv"
+    
+    params:
+        cohort = "{cohort}"
+
+    output:
+        html = output_dir_reports + "Rphenograph-analysis-{cohort}-specified_markers.html",
+        csvs = expand("../output/v4/results/Phenograph_clusters_{{cohort}}_specified_markers_k{cluster}.csv", cluster = Phenograph_Cluster_sizes),
+        performance = "../output/v4/results/Phenograph_astirComparison_{cohort}.csv"
+
+    shell:
+        "Rscript -e \"Sys.setenv(RSTUDIO_PANDOC='/home/ltri/campbell/share/software/pandoc-2.9.2.1/bin');"
+        "rmarkdown::render('clustering-comparison/Rphenograph.Rmd', output_file = '{output.html}', output_dir = '" + output_dir_reports + "', "
+        "params = list(cells = '{input.cells}', celltypes = '{input.cellTypes}', cellstates = '{input.cellStates}', "
+        "create_csv = TRUE, cohort = '{params.cohort}', markers = 'specified_markers'))\" "
+
+
+rule phenograph_analysis_all_markers:
+    # This rule does not create any performance data as it uses all possible markers
+    input:
+        cells = "../output/v4/{cohort}_subset/{cohort}_subset_sce.rds",
+        cellTypes = "../output/v4/{cohort}_subset/{cohort}_subset_assignments_type.csv",
+        cellStates = "../output/v4/{cohort}_subset/{cohort}_subset_assignments_state.csv"
+    
+    params:
+        cohort = "{cohort}"
+
+    output:
+        html = output_dir_reports + "Rphenograph-analysis-{cohort}-all_markers.html",
+        csvs = expand("../output/v4/results/Phenograph_clusters_{{cohort}}_all_markers_k{cluster}.csv", cluster = Phenograph_Cluster_sizes)
+
+    shell:
+        "Rscript -e \"Sys.setenv(RSTUDIO_PANDOC='/home/ltri/campbell/share/software/pandoc-2.9.2.1/bin');"
+        "rmarkdown::render('clustering-comparison/Rphenograph.Rmd', output_file = '{output.html}', output_dir = '" + output_dir_reports + "',"
+        "params = list(cells = '{input.cells}', celltypes = '{input.cellTypes}', cellstates = '{input.cellStates}',"
+        "create_csv = TRUE, cohort = '{params.cohort}', markers = 'all_markers'))\" "
+
+
+rule FlowSOM_analysis:
+    input:
+        cells = "../output/v4/{cohort}_subset/{cohort}_subset_sce.rds",
+        cellTypes = "../output/v4/{cohort}_subset/{cohort}_subset_assignments_type.csv",
+        cellStates = "../output/v4/{cohort}_subset/{cohort}_subset_assignments_state.csv"
+    
+    params:
+        cohort = "{cohort}"
+    
+    output:
+        html = output_dir_reports + "FlowSOM-analysis-{cohort}-specified_markers.html",
+        csvs = expand("../output/v4/results/FlowSOM_clusters_{{cohort}}_specified_markers_k{cluster}.csv", cluster=FlowSOM_Cluster_sizes),
+        performance = "../output/v4/results/FlowSOM_astirComparison_{cohort}.csv"
+
+    shell:
+        "Rscript -e \" Sys.setenv(RSTUDIO_PANDOC='/home/ltri/campbell/share/software/pandoc-2.9.2.1/bin');"
+        "rmarkdown::render('clustering-comparison/FlowSOM.Rmd', output_file = '{output.html}', output_dir = '" + output_dir_reports + "',"
+        "params = list(cells = '{input.cells}', celltypes = '{input.cellTypes}', cellstates = '{input.cellStates}', markers = 'specified_markers',"
+        "create_csv = TRUE, cohort = '{params.cohort}' ))\" "
+
+
+
+rule FlowSOM_analysis_all_markers:
+    input:
+        cells = "../output/v4/{cohort}_subset/{cohort}_subset_sce.rds",
+        cellTypes = "../output/v4/{cohort}_subset/{cohort}_subset_assignments_type.csv",
+        cellStates = "../output/v4/{cohort}_subset/{cohort}_subset_assignments_state.csv"
+    
+    params:
+        cohort = "{cohort}"
+    
+    output:
+        html = output_dir_reports + "FlowSOM-analysis-{cohort}-all_markers.html",
+        csvs = expand("../output/v4/results/FlowSOM_clusters_{{cohort}}_all_markers_k{cluster}.csv", cluster=FlowSOM_Cluster_sizes)
+
+    shell:
+        "Rscript -e \" Sys.setenv(RSTUDIO_PANDOC='/home/ltri/campbell/share/software/pandoc-2.9.2.1/bin');"
+        "rmarkdown::render('clustering-comparison/FlowSOM.Rmd', output_file = '{output.html}', output_dir = '" + output_dir_reports + "',"
+        "params = list(cells = '{input.cells}', celltypes = '{input.cellTypes}', cellstates = '{input.cellStates}', markers = 'all_markers',"
+        "create_csv = TRUE, cohort = '{params.cohort}' ))\" "
+
+    
+rule ClusterX_analysis:
+    input:
+        cells = "../output/v4/{cohort}_subset/{cohort}_subset_sce.rds",
+        cellTypes = "../output/v4/{cohort}_subset/{cohort}_subset_assignments_type.csv",
+        cellStates = "../output/v4/{cohort}_subset/{cohort}_subset_assignments_state.csv"
+
+    params:
+        cohort = "{cohort}"
+    
+    output:
+        html = output_dir_reports + "ClusterX-analysis-{cohort}-specified_markers.html",
+        csvs = "../output/v4/results/ClusterX_clusters_{cohort}_specified_markers_default.csv",
+        performance = "../output/v4/results/ClusterX_astirComparison_{cohort}.csv"
+
+    shell:
+        "Rscript -e \" Sys.setenv(RSTUDIO_PANDOC='/home/ltri/campbell/share/software/pandoc-2.9.2.1/bin');"
+        "rmarkdown::render('clustering-comparison/ClusterX.Rmd', output_file = '{output.html}', output_dir = '" + output_dir_reports + "',"
+        "params = list(cells = '{input.cells}', celltypes = '{input.cellTypes}', cellstates = '{input.cellStates}', markers = 'specified_markers',"
+        "create_csv = TRUE, cohort = '{params.cohort}' ))\" "
+
+
+rule ClusterX_analysis_all_markers:
+    input:
+        cells = "../output/v4/{cohort}_subset/{cohort}_subset_sce.rds",
+        cellTypes = "../output/v4/{cohort}_subset/{cohort}_subset_assignments_type.csv",
+        cellStates = "../output/v4/{cohort}_subset/{cohort}_subset_assignments_state.csv"
+
+    params:
+        cohort = "{cohort}"
+    
+    output:
+        html = output_dir_reports + "ClusterX-analysis-{cohort}-all_markers.html",
+        csvs = "../output/v4/results/ClusterX_clusters_{cohort}_all_markers_default.csv"
+
+    shell:
+        "Rscript -e \" Sys.setenv(RSTUDIO_PANDOC='/home/ltri/campbell/share/software/pandoc-2.9.2.1/bin');"
+        "rmarkdown::render('clustering-comparison/ClusterX.Rmd', output_file = '{output.html}', output_dir = '" + output_dir_reports + "',"
+        "params = list(cells = '{input.cells}', celltypes = '{input.cellTypes}', cellstates = '{input.cellStates}', markers = 'all_markers',"
+        "create_csv = TRUE, cohort = '{params.cohort}' ))\" "
+
+
+rule compare_approaches:
+    input:
+        cells = "../output/v4/{cohort}_subset/{cohort}_subset_sce.rds",
+        celltypes = "../output/v4/{cohort}_subset/{cohort}_subset_assignments_type.csv"
+
+    params:
+        cohort = "{cohort}"
+
+    output:
+        html = output_dir_reports + "Approaches-comparison-{cohort}.html",
+        heatmap_individual = "../output/v4/results/Assessment-individual-heatmap-{cohort}.csv",
+        heatmap_summary = "../output/v4/results/Assessment-heatmap-{cohort}.csv"
+
+    shell:
+        "Rscript -e \" Sys.setenv(RSTUDIO_PANDOC='/home/ltri/campbell/share/software/pandoc-2.9.2.1/bin');"
+        "rmarkdown::render('clustering-comparison/Approaches-comparison.Rmd', output_file = '{output.html}', output_dir = '" + output_dir_reports + "',"
+        "params = list(cells = '{input.cells}', celltypes = '{input.celltypes}', cohort = '{params.cohort}' ))\" "
+
+rule survival_analysis:
+    input:
+        cells = "../output/v4/basel_subset/basel_subset_sce.rds",
+        cellTypes = "../output/v4/basel_subset/basel_subset_assignments_type.csv",
+        cellStates = "../output/v4/basel_subset/basel_subset_assignments_state.csv"
+
+    output:
+        html = output_dir_reports + "Survival-analysis-basel.html"
+
+    shell:
+        "Rscript -e \" Sys.setenv(RSTUDIO_PANDOC='/home/ltri/campbell/share/software/pandoc-2.9.2.1/bin');"
+        "rmarkdown::render('Survival-analysis.Rmd', output_file = '{output.html}', output_dir = '" + output_dir_reports + "',"
+        "params = list(cells = '{input.cells}', celltypes = '{input.celltypes}', cellstates = '{input.cellStates}' ))\" "

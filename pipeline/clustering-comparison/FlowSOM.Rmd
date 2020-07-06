@@ -1,0 +1,359 @@
+---
+title: "FlowSOM"
+author: "Michael Geuenich"
+date: "May 29, 2020"
+output: html_document
+params:
+  markers: "specified_markers"
+  create_csv: FALSE
+  cells: "../../output/v4/zurich1_subset/zurich1_subset_sce.rds"
+  celltypes: "../../output/v4/zurich1_subset/zurich1_subset_assignments_type.csv"
+  cellstates: "../../output/v4/zurich1_subset/zurich1_subset_assignments_state.csv" 
+  cohort: "zurich1"
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = '../')
+library(SingleCellExperiment)
+library(tidyverse)
+library(devtools)
+library(factoextra)
+library(ComplexHeatmap)
+library(scater)
+library(dichromat)
+library(viridis)
+library(cytofkit)
+library(ggalluvial)
+devtools::load_all('../../../taproom/')
+source("../scripts/functions.R")
+```
+
+First read in all sc data and assign cell type
+```{r message=F, warning=F}
+# read in data
+sce <- assignIdentity(params$cells, params$celltypes, params$cellstates)
+pathways <- sce$pathways
+sce <- sce$sce
+
+# Just for the time being until we switch everything over to remove s' at the end
+sce$cell_type[which(sce$cell_type == "B cell")] <- "B cells"
+sce$cell_type[which(sce$cell_type == "T cell")] <- "T cells"
+```
+
+```{r}
+if(params$markers == "all_markers"){
+  imc.data <- t(logcounts(sce))
+  
+  # I will use this variable in the future to evaluate whether sections of code
+  # should be executed
+  evalStatement <- F
+}else if(params$markers == "specified_markers"){
+  if(params$cohort == "basel" | params$cohort == "zurich1"){
+    markers <- read_markers("../markers/jackson-2020-markers-v2.yml")
+  }else if(params$cohort == "wagner"){
+    markers <- read_markers("../markers/wagner-2019-markers.yml")
+  }
+  
+  imc.data <- t(logcounts(sce[unique(unlist(markers$cell_types)),]))
+  evalStatement <- T
+}
+```
+
+```{r}
+# FlowSOM - just going with the number of cell types for now
+imc.flowSOM.cluster <- cytof_cluster(xdata = imc.data, method = "FlowSOM",
+                                     FlowSOM_k = 8)
+sce$FlowSOM.k8 <- imc.flowSOM.cluster
+
+#K 12
+imc.flowSOM.cluster <- cytof_cluster(xdata = imc.data, method = "FlowSOM",
+                                     FlowSOM_k = 12)
+sce$FlowSOM.k12 <- imc.flowSOM.cluster
+
+
+# K15
+imc.flowSOM.cluster <- cytof_cluster(xdata = imc.data, method = "FlowSOM",
+                                     FlowSOM_k = 15)
+sce$FlowSOM.k15 <- imc.flowSOM.cluster
+
+
+#K 20
+imc.flowSOM.cluster <- cytof_cluster(xdata = imc.data, method = "FlowSOM",
+                                     FlowSOM_k = 20)
+sce$FlowSOM.k20 <- imc.flowSOM.cluster
+```
+
+Write out the files as csv's.
+```{r eval=params$create_csv}
+flowSOM_k8 <- sce %>% colData() %>% as.data.frame() %>% select(id, "FlowSOM.k8")
+rownames(flowSOM_k8) <- c()
+flowSOM_k8$method <- "FlowSOM"
+flowSOM_k8$params <- paste(params$markers, "k8", sep = "_")
+write.csv(flowSOM_k8, file = paste0("../output/v4/results/FlowSOM_clusters_", 
+                                    params$cohort, "_", params$markers, "_k8.csv"),
+          col.names = T, row.names = F, sep = ",")
+
+
+flowSOM_k8 <- sce %>% colData() %>% as.data.frame() %>% select(id, "FlowSOM.k12")
+rownames(flowSOM_k8) <- c()
+flowSOM_k8$method <- "FlowSOM"
+flowSOM_k8$params <- paste(params$markers, "k12", sep = "_")
+write.csv(flowSOM_k8, file = paste0("../output/v4/results/FlowSOM_clusters_",
+                                    params$cohort, "_", params$markers, "_k12.csv"),
+          col.names = T, row.names = F, sep = ",")
+
+
+flowSOM_k8 <- sce %>% colData() %>% as.data.frame() %>% select(id, "FlowSOM.k15")
+rownames(flowSOM_k8) <- c()
+flowSOM_k8$method <- "FlowSOM"
+flowSOM_k8$params <- paste(params$markers, "k15", sep = "_")
+write.csv(flowSOM_k8, file = paste0("../output/v4/results/FlowSOM_clusters_", 
+                                    params$cohort, "_", params$markers, "_k15.csv"),
+          col.names = T, row.names = F, sep = ",")
+
+
+flowSOM_k8 <- sce %>% colData() %>% as.data.frame() %>% select(id, "FlowSOM.k20")
+rownames(flowSOM_k8) <- c()
+flowSOM_k8$method <- "FlowSOM"
+flowSOM_k8$params <- paste(params$markers, "k20", sep = "_")
+write.csv(flowSOM_k8, file = paste0("../output/v4/results/FlowSOM_clusters_", 
+                                    params$cohort, "_", params$markers, "_k20.csv"),
+          col.names = T, row.names = F, sep = ",")
+
+```
+
+```{r}
+FlowSOM.k8.alluv <- sce %>% colData() %>% as.data.frame() %>% 
+    select(cell_type, "FlowSOM.k8") %>% group_by(cell_type, FlowSOM.k8) %>% 
+  count()
+
+FlowSOM.k12.alluv <- sce %>% colData() %>% as.data.frame() %>% 
+    select(cell_type, "FlowSOM.k12") %>% group_by(cell_type, FlowSOM.k12) %>% 
+  count()
+
+FlowSOM.k15.alluv <- sce %>% colData() %>% as.data.frame() %>% 
+    select(cell_type, "FlowSOM.k15") %>% group_by(cell_type, FlowSOM.k15) %>% 
+  count()
+
+FlowSOM.k20.alluv <- sce %>% colData() %>% as.data.frame() %>% 
+    select(cell_type, "FlowSOM.k20") %>% group_by(cell_type, FlowSOM.k20) %>% 
+  count()
+```
+
+
+```{r}
+create.alluvial(FlowSOM.k8.alluv, "Cell type - Flowsome (k 8)")
+create.alluvial(FlowSOM.k12.alluv, "Cell type - Flowsome (k 12)")
+create.alluvial(FlowSOM.k15.alluv, "Cell type - Flowsome (k 15)")
+create.alluvial(FlowSOM.k20.alluv, "Cell type - Flowsome (k 20)")
+```
+
+```{r}
+FlowSOM.k8.alluv <- sce %>% colData() %>% as.data.frame() %>% 
+    select(type_state, "FlowSOM.k8") %>% group_by(type_state, FlowSOM.k8) %>% 
+  count()
+
+FlowSOM.k12.alluv <- sce %>% colData() %>% as.data.frame() %>% 
+    select(type_state, "FlowSOM.k12") %>% group_by(type_state, FlowSOM.k12) %>% 
+  count()
+
+FlowSOM.k15.alluv <- sce %>% colData() %>% as.data.frame() %>% 
+    select(type_state, "FlowSOM.k15") %>% group_by(type_state, FlowSOM.k15) %>% 
+  count()
+
+FlowSOM.k20.alluv <- sce %>% colData() %>% as.data.frame() %>% 
+    select(type_state, "FlowSOM.k20") %>% group_by(type_state, FlowSOM.k20) %>% 
+  count()
+```
+
+```{r}
+create.alluvial(FlowSOM.k8.alluv, "Cell state - Flowsome (k8)")
+create.alluvial(FlowSOM.k12.alluv, "Cell state - Flowsome (k12)")
+create.alluvial(FlowSOM.k15.alluv, "Cell state - Flowsome (k15)")
+create.alluvial(FlowSOM.k20.alluv, "Cell state - Flowsome (k20)")
+```
+
+
+Create heatmaps ordered by cluster
+```{r eval = evalStatement, include=evalStatement}
+lc <- scale(imc.data)
+thresh <- 2
+lc[lc > thresh] <- thresh
+lc[lc < -thresh] <- -thresh
+
+FlowSOM.k8.ha <- 
+  HeatmapAnnotation(`Cell type` = sce$cell_type,
+                    `phenograph cluster` = as.factor(sce$FlowSOM.k8),
+                    which="column",
+                    col = list(`Cell type` = jackson_basel_colours()),
+                    `phenograph cluster` = sce$FlowSOM.k8)
+
+FlowSOM.k12.ha <- 
+  HeatmapAnnotation(`Cell type` = sce$cell_type,
+                    `phenograph cluster` = as.factor(sce$FlowSOM.k12),
+                    which="column",
+                    col = list(`Cell type` = jackson_basel_colours()),
+                    `phenograph cluster` = sce$FlowSOM.k12)
+
+FlowSOM.k15.ha <- 
+  HeatmapAnnotation(`Cell type` = sce$cell_type,
+                    `phenograph cluster` = as.factor(sce$FlowSOM.k15),
+                    which="column",
+                    col = list(`Cell type` = jackson_basel_colours()),
+                    `phenograph cluster` = sce$FlowSOM.k15)
+
+FlowSOM.k20.ha <- 
+  HeatmapAnnotation(`Cell type` = sce$cell_type,
+                    `phenograph cluster` = as.factor(sce$FlowSOM.k20),
+                    which="column",
+                    col = list(`Cell type` = jackson_basel_colours()),
+                    `phenograph cluster` = sce$FlowSOM.k20)
+
+
+FlowSOM.k8.type_exprs <- Heatmap(t(lc), 
+                                name = "Expression",
+                                column_title = "Cell",
+                                col=viridis(100),
+                                top_annotation = FlowSOM.k8.ha,
+                                show_column_names = FALSE,
+                                column_order = order(sce$FlowSOM.k8))
+
+FlowSOM.k12.type_exprs <- Heatmap(t(lc), 
+                                name = "Expression",
+                                column_title = "Cell",
+                                col=viridis(100),
+                                top_annotation = FlowSOM.k12.ha,
+                                show_column_names = FALSE,
+                                column_order = order(sce$FlowSOM.k12))
+
+FlowSOM.k15.type_exprs <- Heatmap(t(lc), 
+                                name = "Expression",
+                                column_title = "Cell",
+                                col=viridis(100),
+                                top_annotation = FlowSOM.k15.ha,
+                                show_column_names = FALSE,
+                                column_order = order(sce$FlowSOM.k15))
+
+FlowSOM.k20.type_exprs <- Heatmap(t(lc), 
+                                name = "Expression",
+                                column_title = "Cell",
+                                col=viridis(100),
+                                top_annotation = FlowSOM.k20.ha,
+                                show_column_names = FALSE,
+                                column_order = order(sce$FlowSOM.k20))
+
+draw(FlowSOM.k8.type_exprs)
+draw(FlowSOM.k12.type_exprs)
+draw(FlowSOM.k15.type_exprs)
+draw(FlowSOM.k20.type_exprs)
+```
+
+
+
+```{r eval = evalStatement, include=evalStatement, fig.height=15, fig.width=12}
+phenograph.violin <- sce %>% 
+  colData() %>% 
+  as.data.frame() %>% 
+  select(pathways, 
+         FlowSOM.k8, FlowSOM.k12,
+         FlowSOM.k15, FlowSOM.k20) %>% 
+  pivot_longer(cols = pathways, 
+               names_to = "pathway", values_to = "activation") %>% 
+  pivot_longer(cols = FlowSOM.k8:FlowSOM.k20,
+               names_to = "Iteration", values_to = "clusterID") %>% 
+  mutate(clusterID = as.factor(clusterID))
+
+
+ggplot(phenograph.violin, aes(x = clusterID, y = activation)) +
+  geom_violin() +
+  geom_boxplot(width = 0.08) +
+  facet_wrap(c("Iteration", "pathway")) +
+  astir_paper_theme()
+
+ggplot(phenograph.violin, aes(x = clusterID, y = activation)) +
+  geom_boxplot() +
+  facet_wrap(c("Iteration", "pathway")) +
+  astir_paper_theme()
+```
+
+
+Create plots to evaluate the accuracy of astir.
+```{r eval = evalStatement, include=evalStatement}
+imc.data <- as.data.frame(imc.data)
+  
+imc.data$cell_type <- sce$cell_type
+imc.data$flowSOM.k8 <- sce$FlowSOM.k8
+imc.data$flowSOM.k12 <- sce$FlowSOM.k12
+imc.data$flowSOM.k15 <- sce$FlowSOM.k15
+imc.data$flowSOM.k20 <- sce$FlowSOM.k20
+
+if(params$cohort == "wagner"){
+  selMarkers <- c("CD45", "FAP")
+}else if(params$cohort == "basel" | params$cohort == "zurich1"){
+  selMarkers <- c("Vimentin", "Cytokeratin 19")
+}
+
+astir.mean <- imc.data %>% 
+                    group_by(cell_type) %>% 
+                    summarise_at(vars(selMarkers[1]:selMarkers[2]), mean) %>% 
+                    dplyr::rename(cluster = cell_type) %>% 
+                    mutate(algorithm = "astir")
+
+FlowSOM.mean.k8 <- imc.data %>% 
+                      group_by(flowSOM.k8) %>% 
+                      summarise_at(vars(selMarkers[1]:selMarkers[2]), mean) %>% 
+                      dplyr::rename(cluster = flowSOM.k8) %>% 
+                      mutate(algorithm = "FlowSOM.k8") %>% 
+                      mutate(cluster = as.character(cluster))
+
+FlowSOM.mean.k12 <- imc.data %>% 
+                      group_by(flowSOM.k12) %>% 
+                      summarise_at(vars(selMarkers[1]:selMarkers[2]), mean) %>% 
+                      dplyr::rename(cluster = flowSOM.k12) %>% 
+                      mutate(algorithm = "FlowSOM.k12") %>% 
+                      mutate(cluster = as.character(cluster))
+
+FlowSOM.mean.k15 <- imc.data %>% 
+                      group_by(flowSOM.k15) %>% 
+                      summarise_at(vars(selMarkers[1]:selMarkers[2]), mean) %>% 
+                      dplyr::rename(cluster = flowSOM.k15) %>% 
+                      mutate(algorithm = "FlowSOM.k15") %>% 
+                      mutate(cluster = as.character(cluster))
+
+FlowSOM.mean.k20 <- imc.data %>% 
+                      group_by(flowSOM.k20) %>% 
+                      summarise_at(vars(selMarkers[1]:selMarkers[2]), mean) %>% 
+                      dplyr::rename(cluster = flowSOM.k20) %>% 
+                      mutate(algorithm = "FlowSOM.k20") %>% 
+                      mutate(cluster = as.character(cluster))
+
+
+
+comparison.summary <- bind_rows(astir.mean, FlowSOM.mean.k8, FlowSOM.mean.k12, 
+                                FlowSOM.mean.k15, FlowSOM.mean.k20)
+
+# Commenting out for now
+# ggplot(comparison.summary, aes(x = `E-Cadherin`, y = CD45)) +
+#   geom_point() +
+#   facet_wrap("algorithm") + 
+#   xlim(0, max(imc.data$`E-Cadherin`)) +
+#   ylim(0, max(imc.data$CD45)) +
+#   ggtitle("Mutually exclusive markers")
+# 
+# ggplot(comparison.summary, aes(x = CD3, y = CD45)) +
+#   geom_point() +
+#   facet_wrap("algorithm") + 
+#   xlim(0, max(imc.data$CD3)) +
+#   ylim(0, max(imc.data$CD45)) +
+#   ggtitle("Co-occuring markers")
+
+```
+
+Save the comparison file for future analyses.
+```{r eval = evalStatement, include=evalStatement}
+write.csv(comparison.summary, paste0("../output/v4/results/FlowSOM_astirComparison_", 
+                                    params$cohort, ".csv"),
+          row.names = F)
+```
