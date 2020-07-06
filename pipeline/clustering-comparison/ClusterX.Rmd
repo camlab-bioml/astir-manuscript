@@ -26,7 +26,7 @@ library(viridis)
 library(cytofkit)
 library(ggalluvial)
 devtools::load_all('../../../taproom/')
-source("../scripts/functions.R")
+source("../../scripts/functions.R")
 ```
 
 
@@ -60,6 +60,11 @@ if(params$markers == "all_markers"){
   
   imc.data <- t(logcounts(sce[unique(unlist(markers$cell_types)),]))
   evalStatement <- T
+}
+
+if(params$cohort == "schapiro"){
+  # add a cell ID for schapiro
+  sce$id <- colnames(sce)
 }
 ```
 
@@ -154,7 +159,7 @@ ggplot(phenograph.violin, aes(x = clusterX, y = activation)) +
 
 
 Create plots to evaluate the accuracy of astir.
-```{r eval = evalStatement, include=evalStatement}
+```{r eval = F, include=evalStatement}
 imc.data <- as.data.frame(imc.data)
   
 imc.data$cell_type <- sce$cell_type
@@ -200,7 +205,7 @@ comparison.summary <- bind_rows(astir.mean, clusterX.mean)
 ```
 
 Save the comparison file for future analyses.
-```{r eval = evalStatement, include=evalStatement}
+```{r eval = F, include=evalStatement}
 write.csv(comparison.summary, paste0("../output/v4/results/ClusterX_astirComparison_", 
                                     params$cohort, ".csv"),
           row.names = F)

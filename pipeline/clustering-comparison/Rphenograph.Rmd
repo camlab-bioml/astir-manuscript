@@ -26,7 +26,7 @@ library(viridis)
 library(cytofkit)
 library(ggalluvial)
 devtools::load_all('../../../taproom/')
-source("../scripts/functions.R")
+source("../../scripts/functions.R")
 ```
 
 
@@ -60,6 +60,11 @@ if(params$markers == "all_markers"){
   
   imc.data <- t(logcounts(sce[unique(unlist(markers$cell_types)),]))
   evalStatement <- T
+}
+
+if(params$cohort == "schapiro"){
+  # add a cell ID for schapiro
+  sce$id <- colnames(sce)
 }
 ```
 
@@ -279,7 +284,7 @@ ggplot(phenograph.violin, aes(x = clusterID, y = activation)) +
 
 
 Create plots to evaluate the accuracy of astir.
-```{r eval = evalStatement, include=evalStatement}
+```{r eval = F, include=evalStatement}
 imc.data <- as.data.frame(imc.data)
   
 imc.data$cell_type <- sce$cell_type
@@ -362,14 +367,14 @@ comparison.summary <- bind_rows(astir.mean, phenograph.mean.k20,
 
 
 Save the comparison file for future analyses.
-```{r eval = evalStatement, include=evalStatement}
+```{r eval = F, include=evalStatement}
 write.csv(comparison.summary, paste0("../output/v4/results/Phenograph_astirComparison_", 
                                     params$cohort, ".csv"),
           row.names = F)
 ```
 
 
-```{r eval = evalStatement, include=evalStatement}
+```{r eval = F, include=evalStatement}
 all.cells <- sce %>% colData() %>% as.data.frame() %>% 
                       select(cell_type, pathways,
                              phenograph.k20, phenograph.k30, 
@@ -451,7 +456,7 @@ all.clusters <- all.clusters %>% pivot_longer(cols = pathways,
                               names_to = "pathway", values_to = "activation")
 ```
 
-```{r eval = evalStatement, include=evalStatement, fig.height=10}
+```{r eval = F, include=evalStatement, fig.height=10}
 ggplot(all.clusters, aes(x = cluster, y = activation)) +
   geom_boxplot() +
   facet_wrap(c("algorithm", "pathway"), ncol = 4)
