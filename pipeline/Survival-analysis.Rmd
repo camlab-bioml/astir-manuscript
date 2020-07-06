@@ -95,7 +95,7 @@ coxphs %>%
 
 
 Next, randomize the survival of patients
-```{r}
+```{r eval =F}
 rand <- sample(1:nrow(df_test), nrow(df_test))
 initialTimes <- df_test[rand, c("PID", "DFSmonth")] %>% 
   unique()
