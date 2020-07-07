@@ -10,7 +10,7 @@ logdir = "logs/slurm"
 output_path = "output/" + config['version'] + "/"
 
 # Final assignments
-datasets = ['basel', 'zurich1', 'wagner']
+datasets = ['basel', 'zurich1', 'wagner', 'schapiro']
 asts_type = {d: output_path + f"astir_assignments/{d}_astir_assignments.csv" for d in datasets}
 asts_state = {d: output_path + f"astir_assignments/{d}_astir_assignments_state.csv" for d in datasets}
 
@@ -19,6 +19,7 @@ asts_state = {d: output_path + f"astir_assignments/{d}_astir_assignments_state.c
 include: "pipeline/dataset-wagner.smk"
 include: "pipeline/dataset-basel.smk"
 include: "pipeline/dataset-zurich1.smk"
+include: "pipeline/dataset-schapiro.smk"
 
 include: "analysis/analysis.smk"
 
@@ -31,14 +32,15 @@ include: "pipeline/benchmarking/benchmarking.smk"
 rule all:
     input:
         asts_type.values(),
-        # asts_state.values(),
+        asts_state.values(),
         robustness_output.values(),
         analysis_output.values(),
         wagner_output.values(),
         basel_output.values(),
         zurich1_output.values(),
+        schapiro_output.values(),
         # benchmarking_output.values(),
-        # reports_output.values(),
+        reports_output.values(),
 
 
 
@@ -58,7 +60,7 @@ rule run_astir_type:
         diagnostics=output_path + "astir_assignments/{dataset}_diagnostics.csv"
     run:
         # fit
-        from astir.data_readers import from_loompy_yaml
+        from astir.data import from_loompy_yaml
         from datetime import datetime
         print(f"{datetime.now()}\t Reading loom file ")
         ast = from_loompy_yaml(input.loom, input.markers)
@@ -99,14 +101,14 @@ rule run_astir_state:
         # diagnostics=output_path + "astir_assignments/{dataset}_diagnostics.csv"
     run:
         # fit
-        from astir.data_readers import from_loompy_yaml
+        from astir.data import from_loompy_yaml
         from datetime import datetime
         print(f"{datetime.now()}\t Reading loom file ")
         ast = from_loompy_yaml(input.loom, input.markers)
         print(f"{datetime.now()}\t Fitting model")
         ast.fit_state(max_epochs = int(params.max_epochs), 
         batch_size = int(params.batch_size), 
-        learning_rate = float(params.learning_rate))
+        learning_rate = float(params.learning_rate), delta_loss=1e-4)
         print(f"{datetime.now()}\t Finished fitting model")
         ast.state_to_csv(output.csv)
 

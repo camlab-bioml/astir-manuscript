@@ -3,34 +3,18 @@ cell_states:
   HALLMARK_TNFA_SIGNALING_VIA_NFKB:
   - CD44
   - c-Myc
-  HALLMARK_WNT_BETA_CATENIN_SIGNALING:
-  - c-Myc
-  - p53
-  HALLMARK_G2M_CHECKPOINT:
-  - c-Myc
-  - Ki-67
   HALLMARK_APOPTOSIS:
   - CD44
   - Cytokeratin 8/18
   - Her2
   - cleaved PARP
   - Cleaved Caspase3
-  HALLMARK_ESTROGEN_RESPONSE_EARLY:
-  - CD44
-  - Cytokeratin 8/18
-  - c-Myc
-  - Cytokeratin 19
-  - Progesterone Receptor A/B antibody 1
-  - Progesterone Receptor A/B antibody 2
   HALLMARK_ESTROGEN_RESPONSE_LATE:
   - CD44
   - E-Cadherin
   - Cytokeratin 19
   - Progesterone Receptor A/B antibody 1
   - Progesterone Receptor A/B antibody 2
-  HALLMARK_ANDROGEN_RESPONSE:
-  - Cytokeratin 8/18
-  - Cytokeratin 19
   HALLMARK_PROTEIN_SECRETION:
   - Cytokeratin 8/18
   - EGFR
@@ -64,9 +48,6 @@ cell_states:
   - CD31
   - Fibronectin
   - vWF
-  HALLMARK_IL2_STAT5_SIGNALING:
-  - CD44
-  - c-Myc
   HALLMARK_ALLOGRAFT_REJECTION:
   - EGFR
   - CD3
@@ -74,9 +55,6 @@ cell_states:
   mTOR_signalling:
   - phospho mTOR
   - phospho S6
-  apoptosis:
-  - cleaved PARP
-  - Cleaved Caspase3
 
 cell_types:
   Stromal:

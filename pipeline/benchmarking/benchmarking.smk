@@ -4,17 +4,17 @@
 
 
 
-repeats = 5
+repeats = 20
 gsva_methods = ["plage", "astir"] # "gsva", "ssgsea", 
 
 n_cells = [1000, 5000, 10000, 50000]
 
-datasets = ['basel', 'zurich1']
+datasets = ['basel', 'zurich1', 'wagner', 'schapiro']
 
 output_path_benchmarking = output_path + "benchmarking/geneset/"
 
 geneset_files = expand(output_path_benchmarking + "geneset_benchmark_{d}_{m}_{n}_{r}.csv",
-                d=['basel','zurich1','schapiro'],
+                d=datasets,
                 m=gsva_methods, n=n_cells, r = range(repeats))
 
 # geneset_files = geneset_files + \
@@ -26,6 +26,13 @@ benchmarking_output = {
     'files': geneset_files
 }
 
+core_list = {
+    'basel': basel_cores,
+    'zurich1': zurich1_cores,
+    'wagner': wagner_samples,
+    'schapiro': schapiro_samples
+}
+
 rule run_gsva_benchmark:
     params:
         max_epochs = config['astir_opts']['max_epochs'],
@@ -33,7 +40,7 @@ rule run_gsva_benchmark:
         learning_rate = config['astir_opts']['learning_rate'],
         n_initial_epochs = config['astir_opts']['n_initial_epochs'],
     input:
-        all_csvs = directory(output_path + "{d}_processed/"),
+        csvs = lambda wildcards: ['{}{}_processed/'.format(output_path, wildcards.d) + f + '.csv' for f in core_list[wildcards.d]],
         markers = lambda wildcards: config[wildcards.d]['marker_file']
     output:
         output_path_benchmarking + "geneset_benchmark_{d}_{m}_{n}_{r}.csv"

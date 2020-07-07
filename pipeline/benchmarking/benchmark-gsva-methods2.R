@@ -64,12 +64,21 @@ heldout_proteins <- lapply(
   size = 1
 )
 
+
 modified_markers <- lapply(names(pathways_to_test), function(pathway) {
   setdiff(
     pathways_to_test[[pathway]],
     heldout_proteins[[pathway]]
   )
 })
+
+
+# don't test proteins if there's any overlap
+to_remove <- sapply(as.vector(heldout_proteins), function(hp) {
+  hp %in% unlist(modified_markers)
+})
+
+heldout_proteins <- heldout_proteins[!to_remove]
 
 lens <- sapply(markers$cell_types, length)
 if(any(lens == 1)) {
@@ -105,7 +114,8 @@ if(args$method != "astir") {
               "--max_epochs", args$max_epochs,
               "--batch_size", args$batch_size,
               "--learning_rate", args$learning_rate,
-              "--n_init_epochs", args$n_initial_epochs
+              "--n_init_epochs", args$n_initial_epochs,
+              "--n_init 20"
   )
 
 
@@ -126,6 +136,8 @@ get_stat <- function(pathway) {
   
   fit <- lm(expression ~ pathway_score)
   s <- summary(fit)
+  
+  
   list(
     statistic = s$coefficients[2,3],
     coefficient = s$coefficients[2,1],
@@ -133,7 +145,7 @@ get_stat <- function(pathway) {
   )
 }
 stats <- lapply(
-  names(modified_markers),
+  names(heldout_proteins),
   get_stat
 )
 
@@ -141,13 +153,24 @@ statistics <- sapply(stats, `[[`, 'statistic')
 coefs <- sapply(stats, `[[`, 'coefficient')
 correlations <- sapply(stats, `[[`, 'correlation')
 
+save.image("deleteme.rdata")
+
+directions <- sapply(names(heldout_proteins), function(mm) {
+  proteins <- modified_markers[[mm]]
+  apply(expr_mat[proteins,], 1, function(y) {
+    cor(y, g[mm,])
+  }) %>% 
+    mean()
+})
+
 df_res <- tibble(
   method = args$method,
   dataset = args$dataset,
   n_cells = args$n_cells,
   statistics = statistics,
   coefficients = coefs,
-  correlations = correlations
+  correlations = correlations,
+  directions = sign(directions)
 )
 
 # 

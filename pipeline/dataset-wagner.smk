@@ -7,7 +7,7 @@ wagner_samples = list(wagner_sample_df[0])
 
 
 tmp_wagner_output = expand(output_path + 
-        "wagner-2019_processed/{sample}.{ext}",
+        "wagner_processed/{sample}.{ext}",
         sample=wagner_samples, ext=['csv','rds'])
 
 wagner_output = {
@@ -22,29 +22,29 @@ rule read_wagner_2019:
     input:
         config['wagner']['fcs_dir'] + "/{sample}.fcs"
     output:
-        rds = output_path + "wagner-2019_processed/{sample}.rds",
-        csv = output_path + "wagner-2019_processed/{sample}.csv",
+        rds = output_path + "wagner_processed/{sample}.rds",
+        csv = output_path + "wagner_processed/{sample}.csv",
     shell:
-        "Rscript pipeline/wagner-2019/wagner-fcs-to-csv.R "
+        "Rscript pipeline/wagner/wagner-fcs-to-csv.R "
         "--input_fcs {input} "
         "--output_rds {output.rds} "
         "--output_csv {output.csv} "
 
 rule wagner_to_loom:
     input:
-        expand(output_path + "wagner-2019_processed/{core}.csv", core=wagner_samples),
+        expand(output_path + "wagner_processed/{core}.csv", core=wagner_samples),
     output:
         output_path + "looms/wagner.loom"
     shell:
         "python pipeline/dir-of-csvs-to-loom.py "
-        "{output_path}/wagner-2019_processed "
+        "{output_path}/wagner_processed "
         "{output} "
 
 
 
 rule subset_wagner:
     input:
-        csvs=expand(output_path + "wagner-2019_processed/{core}.csv", core=wagner_samples),
+        csvs=expand(output_path + "wagner_processed/{core}.csv", core=wagner_samples),
         assignments_type=output_path + "astir_assignments/wagner_astir_assignments.csv",
         assignments_state=output_path + "astir_assignments/wagner_astir_assignments_state.csv",
     output:
@@ -76,9 +76,9 @@ rule subset_wagner:
 
 rule subset_wagner_sce:
     params:
-        input_dir = output_path + "wagner-2019_processed"
+        input_dir = output_path + "wagner_processed"
     input:
-        expand(output_path + "wagner-2019_processed/{sample}.rds", sample=wagner_samples),
+        expand(output_path + "wagner_processed/{sample}.rds", sample=wagner_samples),
         csv=output_path + "wagner_subset/wagner_subset_expression.csv",
     output:
         output_path + "wagner_subset/wagner_subset_sce.rds"

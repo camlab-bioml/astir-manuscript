@@ -1,10 +1,10 @@
 
-version: v4
+version: v5
 
 astir_opts:
-    max_epochs: 50
+    max_epochs: 400
     batch_size: 512
-    learning_rate: 1e-3
+    learning_rate: 2e-3
     n_initial_epochs: 3
 
 n_subsample: 15000
@@ -25,3 +25,8 @@ wagner:
     fcs_dir: data-raw/wagner-2019/fcs_files
     sample_file: data-raw/wagner-2019/wagner-2019-samples.csv
     marker_file: markers/wagner-2019-markers.yml
+
+schapiro:
+    sample_txt: data-raw/schapiro-2017/samples.txt
+    data_dir: data-raw/schapiro-2017/single-cell-data/
+    marker_file: markers/schapiro-markers.yml

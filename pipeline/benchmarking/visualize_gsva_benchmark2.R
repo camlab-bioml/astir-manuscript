@@ -11,15 +11,15 @@ csv_files <- dir(input_dir, full.names = TRUE)
 
 df <- map_dfr(sample(csv_files), read_csv)
 
-ggplot(df, aes(x = factor(n_cells), y = abs(statistics), fill = method)) +
+ggplot(df, aes(x = factor(n_cells), y = directions * (statistics), fill = method)) +
   facet_wrap(~ dataset) +
   geom_boxplot() +
   scale_y_log10()
 
-ggplot(df, aes(x = factor(n_cells), y = abs(correlations), fill = method)) +
-  facet_wrap(~ dataset) +
-  geom_boxplot()
-  # scale_y_log10()
+# ggplot(df, aes(x = factor(n_cells), y = directions * (correlations), fill = method)) +
+#   facet_wrap(~ dataset) +
+#   geom_boxplot()
+
 
 
 # plt2 <- ggplot(df, aes(x = factor(n_cells), y = abs(coefficients), fill = method)) +

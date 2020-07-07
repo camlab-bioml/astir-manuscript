@@ -2,7 +2,7 @@
 
 basel_metadata = pd.read_csv(os.path.join(config['basel']['base_dir'], config['basel']['metadata_file']))
 basel_cores = list(basel_metadata.core)
-tmp_basel_output = expand(output_path + "basel_processed/{core}.rds", core=basel_cores)
+basel_csvs = expand(output_path + "basel_processed/{core}.rds", core=basel_cores)
 
 
 # Basel 15k reduced set for benchmarking
@@ -11,7 +11,7 @@ cores_15k = list(set(list(basel_15k_cells.core)))
 basel_15k_csvs = expand(output_path + "basel_15k_subset/{core}.csv", core=cores_15k)
 
 basel_output = {
-    'csv_rds': tmp_basel_output,
+    'csvs': basel_csvs,
     'loom': output_path + "looms/basel.loom",
     'subset': output_path + "basel_subset/basel_subset_expression.csv",
     'subset_csvs': expand(output_path + "basel_subset_separate_csvs/{core}.csv", core=basel_cores[0:30]),
