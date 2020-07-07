@@ -74,7 +74,7 @@ rule remove_celltypes:
         with open(output.markers, 'w') as stream:
             yaml.dump(marker_dict, stream)
             
-        from astir.data_readers import from_csv_dir_yaml
+        from astir.data import from_csv_dir_yaml
 
         ast = from_csv_dir_yaml(os.path.join(output_path, "basel_subset_separate_csvs"), output.markers)
         ast.fit_type(max_epochs = int(params.max_epochs), 
@@ -116,7 +116,7 @@ rule add_celltypes:
         with open(output.markers, 'w') as stream:
             yaml.dump(marker_dict, stream)
             
-        from astir.data_readers import from_csv_dir_yaml
+        from astir.data import from_csv_dir_yaml
 
         ast = from_csv_dir_yaml(os.path.join(output_path, "basel_subset_separate_csvs"), output.markers)
         ast.fit_type(max_epochs = int(params.max_epochs), 
