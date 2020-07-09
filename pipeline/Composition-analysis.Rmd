@@ -146,8 +146,8 @@ for(i in unique(het$cell_type)){
     tumor <- tumor[!is.na(tumor)]
     
     tumor_v_normal <- dist.mat[rownames(dist.mat) == "tumor", colnames(dist.mat) == "non-tumor"]
-    tumor_v_normal <- as.vector(tumor_non_tumor)
-    tumor_v_normal <- tumor_non_tumor[!is.na(tumor_non_tumor)]
+    tumor_v_normal <- as.vector(tumor_v_normal)
+    tumor_v_normal <- tumor_v_normal[!is.na(tumor_v_normal)]
     
     pval <- t.test(tumor, tumor_v_normal)
     res[index, ] <- c(i, j, pval$p.value)
@@ -164,17 +164,6 @@ ggplot(t, aes(x = 1:(cellTypesNo * pathwayNo), y = -log10(V3))) +
 
 res
 ```
-
-```{r}
-### Old code
-
-comb <- t %>% group_by(pathway) %>% 
-  right_join(expand(., activation, activation2)) %>% slice(-13, .preserve = T)
-
-t %>% group_by(pathway) %>% 
-  expand(., activation, activation2)
-```
-
 
 
 
