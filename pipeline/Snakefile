@@ -1,9 +1,11 @@
 cohort_list = ['basel', 'zurich1', 'wagner', 'schapiro']
+sub_cohort_list = ['zurich1']
 FlowSOM_Cluster_sizes = ['8', '12', '15', '20']
 Phenograph_Cluster_sizes = ['20', '30', '40', '50']
 cell_types = ["Epithelial (other)", "Epithelial (luminal)", "Stromal", "B cells", "T cells", "Epithelial (basal)", "Macrophage", "Endothelial"]
 
 output_dir_reports = "../output/v4/reports/"
+astir_assignments = "../output/v5/astir_assignments"
 
 rule all:
     input:
@@ -36,7 +38,9 @@ rule all:
 
         Final_approaches_comparison = expand(output_dir_reports + "Final-approaches-comparison.html"),
 
-        Survival_analysis = expand(output_dir_reports + "Survival-analysis-basel-{subsetCells}.html", subsetCells = cell_types)
+        Survival_analysis = expand(output_dir_reports + "Survival-analysis-basel-{subsetCells}.html", subsetCells = cell_types),
+
+        Composition_analysis = expand(output_dir_reports + "Composition-analysis-{sub_cohort}.html", sub_cohort = sub_cohort_list)
 
 rule phenograph_analysis:
     # This rule creates the performance data for phenograph as it only uses specified markers
@@ -217,3 +221,21 @@ rule survival_analysis:
         "rmarkdown::render('Survival-analysis.Rmd', output_file = '{output.html}', output_dir = '" + output_dir_reports + "',"
         "params = list(celltype_analysis = '{params.subsetCells}', path = '{input.path}', metadata = '{input.metadata}', celltypes = '{input.cellTypes}', "
         "cellstates = '{input.cellStates}' ))\" "
+
+
+rule composition_analysis:
+    input:
+        cellTypes = astir_assignments + "{sub_cohort}_astir_assignments.csv",
+        cellStates = astir_assignments + "{sub_cohort}_astir_assignments_state.csv",
+        metadata = "/home/ltri/campbell/mgeuenic/imc-2020/data-raw/jackson-imc/SingleCell_and_Metadata/ZurichTMA/Zuri_PatientMetadata.csv"
+    
+    output:
+        html = output_dir_reports + "Composition-analysis-{sub_cohort}.html"
+
+    params:
+        cohort = "{sub_cohort}"
+
+    shell:
+        "Rscript -e \" Sys.setenv(RSTUDIO_PANDOC='/home/ltri/campbell/share/software/pandoc-2.9.2.1/bin');"
+        "rmarkdown::render('Composition-analysis.Rmd', output_file = '{output.html}', output_dir = '" + output_dir_reports + "',"
+        "params = list(celltypes = '{params.subsetCells}', metadata = '{input.metadata}', cellstates = '{input.cellStates}', cohort = '{params.cohort}' ))\" "
