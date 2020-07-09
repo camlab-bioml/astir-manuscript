@@ -128,48 +128,68 @@ het <- select(pathwayActivations, -ERStatus,
 cellTypesNo <- length(unique(het$cell_type))
 pathwayNo <- length(unique(het$pathway))
 
-res <- as.data.frame(matrix(ncol = 3, nrow = cellTypesNo * pathwayNo))
+res <- as.data.frame(matrix(ncol = 6, nrow = cellTypesNo * pathwayNo))
+colnames(res) <- c("cell_type", "pathway", "var.est", "var.p", "p.est", "p.pval")
 index <- 1
 
 for(i in unique(het$cell_type)){
   for(j in unique(het$pathway)){
-    cellType_pathway <- filter(het, cell_type == i & 
-                                 pathway == j)
+    cellType_pathway <- filter(het, cell_type == i & pathway == j)
     
-    dist.mat <- dist(cellType_pathway$activation) %>% as.matrix()
-    rownames(dist.mat) <- cellType_pathway$location
-    colnames(dist.mat) <- cellType_pathway$location
-    dist.mat[lower.tri(dist.mat, diag = T)] <- NA
+    # Calculate the number of cells for each condition
+    l.tumor <- cellType_pathway %>% filter(location == "tumor") %>% nrow()
+    l.tumor_v_non <- cellType_pathway %>% filter(location == "non-tumor") %>% nrow()
     
-    tumor <- dist.mat[rownames(dist.mat) == "tumor", colnames(dist.mat) == "tumor"]
-    tumor <- as.vector(tumor)
-    tumor <- tumor[!is.na(tumor)]
+    print(l.tumor)
+    print(l.tumor_v_non)
     
-    tumor_v_normal <- dist.mat[rownames(dist.mat) == "tumor", colnames(dist.mat) == "non-tumor"]
-    tumor_v_normal <- as.vector(tumor_v_normal)
-    tumor_v_normal <- tumor_v_normal[!is.na(tumor_v_normal)]
-    
-    if(length(tumor) > 1 & length(tumor_v_normal) > 1){
-      pval <- t.test(tumor, tumor_v_normal)
-      res[index, ] <- c(i, j, pval$p.value)
+    if(l.tumor > 1 & l.tumor_v_non > 1){
+      v <- var.test(activation ~ location, data = cellType_pathway)
+      v.p <- v$p.value
+      v.est <- v$estimate
+      
+      pval <- t.test(activation ~ location, data = cellType_pathway)
+      pval.p <- pval$p.value
+      pval.est <- pval$estimate[2] / pval$estimate[1]
+      
+      res[index, ] <- c(i, j, v.est, v.p, pval.est, pval.p)
       index <- index + 1
     }
   }
 }
 
 res <- na.omit(res)
-res$V3 <- as.numeric(res$V3)
+res[, 3:6] <- lapply(res[, 3:6], as.numeric)
 
-ggplot(t, aes(x = 1:nrow(res), y = -log10(V3))) +
+ggplot(res, aes(x = 1:nrow(res), y = -log10(p.pval))) +
   geom_point() +
   astir_paper_theme()
 
-
 res
+
+write_csv(res, "../output/v5/results/composition-analysis-res-zurich1.csv")
 ```
 
 
 
 
-
-
+Old code
+```{r}
+    # dist.mat <- dist(cellType_pathway$activation) %>% as.matrix()
+    # rownames(dist.mat) <- cellType_pathway$location
+    # colnames(dist.mat) <- cellType_pathway$location
+    # dist.mat[lower.tri(dist.mat, diag = T)] <- NA
+    # 
+    # tumor <- dist.mat[rownames(dist.mat) == "tumor", colnames(dist.mat) == "tumor"]
+    # tumor <- as.vector(tumor)
+    # tumor <- tumor[!is.na(tumor)]
+    # 
+    # tumor_v_normal <- dist.mat[rownames(dist.mat) == "tumor", colnames(dist.mat) == "non-tumor"]
+    # tumor_v_normal <- as.vector(tumor_v_normal)
+    # tumor_v_normal <- tumor_v_normal[!is.na(tumor_v_normal)]
+    
+    # Add in: p val, shift in median, variances... var.test
+    # shift in means, variance, var.test, p.val
+    
+    # coefficient of shift in means = pval$estimate[2] / pval$estimate[1]
+```
