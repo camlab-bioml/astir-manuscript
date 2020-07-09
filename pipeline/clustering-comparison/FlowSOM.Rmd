@@ -27,7 +27,7 @@ library(viridis)
 library(cytofkit)
 library(ggalluvial)
 devtools::load_all('../../../taproom/')
-source("../scripts/functions.R")
+source("../../scripts/functions.R")
 ```
 
 First read in all sc data and assign cell type
@@ -60,6 +60,11 @@ if(params$markers == "all_markers"){
   
   imc.data <- t(logcounts(sce[unique(unlist(markers$cell_types)),]))
   evalStatement <- T
+}
+
+if(params$cohort == "schapiro"){
+  # add a cell ID for schapiro
+  sce$id <- colnames(sce)
 }
 ```
 
@@ -190,28 +195,28 @@ FlowSOM.k8.ha <-
                     `phenograph cluster` = as.factor(sce$FlowSOM.k8),
                     which="column",
                     col = list(`Cell type` = jackson_basel_colours()),
-                    `phenograph cluster` = sce$FlowSOM.k8)
+                    `FlowSOM cluster` = sce$FlowSOM.k8)
 
 FlowSOM.k12.ha <- 
   HeatmapAnnotation(`Cell type` = sce$cell_type,
                     `phenograph cluster` = as.factor(sce$FlowSOM.k12),
                     which="column",
                     col = list(`Cell type` = jackson_basel_colours()),
-                    `phenograph cluster` = sce$FlowSOM.k12)
+                    `FlowSOM cluster` = sce$FlowSOM.k12)
 
 FlowSOM.k15.ha <- 
   HeatmapAnnotation(`Cell type` = sce$cell_type,
                     `phenograph cluster` = as.factor(sce$FlowSOM.k15),
                     which="column",
                     col = list(`Cell type` = jackson_basel_colours()),
-                    `phenograph cluster` = sce$FlowSOM.k15)
+                    `FlowSOM cluster` = sce$FlowSOM.k15)
 
 FlowSOM.k20.ha <- 
   HeatmapAnnotation(`Cell type` = sce$cell_type,
                     `phenograph cluster` = as.factor(sce$FlowSOM.k20),
                     which="column",
                     col = list(`Cell type` = jackson_basel_colours()),
-                    `phenograph cluster` = sce$FlowSOM.k20)
+                    `FlowSOM cluster` = sce$FlowSOM.k20)
 
 
 FlowSOM.k8.type_exprs <- Heatmap(t(lc), 
@@ -282,7 +287,7 @@ ggplot(phenograph.violin, aes(x = clusterID, y = activation)) +
 
 
 Create plots to evaluate the accuracy of astir.
-```{r eval = evalStatement, include=evalStatement}
+```{r eval = F, include=evalStatement}
 imc.data <- as.data.frame(imc.data)
   
 imc.data$cell_type <- sce$cell_type
@@ -354,7 +359,7 @@ comparison.summary <- bind_rows(astir.mean, FlowSOM.mean.k8, FlowSOM.mean.k12,
 ```
 
 Save the comparison file for future analyses.
-```{r eval = evalStatement, include=evalStatement}
+```{r eval = F, include=evalStatement}
 write.csv(comparison.summary, paste0("../output/v4/results/FlowSOM_astirComparison_", 
                                     params$cohort, ".csv"),
           row.names = F)
