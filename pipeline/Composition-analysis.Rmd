@@ -149,15 +149,18 @@ for(i in unique(het$cell_type)){
     tumor_v_normal <- as.vector(tumor_v_normal)
     tumor_v_normal <- tumor_v_normal[!is.na(tumor_v_normal)]
     
-    pval <- t.test(tumor, tumor_v_normal)
-    res[index, ] <- c(i, j, pval$p.value)
-    index <- index + 1
+    if(length(tumor) > 1 & length(tumor_v_normal) > 1){
+      pval <- t.test(tumor, tumor_v_normal)
+      res[index, ] <- c(i, j, pval$p.value)
+      index <- index + 1
+    }
   }
 }
 
+res <- na.omit(res)
 res$V3 <- as.numeric(res$V3)
 
-ggplot(t, aes(x = 1:(cellTypesNo * pathwayNo), y = -log10(V3))) +
+ggplot(t, aes(x = 1:nrow(res), y = -log10(V3))) +
   geom_point() +
   astir_paper_theme()
 
