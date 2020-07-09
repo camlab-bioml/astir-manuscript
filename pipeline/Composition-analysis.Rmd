@@ -1,0 +1,183 @@
+---
+title: "Untitled"
+author: "Michael Geuenich"
+date: "July 6, 2020"
+output: html_document
+params:
+  celltypes: "../output/v5/zurich1_processed/zurich1_astir_assignments.csv"
+  cellstates: "../output/v5/zurich1_processed/zurich1_astir_assignments_state.csv" 
+  metadata: "../output/v4/zurich1_subset/zurich1_PatientMetadata.csv"
+  cohort: "zurich1"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(devtools)
+library(broom)
+library(matrixStats)
+devtools::load_all("../../taproom")
+```
+
+```{r message=F}
+metadata <- read_csv(params$metadata)
+
+types <- read_csv(params$celltypes)
+types$cell_type <- taproom::get_celltypes(types[, 2:ncol(types)])
+
+states <- read_csv(params$cellstates)
+
+cells <- left_join(select(types, X1, cell_type), states, by = "X1")
+cells <- cells %>% 
+  mutate(X1 = sub("_[^_]+$", "", cells$X1)) %>% 
+  rename(core = X1)
+```
+
+LM functions 
+```{r}
+pathwayLM <- function(regress){
+  pathwayActivations %>% 
+    group_by(cell_type, pathway) %>% 
+    do(tidy(lm(activation ~ .data[[regress]], data = .))) %>% 
+    ungroup() %>% 
+    filter(term != "(Intercept)")
+}
+
+plotLM <- function(lm.df, title){
+  ggplot(lm.df, aes(x = cell_type, y = pathway)) +
+    geom_point(aes(size = -log10(p.value), fill = estimate, shape = 21)) +
+    scale_fill_gradient2() + 
+    scale_shape_identity() +
+    astir_paper_theme() +
+    ggtitle(title) +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+}
+```
+
+```{r}
+if(params$cohort == "basel"){
+  pathwayActivations <- left_join(cells, 
+            select(metadata, PID, core, diseasestatus, ERStatus, PRStatus, 
+                   HER2Status, HR), by = "core") %>% 
+    pivot_longer(cols = c(starts_with("HALLMARK"), mTOR_signalling), 
+                 names_to = "pathway", values_to = "activation") %>% 
+    filter(cell_type != "Other" & cell_type != "Unknown")
+}
+
+if(params$cohort == "zurich1"){
+  pathwayActivations <- left_join(cells,
+                                  select(metadata, PID, core, location, HER2, 
+                                         ERStatus, PRStatus, clinical_type), 
+                                  by = "core") %>% 
+    pivot_longer(cols = c(starts_with("HALLMARK"), mTOR_signalling), 
+                 names_to = "pathway", values_to = "activation") %>% 
+    filter(cell_type != "Other" & cell_type != "Unknown") %>% 
+    drop_na(HER2, ERStatus, PRStatus, clinical_type)
+  
+  pathwayActivations$location <- ifelse(pathwayActivations$location == "[]", "non-tumor", "tumor")
+}
+```
+
+```{r eval = params$cohort == "basel", include = params$cohort == "basel"}
+basel.tumour <- pathwayLM(regress = "diseasestatus")
+plotLM(basel.tumour, "Normal vs. Tumour")
+
+pathwayActivations <- pathwayActivations %>% 
+  filter(diseasestatus == "tumor")
+
+basel <- c("HER2Status", "ERStatus", "PRStatus", "HR")
+basel.titles <- c("HER2", "ER", "PR", "HR vs TNBC")
+
+basel.lms <- lapply(basel, pathwayLM)
+names(basel.lms) <- basel.titles
+
+lapply(names(basel.lms), function(n) plotLM(basel.lms[[n]], n))
+```
+
+```{r eval = params$cohort == "zurich1", include = params$cohort == "zurich1"}
+zurich1.tumour <- pathwayLM(regress = "location")
+
+plotLM(zurich1.tumour, "Normal vs. Tumour")
+
+pathwayActivations <- pathwayActivations %>% 
+  filter(location == "tumor")
+
+zurich1 <- c("HER2", "ERStatus", "PRStatus")
+zurich1.titles <- c("HER2", "ER", "PR")
+
+zurich1.lms <- lapply(zurich1, pathwayLM)
+names(zurich1.lms) <- zurich1.titles
+
+lapply(names(zurich1.lms), function(n) plotLM(zurich1.lms[[n]], n))
+```
+
+
+
+## Heterogeneity analysis
+```{r eval=params$cohort == "zurich1"}
+#set.seed(42)
+#PIDs <- pathwayActivations %>% pull(PID) %>% unique
+#cores <- pathwayActivations %>% pull(core) %>% unique()
+#selCore <- c("ZTMA208_slide_29_By12x8", "ZTMA208_slide_6_Ay4x6")
+#rand <- sample(PIDs, 15)
+
+het <- select(pathwayActivations, -ERStatus, 
+              -PRStatus, -HER2, -clinical_type)# %>% 
+  #filter(core %in% selCore)
+
+cellTypesNo <- length(unique(het$cell_type))
+pathwayNo <- length(unique(het$pathway))
+
+res <- as.data.frame(matrix(ncol = 3, nrow = cellTypesNo * pathwayNo))
+index <- 1
+
+for(i in unique(het$cell_type)){
+  for(j in unique(het$pathway)){
+    cellType_pathway <- filter(het, cell_type == i & 
+                                 pathway == j)
+    
+    dist.mat <- dist(cellType_pathway$activation) %>% as.matrix()
+    rownames(dist.mat) <- cellType_pathway$location
+    colnames(dist.mat) <- cellType_pathway$location
+    dist.mat[lower.tri(dist.mat, diag = T)] <- NA
+    
+    tumor <- dist.mat[rownames(dist.mat) == "tumor", colnames(dist.mat) == "tumor"]
+    tumor <- as.vector(tumor)
+    tumor <- tumor[!is.na(tumor)]
+    
+    tumor_v_normal <- dist.mat[rownames(dist.mat) == "tumor", colnames(dist.mat) == "non-tumor"]
+    tumor_v_normal <- as.vector(tumor_non_tumor)
+    tumor_v_normal <- tumor_non_tumor[!is.na(tumor_non_tumor)]
+    
+    pval <- t.test(tumor, tumor_v_normal)
+    res[index, ] <- c(i, j, pval$p.value)
+    index <- index + 1
+  }
+}
+
+res$V3 <- as.numeric(res$V3)
+
+ggplot(t, aes(x = 1:(cellTypesNo * pathwayNo), y = -log10(V3))) +
+  geom_point() +
+  astir_paper_theme()
+
+
+res
+```
+
+```{r}
+### Old code
+
+comb <- t %>% group_by(pathway) %>% 
+  right_join(expand(., activation, activation2)) %>% slice(-13, .preserve = T)
+
+t %>% group_by(pathway) %>% 
+  expand(., activation, activation2)
+```
+
+
+
+
+
+
+
