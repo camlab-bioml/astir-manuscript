@@ -26,7 +26,8 @@ include: "analysis/analysis.smk"
 # include: "pipeline/benchmarking/benchmarking.smk"
 include: "pipeline/robustness/robustness.smk"
 include: "pipeline/reports/reports.smk"
-include: "pipeline/benchmarking/benchmarking.smk"
+# include: "pipeline/benchmarking/benchmarking.smk"
+include: "pipeline/spatial/spatial.smk"
 
 ## Beginning of rules ----- 
 rule all:
@@ -41,6 +42,7 @@ rule all:
         schapiro_output.values(),
         # benchmarking_output.values(),
         reports_output.values(),
+        spatial_output.values(),
 
 
 

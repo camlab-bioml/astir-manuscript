@@ -1,0 +1,237 @@
+---
+title: "Distance clustering"
+output: html_document
+params:
+  input_dir: "../../output/v5/spatial/basel/"
+  metadata: "../..//data-raw/jackson-2020/SingleCell_and_Metadata/BaselTMA/Basel_PatientMetadata.csv"
+  dataset: "basel"
+  celltype_assignments: "../../output/v5/astir_assignments/basel_astir_assignments.csv"
+  state_assignments: "../../output/v5/astir_assignments/basel_astir_assignments_state.csv"
+  df_test: "test.csv"
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(ComplexHeatmap)
+library(viridis)
+library(broom)
+library(survival)
+# library(survminer)
+
+devtools::load_all("../taproom")
+```
+
+```{r}
+csv_files <- dir(params$input_dir, full.names = TRUE)
+```
+
+```{r}
+ct <- cols(
+  core = col_character(),
+  Celltype_1 = col_character(),
+  Celltype_2 = col_character(),
+  avg_distance = col_double(),
+  n_cells = col_double()
+)
+
+df <- map_dfr(csv_files, read_csv, col_types = ct)
+```
+
+```{r}
+df <- filter(df, 
+       grepl("Stromal|Epithelial|T|Macrophage", Celltype_1),
+       grepl("Stromal|Epithelial|T|Macrophage", Celltype_2),
+       !grepl("basal|other", Celltype_1),
+       !grepl("basal|other", Celltype_2))
+
+```
+
+
+```{r}
+df$ct_string <- paste0(df$Celltype_1, " - ", df$Celltype_2)
+```
+
+```{r}
+df_wide <- select(df, -Celltype_1, -Celltype_2) %>% 
+  spread(ct_string, avg_distance)
+```
+
+```{r}
+mat <- select(df_wide, -(core:n_cells)) %>% 
+  as.matrix()
+rownames(mat) <- df_wide$core
+
+mat <- mat[rowMeans(is.na(mat)) < 0.8, ]
+mat <- mat[, colMeans(is.na(mat)) < 0.8]
+
+mat <- scale(mat)
+mat[mat > 2] <- 2
+mat[mat < -2] <- -2
+```
+
+```{r}
+cell_nums <- select(df, core, n_cells) %>% 
+  distinct()
+cell_num_vec <- cell_nums$n_cells
+names(cell_num_vec) <- cell_nums$core
+cell_num_vec <- cell_num_vec[rownames(mat)]
+```
+
+```{r}
+cell_num_vec <- cell_num_vec[cell_num_vec > 1000]
+mat <- mat[names(cell_num_vec),]
+```
+
+```{r}
+mdata <- read_csv(params$metadata)
+```
+```{r}
+status <- mdata$diseasestatus
+names(status) <- mdata$core
+```
+
+
+```{r}
+mat2 <- apply(mat, 1, function(x) {
+  x[is.na(x)] <- mean(x, na.rm = T)
+  x
+}) %>% 
+  t()
+
+
+top_annot <- HeatmapAnnotation(`# cells` = anno_barplot(cell_num_vec))
+
+ht <- Heatmap(t(mat2), na_col = "grey90", show_column_names = FALSE, col=viridis(100),
+              top_annotation = top_annot)
+draw(ht)
+```
+
+# Survival analysis
+
+```{r}
+
+
+pca <- prcomp(mat2)
+```
+
+```{r}
+spatial_score <- pca$x[,1]
+```
+
+
+```{r}
+spatial_level <- pca$x[,1] > median(pca$x[,1])
+```
+
+```{r, eval=F}
+df_surv <- filter(mdata, diseasestatus == "tumor") %>% 
+  select(core, Patientstatus, DFSmonth, OSmonth) %>% 
+  mutate(vital_status = grepl("death", Patientstatus))
+```
+
+```{r, eval=F}
+df_surv <- inner_join(
+  df_surv,
+  enframe(spatial_level, "core", "spatial_score")
+)
+```
+```{r, eval=F}
+fit <- survfit(Surv(DFSmonth, vital_status) ~ spatial_score, data = df_surv)
+
+```
+
+```{r, eval=F}
+ggsurvplot(fit, 
+           pval = surv_pvalue(fit)[1,4],
+           palette = "Set1",
+           linetype = "strata",
+           legend.title = NA)
+```
+
+# Associate with states
+
+Zurich:
+  ZTMA208_slide_11_By5x8_9
+  ZTMA208_slide_6_Ay4x7
+
+```{r}
+state_assignments <- read_csv(params$state_assignments)
+```
+
+```{r}
+celltype_assignments <- read_csv(params$celltype_assignments)
+```
+
+```{r}
+cell_names <- celltype_assignments$X1
+celltype_assignments$X1 <- NULL
+cell_types <- get_celltypes(celltype_assignments)
+cell_types <- tibble(X1 = cell_names, cell_type = cell_types)
+```
+
+```{r}
+s <- inner_join(state_assignments, cell_types, by = "X1") %>% 
+  filter(cell_type != "Unknown", cell_type != "Other")
+```
+
+
+```{r}
+cores <- s$X1
+cores <- strsplit(cores, "_", fixed=TRUE)
+cores <- lapply(cores, `[`, 1:4)
+cores <- sapply(cores, paste0, collapse="_")
+s$core <- cores
+```
+
+```{r}
+s <- gather(s, state, activation, -X1, -core, -cell_type) %>% 
+  group_by(cell_type, state) %>% 
+  mutate(activation = activation - mean(activation)) %>% 
+  ungroup()
+```
+
+
+```{r}
+ggplot(s, aes(x = cell_type, y = activation)) +
+  facet_wrap(~ state) +
+  geom_boxplot()
+```
+
+
+
+```{r}
+df_state <- group_by(s, core, state) %>% 
+  summarize(activation = mean(activation)) %>% 
+  ungroup()
+```
+
+```{r}
+df_state <- enframe(spatial_score, "core", "spatial_score") %>% 
+  inner_join(df_state, by = "core")
+```
+
+```{r}
+df_test <- group_by(df_state, state) %>% 
+  do(tidy(lm(activation ~ spatial_score, data = .))) %>% 
+  filter(term == "spatial_score") %>% 
+  mutate(dataset = params$dataset)
+```
+
+```{r}
+DT::datatable(df_test)
+```
+
+
+```{r}
+ggplot(df_state, aes(x = spatial_score, y = activation)) +
+  geom_point() +
+  facet_wrap(~ state, scales = "free_y") +
+  geom_smooth(method="lm")
+```
+
+```{r}
+write_csv(df_test, params$df_test)
+```
+
+
+
