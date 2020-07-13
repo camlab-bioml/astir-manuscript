@@ -19,7 +19,7 @@ combineRDS <- function(metadata, path){
   sce
 }
 
-assignIdentity <- function(raw.sce, types, states){
+assignIdentity <- function(raw.sce, types, states, dimReduct = F){
   #### REad in data
   # raw.sce <- "output/v4/zurich1_subset/zurich1_subset_sce.rds"
   # types <- "output/v4/zurich1_subset/zurich1_subset_assignments_type.csv"
@@ -105,8 +105,10 @@ assignIdentity <- function(raw.sce, types, states){
   colData(sce)[newColNames] <- typeState[colnames(sce), ]
   
   ### [PCA & UMAP PROJECTIONS] #####
-  #sce <- runPCA(sce, ncomponents = 10)
-  #sce <- runUMAP(sce)
+  if(dimReduct == T){
+    sce <- runPCA(sce, ncomponents = 10)
+    sce <- runUMAP(sce)
+  }
   
   return(list(sce = sce, pathways = paste0(stateNames, ".activation")))
 }
