@@ -5,7 +5,7 @@ Phenograph_Cluster_sizes = ['20', '30', '40', '50']
 cell_types = ["Epithelial (other)", "Epithelial (luminal)", "Stromal", "B cells", "T cells", "Epithelial (basal)", "Macrophage", "Endothelial"]
 
 output_dir_reports = "../output/v4/reports/"
-astir_assignments = "../output/v5/astir_assignments"
+astir_assignments = "../output/v5/astir_assignments/"
 
 rule all:
     input:
@@ -232,10 +232,13 @@ rule composition_analysis:
     output:
         html = output_dir_reports + "Composition-analysis-{sub_cohort}.html"
 
+    resources:
+        mem_mb=25000
+
     params:
         cohort = "{sub_cohort}"
 
     shell:
         "Rscript -e \" Sys.setenv(RSTUDIO_PANDOC='/home/ltri/campbell/share/software/pandoc-2.9.2.1/bin');"
         "rmarkdown::render('Composition-analysis.Rmd', output_file = '{output.html}', output_dir = '" + output_dir_reports + "',"
-        "params = list(celltypes = '{params.subsetCells}', metadata = '{input.metadata}', cellstates = '{input.cellStates}', cohort = '{params.cohort}' ))\" "
+        "params = list(celltypes = '{input.cellTypes}', metadata = '{input.metadata}', cellstates = '{input.cellStates}', cohort = '{wildcards.sub_cohort}' ))\" "
