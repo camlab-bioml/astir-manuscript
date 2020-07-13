@@ -19,6 +19,15 @@ combineRDS <- function(metadata, path){
   sce
 }
 
+createSCE <- function(path){
+  RDSfiles <- dir(path, pattern = ".rds", full.names = T)
+  
+  listSCE <- lapply(RDSfiles, readRDS)
+  sce <- do.call('cbind', listSCE)
+  
+  sce
+}
+
 assignIdentity <- function(raw.sce, types, states, dimReduct = F){
   #### REad in data
   # raw.sce <- "output/v4/zurich1_subset/zurich1_subset_sce.rds"

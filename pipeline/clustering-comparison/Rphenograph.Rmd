@@ -34,7 +34,8 @@ source("scripts/functions.R")
 First read in all sc data and assign cell type
 ```{r message=F, warning=F}
 # read in data
-sce <- assignIdentity(params$cells, params$celltypes, params$cellstates)
+sce <- createSCE(params$cells)
+sce <- assignIdentity(sce, params$celltypes, params$cellstates)
 pathways <- sce$pathways
 sce <- sce$sce
 
