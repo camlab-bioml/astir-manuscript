@@ -10,6 +10,8 @@ params:
   celltypes: "../../output/v4/zurich1_subset/zurich1_subset_assignments_type.csv"
   cellstates: "../../output/v4/zurich1_subset/zurich1_subset_assignments_state.csv" 
   cohort: "zurich1"
+  markers_list: ""
+  output_results: ""
 ---
 
 
@@ -26,8 +28,8 @@ library(dichromat)
 library(viridis)
 library(cytofkit)
 library(ggalluvial)
-devtools::load_all('../../../taproom/')
-source("../../scripts/functions.R")
+devtools::load_all("../taproom/")
+source("scripts/functions.R")
 ```
 
 First read in all sc data and assign cell type
@@ -50,13 +52,7 @@ if(params$markers == "all_markers"){
   # should be executed
   evalStatement <- F
 }else if(params$markers == "specified_markers"){
-  if(params$cohort == "basel" | params$cohort == "zurich1"){
-    markers <- read_markers("../markers/jackson-2020-markers-v2.yml")
-  }else if(params$cohort == "wagner"){
-    markers <- read_markers("../markers/wagner-2019-markers.yml")
-  }else if(params$cohort == "schapiro"){
-    markers <- read_markers("../markers/schapiro-markers.yml")
-  }
+  markers <- read_markers(params$markers_list)
   
   imc.data <- t(logcounts(sce[unique(unlist(markers$cell_types)),]))
   evalStatement <- T
@@ -98,7 +94,7 @@ flowSOM_k8 <- sce %>% colData() %>% as.data.frame() %>% select(id, "FlowSOM.k8")
 rownames(flowSOM_k8) <- c()
 flowSOM_k8$method <- "FlowSOM"
 flowSOM_k8$params <- paste(params$markers, "k8", sep = "_")
-write.csv(flowSOM_k8, file = paste0("../output/v4/results/FlowSOM_clusters_", 
+write.csv(flowSOM_k8, file = paste0(params$output_results, "FlowSOM_clusters_", 
                                     params$cohort, "_", params$markers, "_k8.csv"),
           col.names = T, row.names = F, sep = ",")
 
@@ -107,7 +103,7 @@ flowSOM_k8 <- sce %>% colData() %>% as.data.frame() %>% select(id, "FlowSOM.k12"
 rownames(flowSOM_k8) <- c()
 flowSOM_k8$method <- "FlowSOM"
 flowSOM_k8$params <- paste(params$markers, "k12", sep = "_")
-write.csv(flowSOM_k8, file = paste0("../output/v4/results/FlowSOM_clusters_",
+write.csv(flowSOM_k8, file = paste0(params$output_results, "FlowSOM_clusters_",
                                     params$cohort, "_", params$markers, "_k12.csv"),
           col.names = T, row.names = F, sep = ",")
 
@@ -116,7 +112,7 @@ flowSOM_k8 <- sce %>% colData() %>% as.data.frame() %>% select(id, "FlowSOM.k15"
 rownames(flowSOM_k8) <- c()
 flowSOM_k8$method <- "FlowSOM"
 flowSOM_k8$params <- paste(params$markers, "k15", sep = "_")
-write.csv(flowSOM_k8, file = paste0("../output/v4/results/FlowSOM_clusters_", 
+write.csv(flowSOM_k8, file = paste0(params$output_results, "FlowSOM_clusters_", 
                                     params$cohort, "_", params$markers, "_k15.csv"),
           col.names = T, row.names = F, sep = ",")
 
@@ -125,7 +121,7 @@ flowSOM_k8 <- sce %>% colData() %>% as.data.frame() %>% select(id, "FlowSOM.k20"
 rownames(flowSOM_k8) <- c()
 flowSOM_k8$method <- "FlowSOM"
 flowSOM_k8$params <- paste(params$markers, "k20", sep = "_")
-write.csv(flowSOM_k8, file = paste0("../output/v4/results/FlowSOM_clusters_", 
+write.csv(flowSOM_k8, file = paste0(params$output_results, "FlowSOM_clusters_", 
                                     params$cohort, "_", params$markers, "_k20.csv"),
           col.names = T, row.names = F, sep = ",")
 
@@ -283,84 +279,4 @@ ggplot(phenograph.violin, aes(x = clusterID, y = activation)) +
   geom_boxplot() +
   facet_wrap(c("Iteration", "pathway")) +
   astir_paper_theme()
-```
-
-
-Create plots to evaluate the accuracy of astir.
-```{r eval = F, include=evalStatement}
-imc.data <- as.data.frame(imc.data)
-  
-imc.data$cell_type <- sce$cell_type
-imc.data$flowSOM.k8 <- sce$FlowSOM.k8
-imc.data$flowSOM.k12 <- sce$FlowSOM.k12
-imc.data$flowSOM.k15 <- sce$FlowSOM.k15
-imc.data$flowSOM.k20 <- sce$FlowSOM.k20
-
-if(params$cohort == "wagner"){
-  selMarkers <- c("CD45", "FAP")
-}else if(params$cohort == "basel" | params$cohort == "zurich1"){
-  selMarkers <- c("Vimentin", "Cytokeratin 19")
-}
-
-astir.mean <- imc.data %>% 
-                    group_by(cell_type) %>% 
-                    summarise_at(vars(selMarkers[1]:selMarkers[2]), mean) %>% 
-                    dplyr::rename(cluster = cell_type) %>% 
-                    mutate(algorithm = "astir")
-
-FlowSOM.mean.k8 <- imc.data %>% 
-                      group_by(flowSOM.k8) %>% 
-                      summarise_at(vars(selMarkers[1]:selMarkers[2]), mean) %>% 
-                      dplyr::rename(cluster = flowSOM.k8) %>% 
-                      mutate(algorithm = "FlowSOM.k8") %>% 
-                      mutate(cluster = as.character(cluster))
-
-FlowSOM.mean.k12 <- imc.data %>% 
-                      group_by(flowSOM.k12) %>% 
-                      summarise_at(vars(selMarkers[1]:selMarkers[2]), mean) %>% 
-                      dplyr::rename(cluster = flowSOM.k12) %>% 
-                      mutate(algorithm = "FlowSOM.k12") %>% 
-                      mutate(cluster = as.character(cluster))
-
-FlowSOM.mean.k15 <- imc.data %>% 
-                      group_by(flowSOM.k15) %>% 
-                      summarise_at(vars(selMarkers[1]:selMarkers[2]), mean) %>% 
-                      dplyr::rename(cluster = flowSOM.k15) %>% 
-                      mutate(algorithm = "FlowSOM.k15") %>% 
-                      mutate(cluster = as.character(cluster))
-
-FlowSOM.mean.k20 <- imc.data %>% 
-                      group_by(flowSOM.k20) %>% 
-                      summarise_at(vars(selMarkers[1]:selMarkers[2]), mean) %>% 
-                      dplyr::rename(cluster = flowSOM.k20) %>% 
-                      mutate(algorithm = "FlowSOM.k20") %>% 
-                      mutate(cluster = as.character(cluster))
-
-
-
-comparison.summary <- bind_rows(astir.mean, FlowSOM.mean.k8, FlowSOM.mean.k12, 
-                                FlowSOM.mean.k15, FlowSOM.mean.k20)
-
-# Commenting out for now
-# ggplot(comparison.summary, aes(x = `E-Cadherin`, y = CD45)) +
-#   geom_point() +
-#   facet_wrap("algorithm") + 
-#   xlim(0, max(imc.data$`E-Cadherin`)) +
-#   ylim(0, max(imc.data$CD45)) +
-#   ggtitle("Mutually exclusive markers")
-# 
-# ggplot(comparison.summary, aes(x = CD3, y = CD45)) +
-#   geom_point() +
-#   facet_wrap("algorithm") + 
-#   xlim(0, max(imc.data$CD3)) +
-#   ylim(0, max(imc.data$CD45)) +
-#   ggtitle("Co-occuring markers")
-
-```
-
-Save the comparison file for future analyses.
-```{r eval = F, include=evalStatement}
-write.csv(comparison.summary, paste0("../output/v4/results/FlowSOM_astirComparison_", 
-                                    params$cohort, ".csv"),
-          row.names = F)
 ```
