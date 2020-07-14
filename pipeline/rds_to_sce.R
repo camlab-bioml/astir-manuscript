@@ -1,9 +1,14 @@
 #!/usr/bin/Rscript
-args = commandArgs(trailingOnly = TRUE)
-rds <- args[1]
-
 library(SingleCellExperiment)
 library(scater)
+library(stringr)
+library(dplyr)
+
+args = commandArgs(trailingOnly = TRUE)
+rds <- args[1] %>%
+  str_replace_all("\\[|\\]|'", "")
+
+rds <- unlist(strsplit(rds, split = ","))
 
 createSCE <- function(files){
   listSCE <- lapply(files, readRDS)
