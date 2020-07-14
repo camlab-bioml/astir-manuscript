@@ -10,6 +10,8 @@ params:
   celltypes: "../../output/v4/zurich1_subset/zurich1_subset_assignments_type.csv"
   cellstates: "../../output/v4/zurich1_subset/zurich1_subset_assignments_state.csv" 
   cohort: "zurich1"
+  markers_list: ""
+  output_results: ""
 ---
 
 ```{r setup, include=FALSE}
@@ -25,8 +27,8 @@ library(dichromat)
 library(viridis)
 library(cytofkit)
 library(ggalluvial)
-devtools::load_all('../../../taproom/')
-source("../../scripts/functions.R")
+devtools::load_all('../taproom/')
+source("scripts/functions.R")
 ```
 
 
@@ -50,13 +52,7 @@ if(params$markers == "all_markers"){
   # should be executed
   evalStatement <- F
 }else if(params$markers == "specified_markers"){
-  if(params$cohort == "basel" | params$cohort == "zurich1"){
-    markers <- read_markers("../markers/jackson-2020-markers-v2.yml")
-  }else if(params$cohort == "wagner"){
-    markers <- read_markers("../markers/wagner-2019-markers.yml")
-  }else if(params$cohort == "schapiro"){
-    markers <- read_markers("../markers/schapiro-markers.yml")
-  }
+  markers <- read_markers(params$markers_list)
   
   imc.data <- t(logcounts(sce[unique(unlist(markers$cell_types)),]))
   evalStatement <- T
@@ -82,7 +78,7 @@ ClusterX <- sce %>% colData() %>% as.data.frame() %>% select(id, "clusterX")
 rownames(ClusterX) <- c()
 ClusterX$method <- "ClusterX"
 ClusterX$params <- paste(params$markers, "Default", sep = "_")
-write.csv(ClusterX, file = paste0("../output/v4/results/ClusterX_clusters_", params$cohort,
+write.csv(ClusterX, file = paste0(params$output_results, "ClusterX_clusters_", params$cohort,
                                   "_", params$markers, "_default.csv"),
           col.names = T, row.names = F, sep = ",")
 ```
@@ -129,11 +125,6 @@ draw(clusterX.type_exprs)
 ```
 
 ```{r eval = evalStatement, include = evalStatement, fig.width=20, fig.height=10}
-# start creating theme
-astir_paper_theme <- 
-  cowplot::theme_cowplot(font_size = 12)
-  
-  
 phenograph.violin <- sce %>% 
   colData() %>% 
   as.data.frame %>% 
@@ -148,65 +139,11 @@ phenograph.violin$clusterX <- as.factor(phenograph.violin$clusterX)
 ggplot(phenograph.violin, aes(x = clusterX, y = activation)) +
   geom_violin(width = 0.08) +
   facet_wrap(c("pathway")) +
-  astir_paper_theme
+  astir_paper_theme()
 
 ggplot(phenograph.violin, aes(x = clusterX, y = activation)) +
   geom_boxplot() +
   facet_wrap(c("pathway")) +
-  astir_paper_theme
+  astir_paper_theme()
 
-```
-
-
-Create plots to evaluate the accuracy of astir.
-```{r eval = F, include=evalStatement}
-imc.data <- as.data.frame(imc.data)
-  
-imc.data$cell_type <- sce$cell_type
-imc.data$clusterX <- sce$clusterX
-
-if(params$cohort == "wagner"){
-  selMarkers <- c("CD45", "FAP")
-}else if(params$cohort == "basel" | params$cohort == "zurich1"){
-  selMarkers <- c("Vimentin", "Cytokeratin 19")
-}
-
-astir.mean <- imc.data %>% 
-                    group_by(cell_type) %>% 
-                    summarise_at(vars(selMarkers[1]:selMarkers[2]), mean) %>% 
-                    dplyr::rename(cluster = cell_type) %>% 
-                    mutate(algorithm = "astir")
-
-clusterX.mean <- imc.data %>% 
-                    group_by(clusterX) %>% 
-                    summarise_at(vars(selMarkers[1]:selMarkers[2]), mean) %>% 
-                    dplyr::rename(cluster = clusterX) %>% 
-                    mutate(algorithm = "clusterX") %>% 
-                    mutate(cluster = as.character(cluster))
-
-
-comparison.summary <- bind_rows(astir.mean, clusterX.mean)
-
-
-# ggplot(comparison.summary, aes(x = `E-Cadherin`, y = CD45)) +
-#   geom_point() +
-#   facet_wrap("algorithm") + 
-#   xlim(0, max(imc.data$`E-Cadherin`)) +
-#   ylim(0, max(imc.data$CD45)) +
-#   ggtitle("Mutually exclusive markers")
-# 
-# ggplot(comparison.summary, aes(x = CD3, y = CD45)) +
-#   geom_point() +
-#   facet_wrap("algorithm") + 
-#   xlim(0, max(imc.data$CD3)) +
-#   ylim(0, max(imc.data$CD45)) +
-#   ggtitle("Co-occuring markers")
-
-```
-
-Save the comparison file for future analyses.
-```{r eval = F, include=evalStatement}
-write.csv(comparison.summary, paste0("../output/v4/results/ClusterX_astirComparison_", 
-                                    params$cohort, ".csv"),
-          row.names = F)
 ```
