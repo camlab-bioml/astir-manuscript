@@ -16,7 +16,7 @@ params:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = '../../')
+knitr::opts_knit$set(root.dir = '~/imc-2020/')
 library(SingleCellExperiment)
 library(tidyverse)
 library(devtools)
@@ -27,8 +27,8 @@ library(dichromat)
 library(viridis)
 library(cytofkit)
 library(ggalluvial)
-devtools::load_all('../taproom/')
-source("scripts/functions.R")
+devtools::load_all('~/taproom/')
+source("~/imc-2020/scripts/functions.R")
 ```
 
 
