@@ -5,13 +5,18 @@ library(stringr)
 library(dplyr)
 
 args = commandArgs(trailingOnly = TRUE)
-rds <- args[1] %>%
-  str_replace_all("\\[|\\]|'", "")
+#print(args)
+#rds <- args[1] %>%
+#  str_replace_all("\\[|\\]|'", "")
 
-rds <- unlist(strsplit(rds, split = ","))
+rds <- unlist(strsplit(args[1], split = ","))
 
 createSCE <- function(files){
   listSCE <- lapply(files, readRDS)
+
+  for(i in 1:length(listSCE)){
+    rowData(listSCE[[i]]) <- NULL
+  }
   sce <- do.call('cbind', listSCE)
   
   sce
@@ -19,4 +24,4 @@ createSCE <- function(files){
 
 sce <- createSCE(rds)
 
-sce
+saveRDS(sce, file = args[2])
