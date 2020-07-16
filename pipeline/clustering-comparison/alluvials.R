@@ -1,3 +1,5 @@
+#!/usr/local/bin/Rscript
+
 library(SingleCellExperiment)
 library(tidyverse)
 library(devtools)
@@ -16,6 +18,7 @@ clusters <- args[4]
 cohort <- args[5]
 method <- args[6]
 clustering_params <- args[7]
+output_dir <- args[8]
 
 ### [READ IN DATA] #####
 sce <- assignIdentity(cells, celltypes, cellstates)$sce
@@ -30,11 +33,11 @@ alluv <- sce %>% colData() %>% as.data.frame() %>%
   select(cell_type, "clusters") %>% group_by(cell_type, clusters) %>% 
   count()
 
-#method <- unique(clusters$method)
-#cluster.params <- unique(clusters$params)
+alluv <- alluv %>% as.data.frame()
 
 ### [PLOT RESULTS] ##### 
-filename <- paste("Alluv", cohort, method, clustering_params, sep = "_")
-pdf(file = paste0(filename, ".pdf"), height = 3)
+filename <- paste("Alluv_cohort", cohort, "method", method, "markers", clustering_params, sep = "_")
+
+pdf(file = paste0(output_dir, filename, ".pdf"), height = 3)
 create.alluvial(alluv, method)
 dev.off()
