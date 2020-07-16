@@ -7,11 +7,13 @@ params:
   cells: "../output/v4/zurich1_subset/zurich1_subset_sce.rds"
   celltypes: "../output/v4/zurich1_subset/zurich1_subset_assignments_type.csv"
   cohort: "zurich1"
+  markers_list:
+  output_dir:
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = '../')
+knitr::opts_knit$set(root.dir = '~/imc-2020/')
 library(tidyverse)
 library(cowplot)
 library(ComplexHeatmap)
@@ -19,20 +21,14 @@ library(SingleCellExperiment)
 library(yaml)
 library(GSVA)
 library(pheatmap)
-devtools::load_all('../../../taproom/')
+devtools::load_all('~/taproom/')
 ```
 
 This notebook is used to compare the accuracy of different approaches based on the expression of marker genes.
 
 ```{r}
-# REad in markers
-if(params$cohort == "basel" | params$cohort == "zurich1"){
-    markers <- read_markers("../markers/jackson-2020-markers.yml")
-}else if(params$cohort == "wagner"){
-    markers <- read_markers("../markers/wagner-2019-markers.yml")
-}else if(params$cohort == "schapiro"){
-    markers <- read_markers("../markers/schapiro-markers.yml")
-}
+# Read in markers
+markers <- read_markers(params$markers_list)
 
 # Read in RDS file
 sce <- readRDS(params$cells)
@@ -48,7 +44,7 @@ names(astir_types) <- cell_names
 sce$cluster <- astir_types[colnames(sce)]
 
 # Create list of files to be read in
-files <- dir("../output/v4/results/", 
+files <- dir(params$output_dir, 
              pattern=paste0("clusters_", params$cohort, "*.*"), 
              full.names = TRUE)
 ```
@@ -65,8 +61,6 @@ df_gsva <- t(gsva) %>%
   rownames_to_column("id") %>% 
   gather(pathway, score, -id) %>% 
   as_tibble()
-
-#df_gsva <- read_csv("../output/v4/results/GSVA-enrichments-basel.csv")
 ```
 
 
@@ -138,7 +132,7 @@ methods.summary %>%
   astir_paper_theme()
 
 write.csv(methods.summary, 
-          file = paste0("../output/v4/results/Assessment-individual-heatmap-",
+          file = paste0(params$output_dir, "Assessment-individual-heatmap-",
                                    params$cohort, ".csv"),
           col.names = T, row.names = F, sep = ",")
 ```
@@ -167,7 +161,7 @@ clPerType <- pivot_wider(df4, names_from = pathway,
   column_to_rownames(var = "method")
 
 # Write out the data to be plotted for further use by subsequent scripts
-write.csv(clPerType, file = paste0("../output/v4/results/Assessment-heatmap-",
+write.csv(clPerType, file = paste0(params$output_dir, "Assessment-heatmap-",
                                    params$cohort, ".csv"),
           col.names = T, row.names = T, sep = ",")
 
