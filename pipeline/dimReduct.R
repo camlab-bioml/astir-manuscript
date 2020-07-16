@@ -1,3 +1,5 @@
+#!/usr/local/bin/Rscript
+
 library(SingleCellExperiment)
 library(tidyverse)
 library(scater)
@@ -72,9 +74,10 @@ expression <- logcounts(sce) %>%
 expression$cell_type <- sce[, rownames(expression)]$cell_type
 expression$cohort <- sce[, rownames(expression)]$cohort
 
-expression <- expression %>% as.matrix()
+#expression <- expression %>% as.matrix()
 
-tsne <- fftRtsne(expression[, 1:length(clustering.markers)])
+tsne <- fftRtsne(expression[, 1:length(clustering.markers)] %>% as.matrix())
+saveRDS(tsne, file = "~/imc-2020/tsne_results.rds")
 
 ### [SAVE PLOT AS PDF] #####
 # save as png

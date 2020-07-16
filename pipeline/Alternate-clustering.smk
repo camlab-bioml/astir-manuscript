@@ -1,35 +1,36 @@
-cohort_list = ['basel', 'zurich1', 'wagner', 'schapiro']
-markers_spec = ['all_markers', 'specified_markers']
+cohort_list = ['basel']#, 'zurich1', 'wagner', 'schapiro']
+markers_spec = ['specified_markers']#, 'all_markers']
 
 output_dir_reports = output_path + "reports/"
 output_dir_results = output_path + "results/"
+output_dir_fig = output_path + "figures/"
 
 # Clustering parameters 
 FlowSOM_Cluster_sizes = ['8', '12', '15', '20']
 Phenograph_Cluster_sizes = ['20', '30', '40', '50']
 
-conditions = {
-    'FlowSOM': ['k8', 'k12', 'k15', 'k20'],
-    'Phenograph': ['k20', 'k30', 'k40', 'k50'],
-    'ClusterX': ['default']
+conditions = { 
+    #'FlowSOM': ['k8', 'k12'],#, 'k15', 'k20'],
+    'Phenograph': ['k20']#, 'k30', 'k40', 'k50'],
+    #'ClusterX': ['default']
 }
 
-analysisCSV = []
-analysis = [expand(output_dir_results + '{method}_clusters_{cohort}_{markers}_{clusters}.csv', clusters=conditions[m], method = [m], cohort = cohort_list, markers = markers_spec) for m in conditions.keys()]
-for element in analysis:
-    analysisCSV.extend(element)
-
 alluvialPDF = []
-alluvial = [expand(output_dir_results + 'Alluv_{cohort}_{method}_{markers}_{clusters}.pdf', clusters=conditions[m], method = [m], cohort = cohort_list, markers = markers_spec) for m in conditions.keys()]
-for element in analysis:
-    analysisCSV.extend(element)
+alluvial = [expand(output_dir_fig + 'Alluv_cohort_{cohort}_method_{method}_markers_{markers}_clusters_{clusters}.pdf', clusters=conditions[m], method = [m], cohort = cohort_list, markers = markers_spec) for m in conditions.keys()]
+for element in alluvial:
+    alluvialPDF.extend(element)
+
+expressionPDF = []
+expression = [expand(output_dir_fig + 'ExpressionHeatmap_cohort_{cohort}_method_{method}_markers_specified_markers_clusters_{clusters}.pdf', clusters=conditions[m], method = [m], cohort = cohort_list) for m in conditions.keys()]
+for element in expression:
+    expressionPDF.extend(element)
 
 # Generate list of files
 basel_metadata = pd.read_csv(os.path.join(config["basel"]['base_dir'], config["basel"]['metadata_file']))
 basel_cores = list(basel_metadata.core)
 
-schapiro_samples = pd.read_csv(config["schapiro"]['sample_txt'], header=None)
-schapiro_samples = list(schapiro_samples[schapiro_samples.columns[0]])
+#schapiro_samples = pd.read_csv(config["schapiro"]['sample_txt'], header=None)
+#schapiro_samples = list(schapiro_samples[schapiro_samples.columns[0]])
 
 wagner_sample_df = pd.read_csv(config['wagner']['sample_file'], header=None)
 wagner_samples = list(wagner_sample_df[0])
@@ -39,21 +40,22 @@ zurich1_cores = list(zurich1_metadata.core)
 
 
 alternate_approaches_output = {
-    'Phenograph_analysis_report': expand(output_dir_reports + "Rphenograph-analysis-{cohort}-specified_markers.html", cohort = cohort_list),
-    'Phenograph_clusters_output': expand(output_dir_results + "Phenograph_clusters_{cohort}_specified_markers_k{cluster}.csv", cohort = cohort_list, cluster = Phenograph_Cluster_sizes),
-    'Phenograph_analysis_report_all': expand(output_dir_reports + "Rphenograph-analysis-{cohort}-all_markers.html", cohort = cohort_list),
-    'Phenograph_clusters_output_all': expand(output_dir_results + "Phenograph_clusters_{cohort}_all_markers_k{cluster}.csv", cohort = cohort_list, cluster = Phenograph_Cluster_sizes),
-    'FlowSOM_analysis_report': expand(output_dir_reports + "FlowSOM-analysis-{cohort}-specified_markers.html", cohort = cohort_list),
-    'FlowSOM_clusters_output': expand(output_dir_results + "FlowSOM_clusters_{cohort}_specified_markers_k{cluster}.csv", cohort = cohort_list, cluster = FlowSOM_Cluster_sizes),
-    'FlowSOM_analysis_report_all': expand(output_dir_reports + "FlowSOM-analysis-{cohort}-all_markers.html", cohort = cohort_list),
-    'FlowSOM_clusters_output_all': expand(output_dir_results + "FlowSOM_clusters_{cohort}_all_markers_k{cluster}.csv", cohort = cohort_list, cluster = FlowSOM_Cluster_sizes),
-    'ClusterX_analysis_report': expand(output_dir_reports + "ClusterX-analysis-{cohort}-specified_markers.html", cohort = cohort_list),
-    'ClusterX_clusters_output': expand(output_dir_results + "ClusterX_clusters_{cohort}_specified_markers_default.csv", cohort = cohort_list),
-    'ClusterX_analysis_report_all': expand(output_dir_reports + "ClusterX-analysis-{cohort}-all_markers.html", cohort = cohort_list),
-    'ClusterX_clusters_output_all': expand(output_dir_results + "ClusterX_clusters_{cohort}_all_markers_default.csv", cohort = cohort_list),
+    # 'Phenograph_analysis_report': expand(output_dir_reports + "Rphenograph-analysis-{cohort}-specified_markers.html", cohort = cohort_list),
+    # 'Phenograph_clusters_output': expand(output_dir_results + "Phenograph_clusters_{cohort}_specified_markers_k{cluster}.csv", cohort = cohort_list, cluster = Phenograph_Cluster_sizes),
+    # 'Phenograph_analysis_report_all': expand(output_dir_reports + "Rphenograph-analysis-{cohort}-all_markers.html", cohort = cohort_list),
+    # 'Phenograph_clusters_output_all': expand(output_dir_results + "Phenograph_clusters_{cohort}_all_markers_k{cluster}.csv", cohort = cohort_list, cluster = Phenograph_Cluster_sizes),
+    # 'FlowSOM_analysis_report': expand(output_dir_reports + "FlowSOM-analysis-{cohort}-specified_markers.html", cohort = cohort_list),
+    # 'FlowSOM_clusters_output': expand(output_dir_results + "FlowSOM_clusters_{cohort}_specified_markers_k{cluster}.csv", cohort = cohort_list, cluster = FlowSOM_Cluster_sizes),
+    # 'FlowSOM_analysis_report_all': expand(output_dir_reports + "FlowSOM-analysis-{cohort}-all_markers.html", cohort = cohort_list),
+    # 'FlowSOM_clusters_output_all': expand(output_dir_results + "FlowSOM_clusters_{cohort}_all_markers_k{cluster}.csv", cohort = cohort_list, cluster = FlowSOM_Cluster_sizes),
+    # 'ClusterX_analysis_report': expand(output_dir_reports + "ClusterX-analysis-{cohort}-specified_markers.html", cohort = cohort_list),
+    # 'ClusterX_clusters_output': expand(output_dir_results + "ClusterX_clusters_{cohort}_specified_markers_default.csv", cohort = cohort_list),
+    # 'ClusterX_analysis_report_all': expand(output_dir_reports + "ClusterX-analysis-{cohort}-all_markers.html", cohort = cohort_list),
+    # 'ClusterX_clusters_output_all': expand(output_dir_results + "ClusterX_clusters_{cohort}_all_markers_default.csv", cohort = cohort_list),
 
     # Analysis
     'Alluvial': alluvialPDF,
+    'ExpressionHeatmaps': expressionPDF,
 
     #'Other_approaches_report': expand(output_dir_reports + "Approaches-comparison-{cohort}.html", cohort = cohort_list),
     #'Other_approaches_heatmaps': expand("../output/v4/results/Assessment-individual-heatmap-{cohort}.csv", cohort = cohort_list),
@@ -88,19 +90,19 @@ rule create_sces:
         basel = ','.join(expand(output_path + "basel_processed/{core}.rds", core = basel_cores)),
         zurich1 = ','.join(expand(output_path + "zurich1_processed/{core}.rds", core = zurich1_cores)),
         wagner = ','.join(expand(output_path + "wagner_processed/{core}.rds", core = wagner_samples)),
-        schapiro = ','.join(expand(output_path + "schapiro_processed/{core}.rds", core = schapiro_samples))
+        #schapiro = ','.join(expand(output_path + "schapiro_processed/{core}.rds", core = schapiro_samples))
 
     output:
         basel = output_path + "sces/basel_sce.rds",
         wagner = output_path + "sces/wagner_sce.rds",
         zurich1 = output_path + "sces/zurich1_sce.rds",
-        schapiro = output_path + "sces/schapiro_sce.rds"
+        #schapiro = output_path + "sces/schapiro_sce.rds"
 
     shell:
         "Rscript pipeline/rds_to_sce.R {params.basel} {output.basel};"
         "Rscript pipeline/rds_to_sce.R {params.zurich1} {output.zurich1};"
         "Rscript pipeline/rds_to_sce.R {params.wagner} {output.wagner};"
-        "Rscript pipeline/rds_to_sce.R {params.schapiro} {output.schapiro};"
+        #"Rscript pipeline/rds_to_sce.R {params.schapiro} {output.schapiro};"
 
 
 rule phenograph_analysis:
@@ -115,7 +117,7 @@ rule phenograph_analysis:
         res_dir = output_dir_results
 
     resources:
-        mem=2GB
+        mem_mb=2000
 
     output:
         html = output_dir_reports + "Rphenograph-analysis-{cohort}-specified_markers.html",
@@ -139,7 +141,7 @@ rule phenograph_analysis_all_markers:
         res_dir = output_dir_results
 
     resources:
-        mem=2GB
+        mem_mb=2000
 
     output:
         html = output_dir_reports + "Rphenograph-analysis-{cohort}-all_markers.html",
@@ -164,7 +166,7 @@ rule FlowSOM_analysis:
         res_dir = output_dir_results
 
     resources:
-        mem=2GB
+        mem_mb=2000
     
     output:
         html = output_dir_reports + "FlowSOM-analysis-{cohort}-specified_markers.html",
@@ -189,7 +191,7 @@ rule FlowSOM_analysis_all_markers:
         res_dir = output_dir_results
 
     resources:
-        mem=2GB
+        mem_mb=2000
     
     output:
         html = output_dir_reports + "FlowSOM-analysis-{cohort}-all_markers.html",
@@ -214,7 +216,7 @@ rule ClusterX_analysis:
         res_dir = output_dir_results
 
     resources:
-        mem=2GB
+        mem_mb=2000
     
     output:
         html = output_dir_reports + "ClusterX-analysis-{cohort}-specified_markers.html",
@@ -238,7 +240,7 @@ rule ClusterX_analysis_all_markers:
         res_dir = output_dir_results
 
     resources:
-        mem=2GB
+        mem_mb=2000
     
     output:
         html = output_dir_reports + "ClusterX-analysis-{cohort}-all_markers.html",
@@ -262,13 +264,35 @@ rule create_alluvials:
     params:
         cohort = "{cohort}",
         method = "{method}",
-        clustering_params = "{markers}_{clusters}"
+        clustering_params = "{markers}_clusters_{clusters}"
 
     output:
-        pdf = "Alluv_{cohort}_{method}_{markers}_{clusters}.pdf"
-
+        pdf = output_dir_fig + "Alluv_cohort_{cohort}_method_{method}_markers_{markers}_clusters_{clusters}.pdf"
+ 
     shell:
-        "Rscript pipeline/alluvials.R {input.cells} {input.cellTypes} {input.cellStates} {input.clusters} {params.cohort} {params.method} {params.clustering_params}"
+        "Rscript pipeline/clustering-comparison/alluvials.R {input.cells} {input.cellTypes} {input.cellStates} {input.clusters} "
+        "{params.cohort} {params.method} {params.clustering_params} " + output_dir_fig +""
+
+
+rule create_expression_heatmaps:
+    input:
+        cells = output_path + "sces/{cohort}_sce.rds",
+        cellTypes = output_path + "astir_assignments/{cohort}_astir_assignments.csv",
+        cellStates = output_path + "astir_assignments/{cohort}_astir_assignments_state.csv",
+        clusters = output_path + "results/{method}_clusters_{cohort}_specified_markers_{clusters}.csv",
+        markers = lambda wildcards: config[wildcards.cohort]['marker_file'],
+
+    params:
+        cohort = "{cohort}",
+        method = "{method}",
+        clustering_params = "markers_specified_markers_clusters_{clusters}"
+
+    output:
+        expression_pdf = output_dir_fig + "ExpressionHeatmap_cohort_{cohort}_method_{method}_markers_specified_markers_clusters_{clusters}.pdf"
+ 
+    shell:
+        "Rscript pipeline/clustering-comparison/expression-heatmaps.R {input.cells} {input.cellTypes} {input.cellStates} {input.clusters} "
+        "{input.markers} {params.cohort} {params.method} {params.clustering_params} " + output_dir_fig +""
 
 # ### Compare all the above approaches
 
