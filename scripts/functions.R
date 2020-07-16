@@ -123,31 +123,30 @@ assignIdentity <- function(raw.sce, types, states, dimReduct = F){
 }
 
 
-create.alluvial <- function(df, title) {
+create.alluvial <- function(df, method) {
   # Ceate alluvial plotting function
   # Define baseline plot
   plot <- ggplot(df, aes(y = df[, 3], axis = df[, 1], axis2 = df[, 2])) +
     geom_alluvium(aes(fill = df[, 1])) +
     geom_stratum(width = 1/20, fill = "grey", color = "black") +
-    ggtitle(title)
-  
+    ylab("Cells") +
+    labs(fill = "Cell Types") +
+    scale_x_discrete(limits = c("Astir cell type", paste(method, "cluster")), 
+                     expand = c(.05, .05)) +
+    astir_paper_theme() +
+    theme(axis.ticks.x = element_blank(),
+          axis.ticks.y = element_blank(),
+          axis.text.y = element_blank(),
+          panel.background = element_blank())
   
   if (length(unique(df[, 1])) < 13) {
     # For few starting states
     plot <- plot + scale_fill_brewer(type = "qual", palette = "Set1") +
-      scale_fill_manual(values = jackson_basel_colours()) +
-      theme(axis.ticks.x = element_blank(),
-            axis.text.x = element_blank(),
-            panel.background = element_blank(),
-            axis.title.y = element_blank())
+      scale_fill_manual(values = jackson_basel_colours())
   }else {
     # There are too many categories in the starting column
     plot <- plot +
-      theme(axis.ticks.x = element_blank(),
-            axis.text.x = element_blank(),
-            panel.background = element_blank(),
-            legend.position = "none",
-            axis.title.y = element_blank())
+      theme(legend.position = "none")
   }
   
   plot
