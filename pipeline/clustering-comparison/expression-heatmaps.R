@@ -1,8 +1,11 @@
+#!/usr/local/bin/Rscript
+
 library(SingleCellExperiment)
 library(tidyverse)
 library(devtools)
 library(scater)
-library(ggalluvial)
+library(viridis)
+library(ComplexHeatmap)
 devtools::load_all('~/taproom/')
 source("~/imc-2020/scripts/functions.R")
 
@@ -13,15 +16,18 @@ celltypes <- args[2]
 cellstates <- args[3]
 clusters <- args[4]
 markers <- args[5]
-clusters <- args[6]
-output_dir <- args[7]
+cohort <- args[6]
+method <- args[7]
+clustering.params <- args[8]
+output_dir <- args[9]
 
 ### [READ IN DATA] #####
 sce <- assignIdentity(cells, celltypes, cellstates)$sce
-clusters <- read_csv(clusters) %>% column_to_rownames(var = "id")
-markers <- read_markers(params$markers)
-clusters <- read_csv(clusters) %>% column_to_rownames(var = "id")
 
+#sce <- sce[, 1:15000]
+
+clusters <- read_csv(clusters) %>% column_to_rownames(var = "id")
+markers <- read_markers(markers)
 sce$clusters <- clusters[sce$id, 1]
 
 # Just for the time being until we switch everything over to remove s' at the end
@@ -40,18 +46,29 @@ ha <- HeatmapAnnotation(`Cell type` = sce$cell_type,
                         Cluster = as.factor(sce$clusters),
                         which="column",
                         col = list(`Cell type` = jackson_basel_colours()),
-                        `Cluster #` = sce$clusters)
+                        `Cluster` = sce$clusters)
 
-exprs <- Heatmap(t(lc), name = "Expression",
+# exprs <- Heatmap(t(lc), name = "Expression",
+#                  column_title = "Cell",
+#                  col=viridis(100),
+#                  top_annotation = ha,
+#                  show_column_names = FALSE,
+#                  column_order = order(sce$clusters))
+
+filename <- paste("ExpressionHeatmap_cohort", cohort, "method", method, 
+                  clustering.params, sep = "_")
+print(filename)
+
+#saveRDS(t(lc), file = "~/imc-2020/lc.rds")
+
+pdf(paste0(output_dir, filename, ".pdf"), width = 20, height = 10)
+Heatmap(t(lc), name = "Expression",
                  column_title = "Cell",
                  col=viridis(100),
                  top_annotation = ha,
                  show_column_names = FALSE,
-                 column_order = order(sce$clusters))
-
-filename <- paste("ExpressionHeatmap_cohort", cohort, "method", method, 
-                  "markers", clustering.params, sep = "_")
-
-pdf(file = paste0(output_dir, filename, ".pdf"))
-draw(exprs)
+                 column_order = order(sce$clusters),
+                 use_raster = TRUE)
 dev.off()
+
+#draw(exprs)

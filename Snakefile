@@ -27,6 +27,7 @@ include: "pipeline/robustness/robustness.smk"
 #include: "pipeline/reports/reports.smk"
 include: "pipeline/benchmarking/benchmarking.smk"
 include: "pipeline/Alternate-clustering.smk"
+include: "pipeline/analysis.smk"
 
 ## Beginning of rules ----- 
 rule all:
@@ -40,7 +41,8 @@ rule all:
         zurich1_output.values(),
         # benchmarking_output.values(),
         # reports_output.values(),
-        alternate_approaches_output.values()
+        alternate_approaches_output.values(),
+        analysis_output.values()
 
 
 
