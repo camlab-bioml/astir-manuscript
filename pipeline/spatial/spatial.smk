@@ -34,16 +34,18 @@ rule dist_report:
         celltype_assignments = output_path + "astir_assignments/{dataset}_astir_assignments.csv",
         state_assignments = output_path + "astir_assignments/{dataset}_astir_assignments_state.csv",
     output:
-        output_path + "spatial/spatial_report_{dataset}.html",
-        df_test = output_path + "spatial/df_test_{dataset}.csv",
+        html=output_path + "spatial/spatial_report_{dataset}.html",
+        rds=output_path + "spatial/rds_output_{dataset}.rds",
+        scree_plot=output_path + "figures/supplementary/scree-plot-spatial-{dataset}.png",
     shell:
         "Rscript -e \"Sys.setenv(RSTUDIO_PANDOC='/home/ltri/campbell/share/software/pandoc-2.9.2.1/bin'); "
         "rmarkdown::render('pipeline/spatial/distance-clustering.Rmd',   "
-        "output_file='{output}', "
+        "output_file='{output.html}', "
         "params=list(input_dir='{params.output_path}/spatial/{wildcards.dataset}/', "
         "celltype_assignments='{input.celltype_assignments}', "
         "state_assignments='{input.state_assignments}', "  
-        "df_test='{output.df_test}', "
+        "output_rds='{output.rds}', "
+        "scree_plot='{output.scree_plot}', "
         "dataset='{wildcards.dataset}', "      
         "metadata='{input.metadata}'), "
         "knit_root_dir='{params.curr_dir}', "

@@ -8,6 +8,8 @@ params:
   celltype_assignments: "../../output/v5/astir_assignments/basel_astir_assignments.csv"
   state_assignments: "../../output/v5/astir_assignments/basel_astir_assignments_state.csv"
   df_test: "test.csv"
+  scree_plot: "../../figures/supplementary/scree-plot-spatial-basel.png"
+  output_rds: "../../output/v5/spatial/basel/basel_output.rds"
 ---
 
 ```{r setup, include=FALSE}
@@ -16,10 +18,67 @@ library(ComplexHeatmap)
 library(viridis)
 library(broom)
 library(survival)
+library(glue)
 # library(survminer)
 
 devtools::load_all("../taproom")
 ```
+
+# Compute cell type entropy
+
+```{r}
+assignments <- read_csv(params$celltype_assignments)
+cell_names <- assignments$X1
+assignments$X1 <- NULL
+df_cell_types <- tibble(
+  id = cell_names,
+  cell_type = get_celltypes(assignments)
+)
+```
+
+```{r}
+df <- df_cell_types
+
+df$core <- sapply(
+  strsplit(df_cell_types$id, "_"), 
+  function(s) {
+    paste0(s[1:4], collapse="_")
+  }
+)
+
+df$cell_type <- as.factor(df$cell_type)
+```
+
+```{r}
+entropy <- function(s) {
+  p <- prop.table(table(s))
+  e <- p * log2(p)
+  e[is.na(e)] <- 0
+  -sum(e)
+}
+
+df_entropy <- group_by(df, core) %>% 
+  summarize(entropy = entropy(cell_type))
+```
+
+```{r}
+df_entropy <- mutate(df_entropy,
+                     entropy_weight = (entropy - min(entropy))/ (max(entropy) - min(entropy)))
+```
+
+```{r}
+entropy_weights <- df_entropy$entropy_weight
+names(entropy_weights) <- df_entropy$core
+```
+
+```{r}
+cutoff <- quantile(df_entropy$entropy_weight, 0.05)
+cores_to_keep <- df_entropy$core[df_entropy$entropy_weight > cutoff]
+```
+
+
+# Everything else
+
 
 ```{r}
 csv_files <- dir(params$input_dir, full.names = TRUE)
@@ -42,7 +101,8 @@ df <- filter(df,
        grepl("Stromal|Epithelial|T|Macrophage", Celltype_1),
        grepl("Stromal|Epithelial|T|Macrophage", Celltype_2),
        !grepl("basal|other", Celltype_1),
-       !grepl("basal|other", Celltype_2))
+       !grepl("basal|other", Celltype_2),
+       core %in% cores_to_keep)
 
 ```
 
@@ -82,6 +142,9 @@ cell_num_vec <- cell_num_vec[cell_num_vec > 1000]
 mat <- mat[names(cell_num_vec),]
 ```
 
+
+
+
 ```{r}
 mdata <- read_csv(params$metadata)
 ```
@@ -90,23 +153,14 @@ status <- mdata$diseasestatus
 names(status) <- mdata$core
 ```
 
-
 ```{r}
 mat2 <- apply(mat, 1, function(x) {
   x[is.na(x)] <- mean(x, na.rm = T)
   x
 }) %>% 
   t()
-
-
-top_annot <- HeatmapAnnotation(`# cells` = anno_barplot(cell_num_vec))
-
-ht <- Heatmap(t(mat2), na_col = "grey90", show_column_names = FALSE, col=viridis(100),
-              top_annotation = top_annot)
-draw(ht)
 ```
 
-# Survival analysis
 
 ```{r}
 
@@ -115,44 +169,46 @@ pca <- prcomp(mat2)
 ```
 
 ```{r}
+tibble(
+  `Variance explained` = pca$sdev^2,
+  Component = seq_along(pca$sdev)
+) %>% 
+  ggplot(aes(x = Component, y = `Variance explained`)) +
+  geom_bar(stat='identity') +
+  astir_paper_theme() +
+  scale_x_continuous(breaks=seq_along(pca$sdev))
+
+ggsave(params$scree_plot, width = 4, height = 3)
+```
+
+
+```{r}
 spatial_score <- pca$x[,1]
 ```
 
+
+
+
+```{r}
+
+
+
+top_annot <- HeatmapAnnotation(`# cells` = anno_barplot(cell_num_vec),
+                               `Spatial score` = spatial_score * entropy_weights[names(spatial_score)])
+
+ht <- Heatmap(t(mat2), na_col = "grey90", show_column_names = FALSE, col=viridis(100),
+              top_annotation = top_annot)
+draw(ht)
+```
 
 ```{r}
 spatial_level <- pca$x[,1] > median(pca$x[,1])
 ```
 
-```{r, eval=F}
-df_surv <- filter(mdata, diseasestatus == "tumor") %>% 
-  select(core, Patientstatus, DFSmonth, OSmonth) %>% 
-  mutate(vital_status = grepl("death", Patientstatus))
-```
 
-```{r, eval=F}
-df_surv <- inner_join(
-  df_surv,
-  enframe(spatial_level, "core", "spatial_score")
-)
-```
-```{r, eval=F}
-fit <- survfit(Surv(DFSmonth, vital_status) ~ spatial_score, data = df_surv)
-
-```
-
-```{r, eval=F}
-ggsurvplot(fit, 
-           pval = surv_pvalue(fit)[1,4],
-           palette = "Set1",
-           linetype = "strata",
-           legend.title = NA)
-```
 
 # Associate with states
 
-Zurich:
-  ZTMA208_slide_11_By5x8_9
-  ZTMA208_slide_6_Ay4x7
 
 ```{r}
 state_assignments <- read_csv(params$state_assignments)
@@ -229,9 +285,19 @@ ggplot(df_state, aes(x = spatial_score, y = activation)) +
   geom_smooth(method="lm")
 ```
 
-```{r}
-write_csv(df_test, params$df_test)
-```
 
+
+```{r}
+save_rds <- list(
+  cell_num_vec = cell_num_vec,
+  spatial_score = spatial_score, 
+  mat = mat2,
+  df_state = df_state,
+  df_test = df_test,
+  entropy_weights = entropy_weights
+)
+
+saveRDS(save_rds, file = params$output_rds)
+```
 
 

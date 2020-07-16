@@ -1,0 +1,211 @@
+---
+title: "spatial-figures.Rmd"
+output: html_document
+params:
+  basel_output: ../../output/v5/spatial/rds_output_basel.rds
+  zurich1_output: ../../output/v5/spatial/rds_output_zurich1.rds
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(ComplexHeatmap)
+  library(viridis)
+  library(broom)
+  library(survival)
+  library(glue)
+  library(circlize)
+  
+  library(survminer)
+})
+```
+
+# Read in data
+
+```{r}
+basel_output <- readRDS(params$basel_output)
+zurich1_output <- readRDS(params$zurich1_output)
+```
+
+
+
+# Overall heatmap
+
+```{r}
+col_fun = colorRamp2(c(-2, 0, 2), c(scales::muted('blue'), "white", scales::muted("red")))
+```
+
+```{r}
+col_fun2 = colorRamp2(c(-2, 0, 2), c(scales::muted('purple'), "white", scales::muted("green")))
+```
+
+```{r}
+spatial_score <- c(basel_output$spatial_score, zurich1_output$spatial_score)
+cell_num_vec <- c(basel_output$cell_num_vec, zurich1_output$cell_num_vec)
+mat <- rbind(basel_output$mat, zurich1_output$mat)
+dataset <- c(rep("Basel", length(basel_output$spatial_score)), rep("Zurich", length(zurich1_output$spatial_score)))
+```
+
+```{r}
+top_annot <- HeatmapAnnotation(`# cells` = anno_barplot(cell_num_vec),
+                                     `Spatial score` = spatial_score,
+                                     col = list(
+                                       `Spatial score` = col_fun2
+                                     ),
+                               annotation_legend_param = list(
+                                 legend_direction = "horizontal"
+                               ))
+
+ht <- Heatmap(t(mat), 
+                    na_col = "grey90", 
+                    show_column_names = FALSE, 
+                    col = col_fun,
+                    top_annotation = top_annot,
+                    column_order = order(spatial_score),
+                    name = "Average distance",
+                    column_split = dataset,
+                    heatmap_legend_param = list(legend_direction = "horizontal"))
+draw(ht, heatmap_legend_side = "bottom", annotation_legend_side = "bottom")
+```
+
+
+
+
+```{r}
+pdf("test.pdf", width = 9.5, height = 3.5)
+draw(ht, heatmap_legend_side = "bottom", annotation_legend_side = "bottom",
+     padding = unit(c(2, 2, 2, 15), "mm"))
+dev.off()
+```
+
+
+# Associating pathway activation
+
+```{r}
+df_test <- bind_rows(
+  basel_output$df_test,
+  zurich1_output$df_test
+)
+```
+
+```{r}
+df_test$state <- gsub("HALLMARK_", "", df_test$state)
+df_test$dataset <- str_to_title(gsub("1", "", df_test$dataset))
+
+ggplot(df_test, aes(x = -log10(p.value), y = fct_reorder(state, -log10(p.value)))) +
+  geom_point(aes(fill = estimate), shape = 21, size = 4) +
+  facet_wrap(~ dataset, scales = "free_x") +
+  scale_fill_gradient2(name = "Change with increasing spatial score",
+                       breaks = c(-0.01, 0),
+                       low = scales::muted("blue"),
+                       high = scales::muted("red")) +
+  astir_paper_theme() +
+  labs(y = "Pathway") +
+  theme(legend.position = "bottom")
+
+ggsave("spatial-pathway.png", width = 8, height = 3.5)
+```
+
+
+
+
+# Survival analysis for Basel
+
+```{r}
+mdata <- read_csv("../..//data-raw/jackson-2020/SingleCell_and_Metadata/BaselTMA/Basel_PatientMetadata.csv")
+
+df_surv <- filter(mdata, diseasestatus == "tumor") %>% 
+  select(PID, core, Patientstatus, DFSmonth, OSmonth, grade) %>% 
+  mutate(vital_status = grepl("death", Patientstatus)) 
+```
+
+```{r}
+spatial_level <- basel_output$spatial_score > median(basel_output$spatial_score)
+```
+
+
+```{r}
+df_surv <- inner_join(
+  df_surv,
+  enframe(basel_output$spatial_score, "core", "spatial_score")
+)
+```
+
+```{r}
+df_surv2 <- group_by(df_surv, PID, Patientstatus, DFSmonth, OSmonth, vital_status, grade) %>% 
+  summarize(spatial_score = mean(spatial_score)) %>% 
+  ungroup() 
+```
+
+
+
+```{r}
+q <- quantile(df_surv2$spatial_score, c(0.5, 0.5))
+df_surv2 <- mutate(df_surv2,
+                  level = case_when(
+                    spatial_score > q[2] ~ "high",
+                    spatial_score < q[1] ~ "low"
+                  ))
+```
+
+
+
+
+````{r}
+
+fit <- survfit(Surv(DFSmonth, vital_status) ~ grade + level, data = drop_na(df_surv2))
+
+```
+
+```{r}
+plt <- ggsurvplot(fit, 
+           pval = surv_pvalue(fit)[1,4],
+           palette = "Set1",
+           legend.title = NA)
+```
+
+```{r}
+km <- plt$plot
+km
+```
+
+```{r}
+# km$data$strata <- gsub("grade", "", km$data$strata)
+# km$data$strata <- gsub("level", "", km$data$strata)
+```
+
+```{r}
+originals <- levels(as.factor(km$data$strata))
+new <- gsub("grade", "\nTumor grade", originals)
+new <- gsub("level", "\nSpatial score", new, fixed=TRUE)
+```
+
+
+```{r}
+
+cols <- c(
+  "#a1d99b",
+  "#31a354",
+  "#9ecae1",
+  "#3182bd",
+  "#fc9272",
+  "#de2d26")
+names(cols) <- originals
+
+km + scale_colour_manual(values=cols,
+                         labels = new) +
+  scale_linetype(labels=new) +
+  theme(legend.text = element_text(size = 10),
+        legend.title = element_blank(),
+        legend.position = "right",
+        legend.spacing.y = unit(1.0, 'cm')) 
+```
+
+```{r}
+pdf("spatial-survival.pdf", width = 5.5, height = 3)
+print(last_plot())
+dev.off()
+```
+
