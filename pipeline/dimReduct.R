@@ -4,6 +4,7 @@ library(SingleCellExperiment)
 library(tidyverse)
 library(scater)
 library(rsvd)
+library(ggplot2)
 library(devtools)
 devtools::load_all("~/taproom")
 source("~/imc-2020/scripts/functions.R")
@@ -76,15 +77,29 @@ expression$cohort <- as.factor(sce[, rownames(expression)]$cohort)
 
 #expression <- expression %>% as.matrix()
 
-tsne <- fftRtsne(expression[, 1:length(clustering.markers)] %>% as.matrix())
+tsne <- fftRtsne(expression[, 1:length(clustering.markers)] %>% as.matrix()) %>% 
+  as.data.frame()
+colnames(tsne) <- c("tSNE Dim1", "tSNE Dim2")
+
+tsne$cell_type <- expression$cell_type
+tsne$cohort <- expression$cohort
+
+# add cohort & cell type
 saveRDS(tsne, file = "~/imc-2020/tsne_results.rds")
+
 
 ### [SAVE PLOT AS PDF] #####
 # save as png
 png(paste0(output_dir, "tSNE_cellType.png"))
-plot(tsne, col = expression$cell_type)
+ggplot(tsne, aes(x = `tSNE Dim1`, y = `tSNE Dim2`)) +
+  geom_point(aes(color = cell_type)) +
+  scale_color_manual(values = jackson_basel_colours()) +
+  astir_paper_theme()
 dev.off()
 
 png(paste0(output_dir, "tSNE_cohort.png"))
-plot(tsne, col = expression$cohort)
+ggplot(tsne, aes(x = `tSNE Dim1`, y = `tSNE Dim2`)) +
+  geom_point(aes(color = cohort)) +
+  scale_color_manual(values = cohort_colours()) +
+  astir_paper_theme()
 dev.off()
