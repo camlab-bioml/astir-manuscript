@@ -72,7 +72,7 @@ expression <- logcounts(sce) %>%
   as.data.frame()
 
 expression$cell_type <- sce[, rownames(expression)]$cell_type
-expression$cohort <- sce[, rownames(expression)]$cohort
+expression$cohort <- as.factor(sce[, rownames(expression)]$cohort)
 
 #expression <- expression %>% as.matrix()
 
