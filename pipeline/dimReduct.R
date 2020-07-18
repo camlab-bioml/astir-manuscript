@@ -24,6 +24,7 @@ wagner_cells <- args[7]
 wagner_types <- args[8]
 wagner_states <- args[9]
 output_dir <- args[10]
+output_dir_res <- args[11]
 
 
 ### [GET SCE OBJECTS] #####
@@ -85,7 +86,7 @@ tsne$cell_type <- expression$cell_type
 tsne$cohort <- expression$cohort
 
 # add cohort & cell type
-saveRDS(tsne, file = "~/imc-2020/tsne_results.rds")
+saveRDS(tsne, file = paste0(output_dir_res, "tsne_results.rds"))
 
 
 ### [SAVE PLOT AS PDF] #####
