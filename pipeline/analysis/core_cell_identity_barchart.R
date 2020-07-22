@@ -2,13 +2,14 @@
 
 library(tidyverse)
 library(devtools)
+library(DelayedArray)
 devtools::load_all("~/taproom/")
 
 ### [READ IN ARGUMENTS] #####
 args <- commandArgs(trailingOnly = TRUE)
 
-state <- args[1] %>% read_csv()
-type <- args[2] %>% read_csv()
+type <- args[1] %>% read_csv()
+state <- args[2] %>% read_csv()
 cohort <- args[3]
 output_dir <- args[4]
 
@@ -16,12 +17,15 @@ output_dir <- args[4]
 cells <- type %>% 
   mutate(cell_type = get_celltypes(select(., -X1))) %>% 
   select(X1, cell_type) %>% 
-  rename(core = X1) %>% 
+  dplyr::rename(core = X1) %>% 
   mutate(core = sub("_[^_]+$", "", core))
+
+cells$cell_type[cells$cell_type == "B cell"] <- "B cells"
+cells$cell_type[cells$cell_type == "T cell"] <- "T cells"
 
 coreFreqs <- cells %>% 
   group_by(core) %>% 
-  count(cell_type)
+  dplyr::count(cell_type)
 
 # create plotting order
 coreOrder <- coreFreqs %>% 
@@ -35,10 +39,11 @@ coreOrder <- coreFreqs %>%
 coreFreqs$core <- factor(coreFreqs$core, levels = coreOrder)
   
 # Plot
-pdf(paste0(output_dir, "core_cell_identity_barchart_", cohort, ".pdf"))
+pdf(paste0(output_dir, "core_cell_identity_barchart_", cohort, ".pdf"), width = 10)
 ggplot(coreFreqs, aes(x = core, y = n, fill = cell_type)) + 
   geom_bar(stat = "identity", position = "fill") +
   scale_fill_manual(values = jackson_basel_colours()) +
+  ylab("Frequency") +
   astir_paper_theme() +
   theme(axis.text.x = element_blank(),
         axis.ticks = element_blank())

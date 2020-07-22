@@ -4,9 +4,6 @@ library(SingleCellExperiment)
 library(tidyverse)
 library(scater)
 library(rsvd)
-library(ggplot2)
-library(devtools)
-devtools::load_all("~/taproom")
 source("~/imc-2020/scripts/functions.R")
 source('~/FIt-SNE/fast_tsne.R', chdir=T)
 
@@ -23,8 +20,8 @@ zurich1_states <- args[6]
 wagner_cells <- args[7]
 wagner_types <- args[8]
 wagner_states <- args[9]
-output_dir <- args[10]
-output_dir_res <- args[11]
+
+output_dir_res <- args[10]
 
 
 ### [GET SCE OBJECTS] #####
@@ -87,20 +84,3 @@ tsne$cohort <- expression$cohort
 
 # add cohort & cell type
 saveRDS(tsne, file = paste0(output_dir_res, "tsne_results.rds"))
-
-
-### [SAVE PLOT AS PDF] #####
-# save as png
-png(paste0(output_dir, "tSNE_cellType.png"))
-ggplot(tsne, aes(x = `tSNE Dim1`, y = `tSNE Dim2`)) +
-  geom_point(aes(color = cell_type)) +
-  scale_color_manual(values = jackson_basel_colours()) +
-  astir_paper_theme()
-dev.off()
-
-png(paste0(output_dir, "tSNE_cohort.png"))
-ggplot(tsne, aes(x = `tSNE Dim1`, y = `tSNE Dim2`)) +
-  geom_point(aes(color = cohort)) +
-  scale_color_manual(values = cohort_colours()) +
-  astir_paper_theme()
-dev.off()

@@ -38,6 +38,6 @@ alluv <- alluv %>% as.data.frame()
 ### [PLOT RESULTS] ##### 
 filename <- paste("Alluv_cohort", cohort, "method", method, "markers", clustering_params, sep = "_")
 
-pdf(file = paste0(output_dir, filename, ".pdf"), height = 3)
+pdf(file = paste0(output_dir, filename, ".pdf"), height = 4)
 create.alluvial(alluv, method)
 dev.off()

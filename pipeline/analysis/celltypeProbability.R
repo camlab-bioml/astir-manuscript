@@ -12,14 +12,16 @@ source("scripts/functions.R")
 ### [READ IN DATA] #####
 args <- commandArgs(trailingOnly = TRUE)
 
-type <- args[1] %>% column_to_rownames("X1")
-cells <- readRDS(args[2])
+cells <- readRDS(args[1])
+type <- args[2] %>% read_csv %>% column_to_rownames("X1")
 markers <- read_markers(args[3])
 cohort <- args[4]
 output_dir <- args[5]
 
 # assign cell types
 type$cell_type <- taproom::get_celltypes(type)
+type$cell_type[type$cell_type == "B cell"] <- "B cells"
+type$cell_type[type$cell_type == "T cell"] <- "T cells"
 
 type.mat <- type %>% 
   select(-"cell_type") %>% 
@@ -30,7 +32,7 @@ ha <- HeatmapAnnotation(`Cell Type` = type$cell_type,
                         col = list(`Cell Type` = jackson_basel_colours()))
 
 # Do the plotting
-pdf(paste0(output_dir, "celltype_probability_", cohort, ".pdf"))
+pdf(paste0(output_dir, "celltype_probability_", cohort, ".pdf"), width = 16)
 Heatmap(t(type.mat), 
         col = viridis(100), 
         name = "Expression", 
@@ -45,7 +47,12 @@ dev.off()
 cells$cell_type <- type[colnames(cells), ]$cell_type
 
 # subset unknown cells
-unknown <- cells[,cells$cell_type == "Unknown"]
+if(cohort == "wagner"){
+ cells$cell_type[cells$cell_type == "Fibroblasts"] <- "Stromal" 
+}
+
+
+unknown <- cells[,cells$cell_type == "Unknown" | cells$cell_type == "Stromal"]
 thresh <- 2
 
 lc <- t(as.matrix(logcounts(unknown[unique(unlist(markers$cell_types))])))
@@ -54,10 +61,17 @@ lc <- scale(lc)
 lc[lc > thresh] <- thresh
 lc[lc < -thresh] <- -thresh
 
-pdf(paste0(output_dir, "Unknown_celltype_expression_", cohort, ".pdf"))
+ha <- HeatmapAnnotation(`Cell Type` = unknown$cell_type,
+                        which = "column",
+                        col = list(`Cell Type` = jackson_basel_colours()))
+
+pdf(paste0(output_dir, "Unknown_celltype_expression_", cohort, ".pdf"), width = 10)
 Heatmap(t(lc), 
         name = "Expression",
         column_title = "Cell",
         col=viridis(100),
-        show_column_names = FALSE)
+        top_annotation = ha,
+        cluster_columns = F,
+        show_column_names = FALSE,
+        column_order = order(unknown$cell_type))
 dev.off()

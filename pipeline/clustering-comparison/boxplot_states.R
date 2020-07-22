@@ -1,4 +1,4 @@
-#!/usr/local/bin/Rscript
+#!/usr/local/bin/Rscript 
 
 library(SingleCellExperiment)
 library(tidyverse)
@@ -10,14 +10,21 @@ source("~/imc-2020/scripts/functions.R")
 args <- commandArgs(trailingOnly = TRUE)
 
 ### [GET ARGUMENTS] #####
-
+cells <- args[1]
+types <- args[2]
+states <- args[3]
+clusters <- args[4]
+cohort <- args[5]
+method <- args[6]
+clustering.params <- args[7]
+output_dir <- args[8]
 
 ### [READ IN DATA] #####
-sce <- assignIdentity(params$cells, params$celltypes, params$cellstates)
+sce <- assignIdentity(cells, types, states)
 pathways <- sce$pathways
 sce <- sce$sce
 
-clusters <- read_csv(params$clusters) %>% column_to_rownames(var = "id")
+clusters <- read_csv(clusters) %>% column_to_rownames(var = "id")
 sce$clusters <- clusters[sce$id, 1]
 
 # Just for the time being until we switch everything over to remove s' at the end
@@ -35,7 +42,9 @@ phenograph.bar <- sce %>%
   mutate(clusters = as.factor(clusters))
 
 
+png(paste0(output_dir, "StatesBoxplot_cohort_", cohort, "_method_", method, "_clusters_", clustering.params, ".pdf"), height = 13, width = 18)
 ggplot(phenograph.bar, aes(x = clusters, y = activation)) +
   geom_boxplot() +
-  facet_wrap("pathway") +
+  facet_wrap("pathway", ncol = 3) +
   astir_paper_theme()
+dev.off()

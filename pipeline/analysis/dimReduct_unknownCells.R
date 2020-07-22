@@ -1,12 +1,13 @@
+#!/usr/local/bin/Rscript
 library(SingleCellExperiment)
 library(tidyverse)
 library(scater)
 library(rsvd)
+library(DelayedArray)
 library(ggplot2)
 
 ### define functions ####
 get_celltypes <- function(prob_mat, thresh = 0.7) {
-  prob_mat <- types_mat
   if(is.data.frame(prob_mat)) {
     prob_mat <- as.matrix(prob_mat)
   }
@@ -16,9 +17,25 @@ get_celltypes <- function(prob_mat, thresh = 0.7) {
   
   celltypes[rowMaxs(prob_mat) < thresh] <- "Unknown"
   
-  celltypes[(prob_mat[, "Epithelial (basal)"] +
-               prob_mat[, "Epithelial (other)"] +
-               prob_mat[, "Epithelial (luminal)"] > thresh) & 
+  if("Epithelial (basal)" %in% colnames(prob_mat)){
+    basal <- prob_mat[, "Epithelial (basal)"]
+  }else{
+    basal <- rep(0, nrow(prob_mat))
+  }
+
+  if("Epithelial (other)" %in% colnames(prob_mat)){
+    other <- prob_mat[, "Epithelial (other)"]
+  }else{
+    other <- rep(0, nrow(prob_mat))
+  }
+
+  if("Epithelial (luminal)" %in% colnames(prob_mat)){
+    luminal <- prob_mat[, "Epithelial (luminal)"]
+  }else{
+    luminal <- rep(0, nrow(prob_mat))
+  }
+  
+  celltypes[(basal + other + luminal > thresh) & 
               celltypes == "Unknown"] <- "Epithelial (indeterminate)"
   celltypes
 }
@@ -191,9 +208,8 @@ colnames(tsne) <- c("tSNE Dim1", "tSNE Dim2")
 tsne$cell_type <- expression$cell_type
 tsne$cohort <- expression$cohort
 
-# add cohort & cell type
-saveRDS(tsne, file = "~/imc-2020/tsne_results.rds")
-
+library(devtools)
+devtools::load_all("~/taproom/")
 
 ### [SAVE PLOT AS PDF] #####
 # save as png

@@ -6,6 +6,8 @@ library(scater)
 library(ggplot2)
 library(corrplot)
 library(Hmisc)
+library(devtools)
+devtools::load_all("~/taproom/")
 
 ### [FUNCTIONS] ####
 get_celltypes <- function(prob_mat, thresh = 0.7) {
@@ -17,10 +19,26 @@ get_celltypes <- function(prob_mat, thresh = 0.7) {
   })
   
   celltypes[rowMaxs(prob_mat) < thresh] <- "Unknown"
+
+  if("Epithelial (basal)" %in% colnames(prob_mat)){
+    basal <- prob_mat[, "Epithelial (basal)"]
+  }else{
+    basal <- rep(0, nrow(prob_mat))
+  }
+
+  if("Epithelial (other)" %in% colnames(prob_mat)){
+    other <- prob_mat[, "Epithelial (other)"]
+  }else{
+    other <- rep(0, nrow(prob_mat))
+  }
+
+  if("Epithelial (luminal)" %in% colnames(prob_mat)){
+    luminal <- prob_mat[, "Epithelial (luminal)"]
+  }else{
+    luminal <- rep(0, nrow(prob_mat))
+  }
   
-  celltypes[(prob_mat[, "Epithelial (basal)"] +
-               prob_mat[, "Epithelial (other)"] +
-               prob_mat[, "Epithelial (luminal)"] > thresh) & 
+  celltypes[(basal + other + luminal > thresh) & 
               celltypes == "Unknown"] <- "Epithelial (indeterminate)"
   celltypes
 }
@@ -117,9 +135,9 @@ assignIdentity <- function(raw.sce, types, states, dimReduct = F){
 ### [READ IN DATA] ####
 args <- commandArgs(trailingOnly = TRUE)
 cells <- args[1]
-state <- args[2]
-type <- args[3]
-markers <- args[4]
+type <- args[2]
+state <- args[3]
+markers <- read_markers(args[4])
 cohort <- args[5]
 output_dir <- args[6]
 
@@ -133,10 +151,19 @@ assigned.sce <- assigned.sce[unique(unlist(markers$cell_types)),]
 
 ### [ANALYSIS & PLOTTING] #####
 # Create plotting order
-protein.order <- c("CD45", "CD20", "CD3", "E-Cadherin", "pan Cytokeratin", 
-                   "Cytokeratin 5", "Cytokeratin 14", "Cytokeratin 7",
-                   "Cytokeratin 8/18", "Cytokeratin 19", "CD68", "vWF", 
-                   "Vimentin", "Fibronectin")
+if(cohort == "basel" | cohort == "zurich1"){
+  protein.order <- c("CD45", "CD20", "CD3", "E-Cadherin", "pan Cytokeratin", 
+                    "Cytokeratin 5", "Cytokeratin 14", "Cytokeratin 7",
+                    "Cytokeratin 8/18", "Cytokeratin 19", "CD68", "vWF", 
+                    "Vimentin", "Fibronectin")
+}else if(cohort == "wagner"){
+  protein.order <- c("CD45", "CD3", "CD68", "CD24", "CD31", 
+                     "CD49f", "ECadherin", "EpCAM", "panK", "K14", "K5", 
+                     "SMA", "K7", "K8K18", "FAP")
+}else if(cohort == "schapiro"){
+  protein.order <- c("E-cadherin", "EpCAM", "Cytokeratin7", "Cytokeratin8-18", "CD68",
+                     "Vimentin", "Fibronectin")
+}
 
 # Bonferroni correction
 penalty <- (length(protein.order) * length(protein.order)) / 2 - length(protein.order)
@@ -158,7 +185,7 @@ corrplot(unknown.cor$r, p.mat = unknown.cor$P, insig = "label_sig",
          mar = c(0, 0, 2, 0), title = "Unknown cells", tl.col = "black")
 dev.off()
 
-pdf(paste0(output_dir, "expression_correlation_assigned_cells_" cohort, ".pdf"))
+pdf(paste0(output_dir, "expression_correlation_assigned_cells_", cohort, ".pdf"))
 corrplot(assigned.cor$r, p.mat = assigned.cor$P, insig = "label_sig",
          sig.level = corrected.sig, pch.cex=0.9, pch.col = "black",
          mar = c(0, 0, 2, 0), title = "Assigned cells", tl.col = "black")

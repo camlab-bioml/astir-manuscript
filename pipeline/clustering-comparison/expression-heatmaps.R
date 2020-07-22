@@ -24,8 +24,6 @@ output_dir <- args[9]
 ### [READ IN DATA] #####
 sce <- assignIdentity(cells, celltypes, cellstates)$sce
 
-#sce <- sce[, 1:15000]
-
 clusters <- read_csv(clusters) %>% column_to_rownames(var = "id")
 markers <- read_markers(markers)
 sce$clusters <- clusters[sce$id, 1]
@@ -48,18 +46,8 @@ ha <- HeatmapAnnotation(`Cell type` = sce$cell_type,
                         col = list(`Cell type` = jackson_basel_colours()),
                         `Cluster` = sce$clusters)
 
-# exprs <- Heatmap(t(lc), name = "Expression",
-#                  column_title = "Cell",
-#                  col=viridis(100),
-#                  top_annotation = ha,
-#                  show_column_names = FALSE,
-#                  column_order = order(sce$clusters))
-
 filename <- paste("ExpressionHeatmap_cohort", cohort, "method", method, 
                   clustering.params, sep = "_")
-print(filename)
-
-#saveRDS(t(lc), file = "~/imc-2020/lc.rds")
 
 pdf(paste0(output_dir, filename, ".pdf"), width = 20, height = 10)
 Heatmap(t(lc), name = "Expression",
@@ -70,5 +58,3 @@ Heatmap(t(lc), name = "Expression",
                  column_order = order(sce$clusters),
                  use_raster = TRUE)
 dev.off()
-
-#draw(exprs)
