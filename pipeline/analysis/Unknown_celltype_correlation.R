@@ -6,6 +6,7 @@ library(scater)
 library(ggplot2)
 library(corrplot)
 library(Hmisc)
+library(ggcorrplot)
 library(devtools)
 devtools::load_all("~/taproom/")
 
@@ -178,15 +179,22 @@ assigned.mat <- t(logcounts(assigned.sce))[, protein.order]
 unknown.cor <- Hmisc::rcorr(unknown.mat)
 assigned.cor <- Hmisc::rcorr(assigned.mat)
 
+
 # Create plots
 pdf(paste0(output_dir, "expression_correlation_unknown_cells_", cohort, ".pdf"))
-corrplot(unknown.cor$r, p.mat = unknown.cor$P, insig = "label_sig",
-         sig.level = corrected.sig, pch.cex=0.9, pch.col = "black",
-         mar = c(0, 0, 2, 0), title = "Unknown cells", tl.col = "black")
+ggcorrplot(unknown.cor$r, hc.order = F, type = "lower",
+           outline.col = "white", p.mat = unknown.cor$P,
+           sig.level = 0.05, insig = "blank",
+           ggtheme = taproom::astir_paper_theme,
+           title = "Unknown cells",
+           colors = c("#6D9EC1", "white", "#E46726"))
 dev.off()
 
 pdf(paste0(output_dir, "expression_correlation_assigned_cells_", cohort, ".pdf"))
-corrplot(assigned.cor$r, p.mat = assigned.cor$P, insig = "label_sig",
-         sig.level = corrected.sig, pch.cex=0.9, pch.col = "black",
-         mar = c(0, 0, 2, 0), title = "Assigned cells", tl.col = "black")
+ggcorrplot(assigned.cor$r, hc.order = F, type = "lower",
+           outline.col = "white", p.mat = assigned.cor$P,
+           sig.level = 0.05, insig = "blank",
+           ggtheme = taproom::astir_paper_theme,
+           title = "Assigned cells",
+           colors = c("#6D9EC1", "white", "#E46726"))
 dev.off()
