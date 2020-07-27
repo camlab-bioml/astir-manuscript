@@ -48,8 +48,31 @@ added_assignments = expand(output_path + "robustness/assignments-15k-added-{adde
 
 robustness_output = {
     'added_assignments': added_assignments,
-    'reduced_assignments': reduced_assignments
+    'reduced_assignments': reduced_assignments,
+    'report': output_path + "robustness/robustness.html"
 }
+
+rule robustness_figures:
+    params:
+        version=config['version'],
+        curr_dir = os.getcwd(),
+        output_path = output_path,
+    input:
+        robustness_output['added_assignments'],
+        robustness_output['reduced_assignments'],
+    output:
+        html=output_path + "robustness/robustness.html",
+        remove_fig=output_path + "robustness/robustness_removed.pdf",
+    shell:
+        "Rscript -e \"Sys.setenv(RSTUDIO_PANDOC='/home/ltri/campbell/share/software/pandoc-2.9.2.1/bin'); "
+        "rmarkdown::render('pipeline/robustness/robustness-figures.Rmd',   "
+        "output_file='{output.html}', "
+        "params=list(version='{params.version}', "
+        "input_dir='{params.output_path}robustness', "
+        "output_fig_removed='{output.remove_fig}'), "
+        "knit_root_dir='{params.curr_dir}', "
+        "output_dir='{params.curr_dir}/{params.output_path}/robustness/'"
+        ")\"  "
 
 rule remove_celltypes:
     params:

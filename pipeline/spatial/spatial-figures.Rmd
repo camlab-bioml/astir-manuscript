@@ -20,6 +20,8 @@ suppressPackageStartupMessages({
   
   library(survminer)
 })
+
+devtools::load_all('../../../taproom/')
 ```
 
 # Read in data

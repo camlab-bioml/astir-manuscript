@@ -3,7 +3,7 @@ library(cowplot)
 
 input_dir <- "../../output/v4/benchmarking/geneset/"
 
-csv_files <- dir(input_dir, full.names = TRUE)
+csv_files <- dir(input_dir, full.names = TRUE, pattern="plage|astir")
 
 
 
