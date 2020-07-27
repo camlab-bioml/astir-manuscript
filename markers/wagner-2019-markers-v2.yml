@@ -24,9 +24,10 @@ cell_types:
     - "panK"
     - "K7"
     - "K8K18"
-  Fibroblasts:
+  Stromal:
     - "FAP"
     - "SMA"
+    - "Vimentin"
 
 cell_states:
   HALLMARK_HYPOXIA:

@@ -10,7 +10,7 @@ spatial_output = {
 rule calc_dists:
     params:
     input:
-        markers="markers/jackson-2020-markers.yml",
+        markers=config['basel']['marker_file'],
         assignments=output_path + "astir_assignments/{dataset}_astir_assignments.csv",
         locations="data-raw/jackson-2020/spatial-locations/{dataset}_SC_locations.csv"
     output:

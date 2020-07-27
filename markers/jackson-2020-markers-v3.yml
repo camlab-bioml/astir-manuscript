@@ -23,7 +23,6 @@ cell_states:
   - E-Cadherin
   - EGFR
   - CD45
-  - vWF
   HALLMARK_COMPLEMENT:
   - GATA3
   - Fibronectin
@@ -47,7 +46,6 @@ cell_states:
   HALLMARK_COAGULATION:
   - CD31
   - Fibronectin
-  - vWF
   HALLMARK_ALLOGRAFT_REJECTION:
   - EGFR
   - CD3
@@ -60,6 +58,7 @@ cell_types:
   Stromal:
     - Vimentin
     - Fibronectin
+    - SMA
   B cells:
     - CD45
     - CD20

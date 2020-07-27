@@ -80,7 +80,7 @@ rule remove_celltypes:
         batch_size = config['astir_opts']['batch_size'],
         learning_rate = config['astir_opts']['learning_rate'],
     input:
-        markers="markers/jackson-2020-markers.yml",
+        markers=config['basel']['marker_file'],
         csvs=basel_output['subset_csvs'],
     output:
         markers=output_path + "robustness/{removed}.yml",
@@ -123,7 +123,7 @@ rule add_celltypes:
         batch_size = config['astir_opts']['batch_size'],
         learning_rate = config['astir_opts']['learning_rate'],
     input:
-        markers="markers/jackson-2020-markers.yml",
+        markers=config['basel']['marker_file'],
         csvs=basel_output['subset_csvs'],
     output:
         markers=output_path + "robustness/{added}.yml",
