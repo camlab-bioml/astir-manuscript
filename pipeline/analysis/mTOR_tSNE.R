@@ -57,7 +57,8 @@ ggplot(NULL, aes(x = `tSNE Dim1`, y = `tSNE Dim2`)) +
   scale_color_viridis(name = "mTOR Signalling") +
   astir_paper_theme() +
   facet_wrap(~cell_type, ncol = 8) +
-  theme(panel.spacing.x = unit(7, "mm"))
+  theme(panel.spacing.x = unit(7, "mm")) +
+  coord_fixed()
 dev.off()
 
 
