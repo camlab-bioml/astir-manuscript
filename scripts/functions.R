@@ -38,7 +38,7 @@ assignIdentity <- function(raw.sce, types, states, dimReduct = F){
     sce <- readRDS(raw.sce)
     
     ### Make sure wagner has id field
-    if(any(colnames(colData(sce)) == "id") == F & grepl("wagner", raw.sce)){
+    if(any(colnames(colData(sce)) == "id") == F){
       id <- sce %>% colData() %>% as.data.frame() %>% rownames()
       sce$id <- id
     }

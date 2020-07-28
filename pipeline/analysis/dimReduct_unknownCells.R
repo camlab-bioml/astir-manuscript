@@ -213,9 +213,9 @@ devtools::load_all("~/taproom/")
 
 ### [SAVE PLOT AS PDF] #####
 # save as png
-png(paste0(output_dir, "tSNE_cellType_unknownCells.png"))
+png(paste0(output_dir, "tSNE_cellType_unknownCells.png"), width = 650)
 ggplot(tsne, aes(x = `tSNE Dim1`, y = `tSNE Dim2`)) +
   geom_point(aes(color = cell_type)) +
-  scale_color_manual(values = jackson_basel_colours()) +
+  scale_color_manual(values = jackson_basel_colours(), name = "Cell types") +
   astir_paper_theme()
 dev.off()

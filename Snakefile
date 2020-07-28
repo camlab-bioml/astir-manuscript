@@ -17,13 +17,13 @@ asts_state = {d: output_path + f"astir_assignments/{d}_astir_assignments_state.c
 
 ## Dataset-specific pipelines
 #include: "pipeline/dataset-wagner.smk"
-include: "pipeline/dataset-basel.smk"
+#include: "pipeline/dataset-basel.smk"
 include: "pipeline/dataset-zurich1.smk"
 
 include: "analysis/analysis.smk"
 
 # include: "pipeline/benchmarking/benchmarking.smk"
-include: "pipeline/robustness/robustness.smk"
+#include: "pipeline/robustness/robustness.smk"
 #include: "pipeline/reports/reports.smk"
 include: "pipeline/benchmarking/benchmarking.smk"
 include: "pipeline/Alternate-clustering.smk"
@@ -34,10 +34,10 @@ rule all:
     input:
         asts_type.values(),
         # asts_state.values(),
-        robustness_output.values(),
+        #robustness_output.values(),
         analysis_output.values(),
         #wagner_output.values(),
-        basel_output.values(),
+        #basel_output.values(),
         zurich1_output.values(),
         # benchmarking_output.values(),
         # reports_output.values(),

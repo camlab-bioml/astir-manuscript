@@ -1,14 +1,15 @@
 #!/usr/local/bin/Rscript
 library(viridis)
+library(tidyverse)
 library(ggplot2)
 library(devtools)
+library(DelayedArray)
+library(SingleCellExperiment)
 devtools::load_all("~/taproom/")
 
 args <- commandArgs(trailingOnly = TRUE)
 cells <- readRDS(args[1])
-cells <- readRDS("../imc-prototype-analysis/raw_data/zurich1/zurich1_subset_sce.rds")
-#types <- read_csv(args[2]) %>% 
-types <- read_csv("../imc-prototype-analysis/raw_data/zurich1/zurich1_subset_assignments_type.csv") %>% 
+types <- read_csv(args[2]) %>% 
   column_to_rownames("X1")
 
 cohort <- args[3]
@@ -42,14 +43,22 @@ unknown.expr <- as.data.frame(unknown.expr)
 assigned.expr <- as.data.frame(assigned.expr)
 
 # Create list of mutually exclusive genes
-leuk <- c("CD3", "CD20", "CD45", "CD68")
-epi <- c("E-Cadherin", 
-         "pan Cytokeratin",
-         "Cytokeratin 7",
-         "Cytokeratin 8/18",
-         "Cytokeratin 19",
-         "Cytokeratin 5",
-         "Cytokeratin 14")
+if(cohort == "basel" | cohort == "zurich1"){
+  leuk <- c("CD3", "CD20", "CD45", "CD68")
+  epi <- c("E-Cadherin", 
+          "pan Cytokeratin",
+          "Cytokeratin 7",
+          "Cytokeratin 8/18",
+          "Cytokeratin 19",
+          "Cytokeratin 5",
+          "Cytokeratin 14")
+}else if(cohort == "wagner"){
+  leuk <- c("CD3", "CD24", "CD45", "CD68")
+  epi <- c("ECadherin", "EpCAM", "panK", "K7", "K8K18", "K5", "K14")
+}else if(cohort == "schapiro"){
+  leuk <- c("CD68", "Vimentin", "Fibronectin")
+  epi <- c("E-cadherin", "EpCAM", "Cytokeratin7", "Cytokeratin8-18", "Vimentin", "Fibronectin")
+}
 
 gene_pairs_mutual_df <- expand.grid(leuk, epi)
 
@@ -57,7 +66,6 @@ gene_pairs <- lapply(seq_len(nrow(gene_pairs_mutual_df)), function(i) {
   c(as.character(gene_pairs_mutual_df[i,1]), 
     as.character(gene_pairs_mutual_df[i,2]))
 })
-
 
 # Calculate scores for each cell - unknown cells
 tmp_score <- lapply(gene_pairs, function(x){
@@ -88,7 +96,7 @@ ggplot(total, aes(x = score, color = Cell, fill = Cell)) +
   astir_paper_theme()
 dev.off()
 
-pdf(paste0(output_dir, "Unknown_celltype_mutual_exclusivity_score_qqplot_", cohort, ".pdf"))
-qqplot(unknown_score$CD3, assigned_score$CD3, xlab = "Unknown score", ylab = "Assigned score")
+png(paste0(output_dir, "Unknown_celltype_mutual_exclusivity_score_qqplot_", cohort, ".png"))
+qqplot(unknown_score[,1], assigned_score[,1], xlab = "Unknown score", ylab = "Assigned score")
 abline(0, 1, col="red")
 dev.off()

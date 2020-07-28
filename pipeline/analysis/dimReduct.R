@@ -4,6 +4,8 @@ library(SingleCellExperiment)
 library(tidyverse)
 library(scater)
 library(rsvd)
+library(devtools)
+devtools::load_all("~/taproom/")
 source("~/imc-2020/scripts/functions.R")
 source('~/FIt-SNE/fast_tsne.R', chdir=T)
 
@@ -81,6 +83,7 @@ colnames(tsne) <- c("tSNE Dim1", "tSNE Dim2")
 
 tsne$cell_type <- expression$cell_type
 tsne$cohort <- expression$cohort
+tsne$cell_id <- rownames(expression)
 
 # add cohort & cell type
 saveRDS(tsne, file = paste0(output_dir_res, "tsne_results.rds"))

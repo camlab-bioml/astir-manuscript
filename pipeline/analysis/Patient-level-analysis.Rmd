@@ -26,6 +26,9 @@ library(ape)
 library(dichromat)
 library(viridis)
 library(circlize)
+```
+
+```{r}
 library(tidytext)
 library(ggpubr)
 devtools::load_all('~/taproom/')
@@ -40,12 +43,17 @@ sce <- sce$sce
 
 if(params$cohort != "schapiro"){
   metadata <- read_csv(params$metadata)
-  evalStatement <- F
 }
+
+evalStatement <- T
 
 if(params$cohort == "wagner"){
   metadata <- metadata %>% rename(PID = "Patient ID")
   metadata$`Clinical Subtype`[which(metadata$`Clinical Subtype` == "na")] <- NA
+  evalStatement <- F
+}
+
+if(params$cohort == "schapiro"){
   evalStatement <- F
 }
 

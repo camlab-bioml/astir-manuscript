@@ -42,7 +42,7 @@ phenograph.bar <- sce %>%
   mutate(clusters = as.factor(clusters))
 
 
-png(paste0(output_dir, "StatesBoxplot_cohort_", cohort, "_method_", method, "_clusters_", clustering.params, ".pdf"), height = 13, width = 18)
+png(paste0(output_dir, "StatesBoxplot_cohort_", cohort, "_method_", method, "_clusters_", clustering.params, ".png"), height = 13, width = 18, units = "in", res = 100)
 ggplot(phenograph.bar, aes(x = clusters, y = activation)) +
   geom_boxplot() +
   facet_wrap("pathway", ncol = 3) +

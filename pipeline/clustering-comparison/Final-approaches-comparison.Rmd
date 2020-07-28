@@ -5,23 +5,32 @@ date: "June 27, 2020"
 output: html_document
 params:
   basel: "../output/v4/results/Assessment-heatmap-basel.csv"
+  schapiro: ""
   wagner: "../output/v4/results/Assessment-heatmap-wagner.csv"
   zurich1: "../output/v4/results/Assessment-heatmap-zurich1.csv"
+  basel_indiv: ""
+  schapiro_indiv: ""
+  wagner_indiv: ""
+  zurich1_indiv: ""
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = '../')
-library(tidyverse)
+knitr::opts_knit$set(root.dir = '~/imc-2020/')
 library(cowplot)
 library(ggpubr)
 library(ComplexHeatmap)
-devtools::load_all('../../../taproom/')
+library(tidyverse)
+devtools::load_all('~/taproom/')
 ```
 
 Read in data
 ```{r}
 basel <- read_csv(params$basel) %>% 
+  mutate_if(colnames(.) != "score", as.factor) %>% 
+  column_to_rownames("X1")
+
+schapiro <- read_csv(params$schapiro) %>% 
   mutate_if(colnames(.) != "score", as.factor) %>% 
   column_to_rownames("X1")
 
@@ -44,6 +53,13 @@ basel.max <- lapply(basel[basel %>%
   as.numeric() %>% 
   max()
 
+schapiro.max <- lapply(schapiro[schapiro %>% 
+              select(-score) %>% 
+              colnames], FUN = levels) %>% 
+  unlist() %>% 
+  as.numeric() %>% 
+  max()
+
 zurich1.max <- lapply(zurich1[zurich1 %>% 
               select(-score) %>% 
               colnames], FUN = levels) %>% 
@@ -58,7 +74,7 @@ wagner.max <- lapply(wagner[wagner %>%
   as.numeric() %>% 
   max()
 
-max.clusters <- max(basel.max, zurich1.max, wagner.max)
+max.clusters <- max(basel.max, schapiro.max, zurich1.max, wagner.max)
 
 
 # Create colour palette
@@ -71,6 +87,9 @@ names(pal) <- c(0:max(max.clusters))
 basel.mat <- basel %>%
   select(-score) %>% 
   as.matrix()
+schapiro.mat <- schapiro %>%
+  select(-score) %>%
+  as.matrix()
 zurich1.mat <- zurich1 %>%
   select(-score) %>% 
   as.matrix()
@@ -80,14 +99,21 @@ wagner.mat <- wagner %>%
 
 # Create heatmap annotations
 # define plotting order
-plottingOrder = basel %>% 
-  arrange(desc(score)) %>% 
-  rownames()
+scores <- data.frame(basel$score, schapiro$score, zurich1$score, wagner$score) 
+scores$mean <- rowMeans(scores[, 1:4])
+rownames(scores) <- rownames(basel)
 
+plottingOrder = scores %>% 
+  arrange(desc(mean)) %>% 
+  rownames()
+  
 # Annotations
 basel.ha = rowAnnotation(Score = anno_barplot(basel$score, 
                                               gp = gpar(fill = "lightgrey")),
                    width = unit(2, "cm"))
+schapiro.ha = rowAnnotation(Score = anno_barplot(schapiro$score,
+                                              gp = gpar(fill = "lightgrey")),
+                    width = unit(2, "cm"))
 wagner.ha = rowAnnotation(Score = anno_barplot(wagner$score, 
                                               gp = gpar(fill = "lightgrey")),
                    width = unit(2, "cm"))
@@ -103,6 +129,13 @@ basel.hm <- Heatmap(basel.mat, col = pal,
                     row_names_side = "left",
                     row_names_max_width = unit(7, "cm"),
                     name = "# of clusters")
+schapiro.hm <- Heatmap(schapiro.mat, col = pal,
+                      row_order = plottingOrder,
+                      right_annotation = schapiro.ha,
+                      column_title = "Schapiro",
+                      row_names_side = "left",
+                      row_names_max_width = unit(7, "cm"),
+                      name = "# of clusters")
 wagner.hm <- Heatmap(wagner.mat, col = pal,
                      row_order = plottingOrder,
                      right_annotation = wagner.ha,
@@ -116,26 +149,32 @@ zurich1.hm <- Heatmap(zurich1.mat, col = pal,
                       column_title = "Zurich1",
                       show_row_names = F)
 
-basel.hm + wagner.hm + zurich1.hm
+basel.hm + schapiro.hm + wagner.hm + zurich1.hm
 ```
 
 
 
 Create individual heatmaps
 ```{r fig.width=40, fig.height=10}
-basel <- read_csv("../output/v4/results/Assessment-individual-heatmap-basel.csv")
+basel <- read_csv(params$basel_indiv)
 basel <- basel %>% 
   mutate(method = str_replace(method, "_", "\n")) %>% 
   mutate(method = str_replace(method, "_", "-")) %>% 
   mutate(method = str_replace(method, "astir", "Astir"))
 
-wagner <- read_csv("../output/v4/results/Assessment-individual-heatmap-wagner.csv")
+schapiro <- read_csv(params$schapiro_indiv)
+schapiro <- schapiro %>% 
+  mutate(method = str_replace(method, "_", "\n")) %>% 
+  mutate(method = str_replace(method, "_", "-")) %>% 
+  mutate(method = str_replace(method, "astir", "Astir"))
+
+wagner <- read_csv(params$wagner_indiv)
 wagner <- wagner %>% 
   mutate(method = str_replace(method, "_", "\n")) %>% 
   mutate(method = str_replace(method, "_", "-")) %>% 
   mutate(method = str_replace(method, "astir", "Astir"))
 
-zurich1 <- read_csv("../output/v4/results/Assessment-individual-heatmap-zurich1.csv")
+zurich1 <- read_csv(params$zurich1_indiv)
 zurich1 <- zurich1 %>% 
   mutate(method = str_replace(method, "_", "\n")) %>% 
   mutate(method = str_replace(method, "_", "-")) %>% 
@@ -151,6 +190,14 @@ summary.heatmap.theme <- function(){
 }
 
 basel.hm <- basel %>% 
+  filter(!grepl("Other|Unknown", cluster)) %>% 
+  ggplot(aes(x = cluster, y = pathway, fill = thresh_score)) +
+  geom_tile() +
+  scale_fill_viridis_d() +
+  facet_wrap(~ method, scales = "free_x", nrow = 1) +
+  summary.heatmap.theme()
+
+schapiro.hm <- basel %>% 
   filter(!grepl("Other|Unknown", cluster)) %>% 
   ggplot(aes(x = cluster, y = pathway, fill = thresh_score)) +
   geom_tile() +
@@ -175,6 +222,6 @@ zurich1.hm <- zurich1 %>%
   summary.heatmap.theme()
 
 
-ggarrange(basel.hm, wagner.hm, zurich1.hm,
-          nrow = 3)
+ggarrange(basel.hm, schapiro.hm, wagner.hm, zurich1.hm,
+          nrow = 4)
 ```

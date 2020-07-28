@@ -67,6 +67,14 @@ if(params$cohort == "schapiro"){
 ```{r}
 # FlowSOM - just going with the number of cell types for now
 imc.flowSOM.cluster <- cytof_cluster(xdata = imc.data, method = "FlowSOM",
+                                     FlowSOM_k = 4)
+sce$FlowSOM.k4 <- imc.flowSOM.cluster
+
+imc.flowSOM.cluster <- cytof_cluster(xdata = imc.data, method = "FlowSOM",
+                                     FlowSOM_k = 7)
+sce$FlowSOM.k7 <- imc.flowSOM.cluster
+
+imc.flowSOM.cluster <- cytof_cluster(xdata = imc.data, method = "FlowSOM",
                                      FlowSOM_k = 8)
 sce$FlowSOM.k8 <- imc.flowSOM.cluster
 
@@ -90,6 +98,23 @@ sce$FlowSOM.k20 <- imc.flowSOM.cluster
 
 Write out the files as csv's.
 ```{r eval=params$create_csv}
+flowSOM_k4 <- sce %>% colData() %>% as.data.frame() %>% select(id, "FlowSOM.k4")
+rownames(flowSOM_k4) <- c()
+flowSOM_k4$method <- "FlowSOM"
+flowSOM_k4$params <- paste(params$markers, "k4", sep = "_")
+write.csv(flowSOM_k4, file = paste0(params$output_results, "FlowSOM_clusters_", 
+                                    params$cohort, "_", params$markers, "_k4.csv"),
+          col.names = T, row.names = F, sep = ",")
+
+flowSOM_k7 <- sce %>% colData() %>% as.data.frame() %>% select(id, "FlowSOM.k7")
+rownames(flowSOM_k7) <- c()
+flowSOM_k7$method <- "FlowSOM"
+flowSOM_k7$params <- paste(params$markers, "k7", sep = "_")
+write.csv(flowSOM_k7, file = paste0(params$output_results, "FlowSOM_clusters_", 
+                                    params$cohort, "_", params$markers, "_k7.csv"),
+          col.names = T, row.names = F, sep = ",")
+
+
 flowSOM_k8 <- sce %>% colData() %>% as.data.frame() %>% select(id, "FlowSOM.k8")
 rownames(flowSOM_k8) <- c()
 flowSOM_k8$method <- "FlowSOM"

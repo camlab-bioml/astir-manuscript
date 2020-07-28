@@ -11,10 +11,12 @@ devtools::load_all("../taproom/")
 ### [READ IN ARGUMENTS] #####
 args <- commandArgs(trailingOnly = TRUE)
 
-type <- args[1] %>% read_csv()
-state <- args[2] %>% read_csv()
-cohort <- args[3]
-output_dir <- args[4]
+basel_type <- args[1] %>% read_csv()
+schapiro_type <- args[2] %>% read_csv()
+wagner_type <- args[3] %>% read_csv()
+zurich1_type <- args[4] %>% read_csv()
+
+output_dir <- args[5]
 
 
 ### [PROCESS DATA] #####
@@ -27,6 +29,7 @@ process_celltypes <- function(t){
   
   cells$cell_type[cells$cell_type == "B cell"] <- "B cells"
   cells$cell_type[cells$cell_type == "T cell"] <- "T cells"
+  cells$cell_type[cells$cell_type == "Fibroblasts"] <- "Stromal"
   
   coreFreqs <- cells %>% 
     group_by(core) %>% 
@@ -63,8 +66,7 @@ zurich1 <- process_celltypes(zurich1_type) %>%
 cores <- rbind(basel, schapiro, wagner, zurich1)
 
 ### [PLOT] #####
-
-pdf(paste0(output_dir, "core_cell_identity_barchart_allCohorts.pdf"), width = 18)
+pdf(paste0(output_dir, "allCohort_core_cell_identity_barchart.pdf"), width = 14, height = 6)
   h1 <- ggplot(cores, aes(x = core, y = n, fill = cell_type)) + 
     geom_bar(stat = "identity", position = "fill") +
     scale_fill_manual(values = jackson_basel_colours()) +
@@ -72,29 +74,29 @@ pdf(paste0(output_dir, "core_cell_identity_barchart_allCohorts.pdf"), width = 18
     labs(fill = "Cell type") +
     ylab("Frequency") +
     astir_paper_theme() +
-    theme(axis.text.x = element_blank(),
+    theme(axis.title.x = element_text(size = 20),
+          axis.text.y = element_text(size = 14),
+          axis.text.x = element_blank(),
+          axis.title.y = element_text(size = 20),
           axis.ticks = element_blank(),
-          legend.position=c(0.4, 0.8),
-          legend.text=element_text(size=12),
-          legend.title=element_text(face = "bold", size=14))
+          legend.position=c(0.1, 0.8))
   
   h2 <- ggplot(cores, aes(x = core, y = n, fill = Cohort)) +
     geom_bar(stat = "identity", position = "fill") +
     scale_fill_manual(values = cohort_colours()) +
-    theme(plot.margin = unit(c(1,0,-1.5,0), "lines"),
-          legend.position=c(0.4, 0.7)) +
+    astir_paper_theme() +
     xlab("") + ylab("") + 
-    theme(axis.text.x = element_blank(),
+    theme(plot.margin = unit(c(1,0,-1.5,0), "lines"),
+          legend.position=c(0.1, 0.7),
+          axis.text.x = element_blank(),
           axis.text.y = element_blank(),
-          axis.ticks = element_blank(),
-          legend.text=element_text(size=12),
-          legend.title=element_text(face = "bold", size=14))
+          axis.ticks = element_blank())
   
   legend <- cowplot::plot_grid(get_legend(h2), get_legend(h1), nrow = 2, axis = "l")
   
   h1 <- h1 + theme(legend.position = "none")
   h2 <- h2 + theme(legend.position = "none")
-  plot <- plot_grid(h2, h1, align = "v", ncol = 1, axis = "tb", rel_heights = c(1.2, 20))
+  plot <- plot_grid(h2, h1, align = "v", ncol = 1, axis = "tb", rel_heights = c(1.8, 20))
   
-  plot_grid(plot, legend, nrow = 1, rel_widths = c(10, 3))
+  plot_grid(plot, legend, nrow = 1, rel_widths = c(10, 1.8))
 dev.off()
