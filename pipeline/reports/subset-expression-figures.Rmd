@@ -1,0 +1,76 @@
+---
+title: "Subset expression figures"
+output: html_document
+params:
+  marker_yml: "../../markers/schapiro-markers.yml"
+  subset_exprs: "../../output/v6/schapiro_subset/schapiro_subset_sce.rds"
+  subset_assignments: "../../output/v6/schapiro_subset/schapiro_subset_assignments_type.csv"
+  expression_pdf: "expression.pdf"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+suppressPackageStartupMessages({
+  library(SingleCellExperiment)
+  library(scater)
+  library(ComplexHeatmap)
+  library(pheatmap)
+  library(tidyverse)
+  
+})
+
+devtools::load_all("/home/ltri/campbell/share/projects/taproom")
+```
+
+
+
+
+```{r}
+markers <- read_markers(params$marker_yml)
+```
+
+```{r}
+sce <- readRDS(params$subset_exprs)
+subset_assignments <- read_csv(params$subset_assignments)
+sce <- sce[, subset_assignments$X1]
+```
+
+```{r}
+subset_assignments$X1 <- NULL
+sce$cell_type <- get_celltypes(subset_assignments)
+```
+
+
+```{r}
+sce <- runPCA(sce, ncomponents = 10)
+sce <- runUMAP(sce)
+```
+
+```{r}
+plotUMAP(sce, colour_by = "cell_type")
+```
+
+```{r}
+sce <- calculateQCMetrics(sce, exprs_values = "logcounts")
+hist(sce$total_logcounts, breaks = 100)
+```
+
+```{r}
+ct_markers <- unique(unlist(markers$cell_types))
+heatmap_markers <- createHeatmap(sce[ct_markers,])
+draw(heatmap_markers)
+```
+
+```{r}
+pdf(params$expression_pdf, width = 8, height = 4)
+draw(heatmap_markers)
+dev.off()
+```
+
+
+```{r fig.width=8, fig.height = 6}
+heatmap <- createHeatmap(sce)
+draw(heatmap)
+```
+
+
