@@ -2,8 +2,12 @@
 title: "spatial-figures.Rmd"
 output: html_document
 params:
-  basel_output: ../../output/v5/spatial/rds_output_basel.rds
-  zurich1_output: ../../output/v5/spatial/rds_output_zurich1.rds
+  basel_output: ../../output/v6/spatial/rds_output_basel.rds
+  zurich1_output: ../../output/v6/spatial/rds_output_zurich1.rds
+  basel_metadata: mdata.csv
+  kaplan_meier: km.pdf
+  pathway_fig: pw.pdf
+  spatial_heatmap: hm.pdf
 ---
 
 ```{r setup, include=FALSE}
@@ -17,16 +21,15 @@ suppressPackageStartupMessages({
   library(survival)
   library(glue)
   library(circlize)
-  
   library(survminer)
 })
 
-devtools::load_all('../../../taproom/')
+devtools::load_all("/home/ltri/campbell/share/projects/taproom")
 ```
 
 # Read in data
 
-```{r}
+```{r read-spatial-output}
 basel_output <- readRDS(params$basel_output)
 zurich1_output <- readRDS(params$zurich1_output)
 ```
@@ -76,7 +79,7 @@ draw(ht, heatmap_legend_side = "bottom", annotation_legend_side = "bottom")
 
 
 ```{r}
-pdf("test.pdf", width = 9.5, height = 3.5)
+pdf(params$spatial_heatmap, width = 8, height = 4.5)
 draw(ht, heatmap_legend_side = "bottom", annotation_legend_side = "bottom",
      padding = unit(c(2, 2, 2, 15), "mm"))
 dev.off()
@@ -107,16 +110,20 @@ ggplot(df_test, aes(x = -log10(p.value), y = fct_reorder(state, -log10(p.value))
   labs(y = "Pathway") +
   theme(legend.position = "bottom")
 
-ggsave("spatial-pathway.png", width = 8, height = 3.5)
 ```
 
 
+```{r}
+pdf(params$pathway_fig, width = 9, height = 3)
+print(last_plot())
+dev.off()
+```
 
 
 # Survival analysis for Basel
 
 ```{r}
-mdata <- read_csv("../..//data-raw/jackson-2020/SingleCell_and_Metadata/BaselTMA/Basel_PatientMetadata.csv")
+mdata <- read_csv(params$basel_metadata)
 
 df_surv <- filter(mdata, diseasestatus == "tumor") %>% 
   select(PID, core, Patientstatus, DFSmonth, OSmonth, grade) %>% 
@@ -202,11 +209,12 @@ km + scale_colour_manual(values=cols,
   theme(legend.text = element_text(size = 10),
         legend.title = element_blank(),
         legend.position = "right",
-        legend.spacing.y = unit(1.0, 'cm')) 
+        legend.spacing.y = unit(1.0, 'cm'))  +
+  labs(x = "Time (months)", y = "Disease free\nsurvival probability")
 ```
 
 ```{r}
-pdf("spatial-survival.pdf", width = 5.5, height = 3)
+pdf(params$kaplan_meier, width = 6, height = 3.5)
 print(last_plot())
 dev.off()
 ```

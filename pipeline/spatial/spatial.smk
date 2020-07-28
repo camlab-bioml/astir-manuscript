@@ -4,7 +4,10 @@
 spatial_output = {
     'basel': expand(output_path + "spatial/{dataset}/{core}.csv", dataset=['basel'], core=basel_cores),
     'zurich': expand(output_path + "spatial/{dataset}/{core}.csv", dataset=['zurich1'], core=zurich1_cores),
-    'reports': expand(output_path + "spatial/spatial_report_{dataset}.html", dataset=['basel','zurich1'])
+    'reports': expand(output_path + "spatial/spatial_report_{dataset}.html", dataset=['basel','zurich1']),
+    'kaplan_meier': output_path + "figures/spatial/km.pdf",
+    'pathway_fig': output_path + "figures/spatial/pathway_fig.pdf",
+    'spatial_heatmap': output_path + "figures/spatial/heatmap.pdf"
 }
 
 rule calc_dists:
@@ -48,6 +51,33 @@ rule dist_report:
         "scree_plot='{output.scree_plot}', "
         "dataset='{wildcards.dataset}', "      
         "metadata='{input.metadata}'), "
+        "knit_root_dir='{params.curr_dir}', "
+        "output_dir='{params.curr_dir}/{params.output_path}/spatial/'"
+        ")\"  "
+
+rule spatial_figures:
+    params:
+        curr_dir = os.getcwd(),
+        output_path = output_path,
+    input:
+        basel=output_path + "spatial/rds_output_basel.rds",
+        zurich1=output_path + "spatial/rds_output_zurich1.rds",
+        basel_metadata=config['basel']['base_dir']+ config['basel']['metadata_file'],
+    output:
+        html=output_path + "spatial/spatial_figures.html",
+        kaplan_meier = output_path + "figures/spatial/km.pdf",
+        pathway_fig = output_path + "figures/spatial/pathway_fig.pdf",
+        spatial_heatmap = output_path + "figures/spatial/heatmap.pdf",
+    shell:
+        "Rscript -e \"Sys.setenv(RSTUDIO_PANDOC='/home/ltri/campbell/share/software/pandoc-2.9.2.1/bin'); "
+        "rmarkdown::render('pipeline/spatial/spatial-figures.Rmd',   "
+        "output_file='{output.html}', "
+        "params=list(basel_output='{input.basel}', "
+        "zurich1_output='{input.zurich1}', "
+        "basel_metadata='{input.basel_metadata}', "  
+        "kaplan_meier='{output.kaplan_meier}', "
+        "pathway_fig='{output.pathway_fig}', "      
+        "spatial_heatmap='{output.spatial_heatmap}'), "
         "knit_root_dir='{params.curr_dir}', "
         "output_dir='{params.curr_dir}/{params.output_path}/spatial/'"
         ")\"  "
