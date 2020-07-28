@@ -4,6 +4,7 @@ output: html_document
 params:
   output_fig_removed: "removed.pdf"
   output_fig_added: "added.pdf"
+  markers: markers.yml
   input_dir: '../../output/v5/robustness/'
   thresh: 0.95
 ---
@@ -21,9 +22,15 @@ suppressPackageStartupMessages({
   library(pheatmap)
   library(glue)
   library(taproom)
+  library(yaml)
 })
 
 ```
+
+```{r}
+markers <- read_yaml(params$markers)
+```
+
 
 # Define palette
 
@@ -225,10 +232,27 @@ df$condition <- factor(df$condition,
                        ))
 ```
 
+```{r}
+declared_celltypes <- c(
+  names(markers$cell_types),
+  "Unknown",
+  "Other"
+)
+```
+
 
 ```{r}
 dplyr::count(df, condition, cell_type) 
 ```
+
+```{r}
+df %>% 
+  group_by(condition) %>% 
+  summarize(
+    wrong_mean = mean(!(cell_type %in% declared_celltypes))
+  )
+```
+
 
 ```{r}
 ggplot(df, aes(x = condition, stratum = cell_type, alluvium = cell,

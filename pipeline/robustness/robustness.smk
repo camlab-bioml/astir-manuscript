@@ -62,6 +62,7 @@ rule robustness_figures:
     input:
         robustness_output['added_assignments'],
         robustness_output['reduced_assignments'],
+        markers=config['basel']['marker_file'],
     output:
         html=output_path + "robustness/robustness.html",
         output_fig_removed=robustness_output['figure_removed'],
@@ -72,6 +73,7 @@ rule robustness_figures:
         "output_file='{output.html}', "
         "params=list(input_dir='{params.output_path}robustness', "
         "output_fig_added='{output.output_fig_added}', "
+        "markers='{input.markers}', "
         "output_fig_removed='{output.output_fig_removed}'), "
         "knit_root_dir='{params.curr_dir}', "
         "output_dir='{params.curr_dir}/{params.output_path}/robustness/'"
