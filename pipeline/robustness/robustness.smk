@@ -49,7 +49,9 @@ added_assignments = expand(output_path + "robustness/assignments-15k-added-{adde
 robustness_output = {
     'added_assignments': added_assignments,
     'reduced_assignments': reduced_assignments,
-    'report': output_path + "robustness/robustness.html"
+    'report': output_path + "robustness/robustness.html",
+    'figure_removed': output_path + "figures/robustness/robustness_removed.pdf",
+    'figure_added': output_path + "figures/robustness/robustness_added.pdf"
 }
 
 rule robustness_figures:
@@ -62,14 +64,15 @@ rule robustness_figures:
         robustness_output['reduced_assignments'],
     output:
         html=output_path + "robustness/robustness.html",
-        remove_fig=output_path + "robustness/robustness_removed.pdf",
+        output_fig_removed=robustness_output['figure_removed'],
+        output_fig_added=robustness_output['figure_added']
     shell:
         "Rscript -e \"Sys.setenv(RSTUDIO_PANDOC='/home/ltri/campbell/share/software/pandoc-2.9.2.1/bin'); "
         "rmarkdown::render('pipeline/robustness/robustness-figures.Rmd',   "
         "output_file='{output.html}', "
-        "params=list(version='{params.version}', "
-        "input_dir='{params.output_path}robustness', "
-        "output_fig_removed='{output.remove_fig}'), "
+        "params=list(input_dir='{params.output_path}robustness', "
+        "output_fig_added='{output.output_fig_added}', "
+        "output_fig_removed='{output.output_fig_removed}'), "
         "knit_root_dir='{params.curr_dir}', "
         "output_dir='{params.curr_dir}/{params.output_path}/robustness/'"
         ")\"  "

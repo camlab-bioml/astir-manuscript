@@ -2,9 +2,10 @@
 title: "Robustness figures"
 output: html_document
 params:
-  version: v5
-  output_fig_removed: "output.png"
+  output_fig_removed: "removed.pdf"
+  output_fig_added: "added.pdf"
   input_dir: '../../output/v5/robustness/'
+  thresh: 0.95
 ---
 
 ```{r setup, include=FALSE}
@@ -67,7 +68,7 @@ mat$X1 <- NULL
 read_to_mat <- function(f) {
   df <- read_csv(f)
   mat <- as.matrix(select(df, -X1))
-  celltypes <- get_celltypes(mat, thresh = 0.7)
+  celltypes <- get_celltypes(mat, thresh = params$thresh)
 
   condition <- strsplit(f, "-")[[1]]
   condition <- condition[length(condition)]
@@ -197,7 +198,7 @@ added_csvs <- dir(params$input_dir, pattern = 'added*.*csv',
 read_to_mat <- function(f) {
   df <- read_csv(f)
   mat <- as.matrix(select(df, -X1))
-  celltypes <- get_celltypes(mat, thresh = 0.7)
+  celltypes <- get_celltypes(mat, thresh = params$thresh)
 
   condition <- strsplit(f, "-")[[1]]
   condition <- condition[length(condition)]
@@ -237,7 +238,14 @@ ggplot(df, aes(x = condition, stratum = cell_type, alluvium = cell,
   stat_flow() +
   scale_x_discrete(expand = c(0,0)) +
   scale_y_discrete(expand = c(0,0)) +
-  scale_fill_manual(values = celltype_colours, name = "Cell type\nassigned") +
+  scale_fill_manual(values = celltype_colours, name = "Cell type assigned") +
   theme(axis.text.x = element_text(angle = -45, hjust = 0, vjust = 0.5)) +
   labs(x = "Cell type added")
 ```
+
+```{r}
+pdf(params$output_fig_added, width = 5, height=3.5)
+print(last_plot())
+dev.off()
+```
+
