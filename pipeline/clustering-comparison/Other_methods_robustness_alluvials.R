@@ -34,8 +34,7 @@ filter(plot_all, id %in% cells_stromal_none) %>%
   scale_x_discrete(expand = c(0,0)) +
   scale_y_discrete(expand = c(0,0)) +
   scale_fill_manual(values = jackson_basel_colours()) +
-  labs(fill = "Cell type assigned") +
   astir_paper_theme() +
   theme(axis.text.x = element_text(angle = -45, hjust = 0)) +
-  labs(x = "Cell type removed")
+  labs(y = "Cells", x = "Cell type removed", fill = "Cell type assigned")
 dev.off()
