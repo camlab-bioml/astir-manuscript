@@ -12,7 +12,7 @@ rds <- args[1]
 a <- as.numeric(args[2])
 output_dir <- args[3]
 
-tsne <- readRDS(rds)
+tsne <- readRDS(rds) %>% sample_frac(1)
 
 ### [SAVE PLOT AS PDF] #####
 # save as png

@@ -3,16 +3,18 @@
 ### [LOAD LIBRARIES] #####
 library(devtools)
 library(SingleCellExperiment)
+library(scater)
 library(tidyverse)
 library(GSVA)
 library(ggalluvial)
 source("scripts/functions.R")
-devtools::load_all("../taproom/")
+devtools::load_all("~/taproom/")
 
 ### [READ IN DATA] #####
 args <- commandArgs(trailingOnly = TRUE)
-cells <- args[1]
-markers <- args[2] %>% read_markers()$cell_types
+cells <- readRDS(args[1])
+markers <- args[2] %>% read_markers()
+markers <- markers$cell_types
 csvs <- args[3]
 cohort <- args[4]
 output_dir <- args[5]

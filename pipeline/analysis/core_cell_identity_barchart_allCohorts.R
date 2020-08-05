@@ -66,13 +66,13 @@ zurich1 <- process_celltypes(zurich1_type) %>%
 cores <- rbind(basel, schapiro, wagner, zurich1)
 
 ### [PLOT] #####
-pdf(paste0(output_dir, "allCohort_core_cell_identity_barchart.pdf"), width = 14, height = 6)
+pdf(paste0(output_dir, "allCohort_core_cell_identity_barchart.pdf"), width = 14, height = 5)
   h1 <- ggplot(cores, aes(x = core, y = n, fill = cell_type)) + 
     geom_bar(stat = "identity", position = "fill") +
     scale_fill_manual(values = jackson_basel_colours()) +
     scale_y_continuous(expand=c(0,0)) +
     labs(fill = "Cell type") +
-    ylab("Frequency") +
+    ylab("Frequency") + xlab("Core") +
     astir_paper_theme() +
     theme(axis.title.x = element_text(size = 20),
           axis.text.y = element_text(size = 14),

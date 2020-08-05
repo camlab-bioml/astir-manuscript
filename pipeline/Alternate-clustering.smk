@@ -1,4 +1,5 @@
 cohort_list = ['basel', 'zurich1', 'wagner', 'schapiro']
+reduced_cohort_list = ['basel', 'zurich1', 'wagner']
 markers_spec = ['specified_markers', 'all_markers']
 
 output_dir_reports = output_path + "reports/"
@@ -74,7 +75,8 @@ alternate_approaches_output = {
     'Other_approaches_heatmaps': expand(output_dir_results + "Assessment-individual-heatmap-{cohort}.csv", cohort = cohort_list),
     'Other_approaches_summary_heatmap': expand(output_dir_results + "Assessment-heatmap-{cohort}.csv", cohort = cohort_list),
 
-    'final_benchmark': output_dir_reports + "Final-approaches-comparison.html"   
+    'final_benchmark': output_dir_reports + "Final-approaches-comparison.html",
+    'GSVA': expand(output_dir_results + "Other_approaches_GSVA_{cohort}.csv", cohort = reduced_cohort_list)
 }
 
 rule create_sces: 
@@ -208,7 +210,7 @@ rule ClusterX_analysis:
         res_dir = output_dir_results
 
     resources:
-        mem_mb=2000
+        mem_mb=3000
     
     output:
         html = output_dir_reports + "ClusterX-analysis-{cohort}-specified_markers.html",
@@ -232,7 +234,7 @@ rule ClusterX_analysis_all_markers:
         res_dir = output_dir_results
 
     resources:
-        mem_mb=2000
+        mem_mb=4000
     
     output:
         html = output_dir_reports + "ClusterX-analysis-{cohort}-all_markers.html",
@@ -329,6 +331,8 @@ rule compare_approaches:
     resources:
         mem_mb=5000
 
+    threads: 15
+
     output:
         html = output_dir_reports + "Approaches-comparison-{cohort}.html",
         heatmap_individual = output_dir_results + "Assessment-individual-heatmap-{cohort}.csv",
@@ -362,4 +366,37 @@ rule final_approach_comparison:
         "rmarkdown::render('pipeline/clustering-comparison/Final-approaches-comparison.Rmd', output_file = '{output.html}', output_dir = '" + output_dir_reports + "',"
         "params = list(basel = '{input.basel}', schapiro = '{input.schapiro}', wagner = '{input.wagner}', zurich1 = '{input.zurich1}', "
         "basel_indiv = '{input.basel_indiv}', schapiro_indiv = '{input.schapiro_indiv}', wagner_indiv = '{input.wagner_indiv}', zurich1_indiv = '{input.zurich1_indiv}'))\" "
-        
+
+gsva_csvs = []
+gsva_csvs_tmp = [expand(output_dir_results + "{method}_clusters_{cohort}_{markers}_{clusters}.csv", method = [m], markers = markers_spec, cohort = reduced_cohort_list, clusters = conditions[m]) for m in conditions.keys()]
+for element in gsva_csvs_tmp:
+	gsva_csvs.extend(element)
+
+gsva_csv_dict = {cohort: [f for f in gsva_csvs if cohort in f] for cohort in reduced_cohort_list}      
+
+rule GSVA:
+    input:
+        cells = output_path + "sces/{cohort}_sce.rds",
+        markers = lambda wildcards: config[wildcards.cohort]['marker_file'],
+        csvs = lambda wildcards: gsva_csv_dict[wildcards.cohort]
+
+    output:
+        output_dir_results + "Other_approaches_GSVA_{cohort}.csv"
+
+    shell:
+        "Rscript pipeline/clustering-comparison/GSVA.R {input.cells} {input.markers} "
+        "{input.csvs} {wildcards.cohort} " + output_dir_results
+
+# Still need to define clusters here
+
+# rule GSVA_alluvials:
+#     input:
+#         gsva_assignments = output_dir_results + "Other_approaches_GSVA_{cohort}.csv",
+#         method = tmp_methods
+
+#     output:
+#         output_dir_fig + "robustness/other_approaches/Other_methods_robustness_{wildcards.method}_{cohort}.pdf"
+
+#     shell:
+#         "Rscript pipeline/clustering-comparison/Other_methods_robustness_alluvials.R {input.gsva_assignments} "
+#         "{input.method} {wildcards.cohort} " + output_dir_fig + "robustness/other_approaches/"

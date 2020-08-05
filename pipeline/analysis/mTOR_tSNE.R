@@ -54,7 +54,7 @@ ggplot(NULL, aes(x = `tSNE Dim1`, y = `tSNE Dim2`)) +
   geom_point(data = select(tsne_plot, -cell_type), colour = "grey90", alpha = a) +
   geom_point(data = filter(tsne_plot, cell_type != "Other", cell_type != "Unknown"), 
              aes(color = rescaled_mTOR), alpha = a) +
-  scale_color_viridis(name = "mTOR Signalling") +
+  scale_color_viridis(name = "mTOR \nSignalling") +
   astir_paper_theme() +
   facet_wrap(~cell_type, ncol = 8) +
   theme(panel.spacing.x = unit(7, "mm")) +
