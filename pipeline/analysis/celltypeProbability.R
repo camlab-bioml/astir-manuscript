@@ -65,7 +65,7 @@ ha <- HeatmapAnnotation(`Cell Type` = unknown$cell_type,
                         which = "column",
                         col = list(`Cell Type` = jackson_basel_colours()))
 
-pdf(paste0(output_dir, "Unknown_celltype_expression_", cohort, ".pdf"), width = 10)
+pdf(paste0(output_dir, "Unknown_celltype_expression_", cohort, ".pdf"), height = 5, width = 10)
 Heatmap(t(lc), 
         name = "Expression",
         column_title = "Cell",

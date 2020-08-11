@@ -132,7 +132,8 @@ create.alluvial <- function(df, method) {
     ylab("Cells") +
     labs(fill = "Cell Types") +
     scale_x_discrete(limits = c("Astir cell type", paste(method, "cluster")), 
-                     expand = c(.05, .05)) +
+                     expand = c(0, 0)) +
+    scale_y_continuous(expand = c(0, 0)) +
     astir_paper_theme() +
     theme(axis.ticks.x = element_blank(),
           axis.ticks.y = element_blank(),

@@ -17,10 +17,10 @@ output_dir <- args[6]
 
 sce <- assignIdentity(cells, type, state)$sce
 
-pdf(paste0(output_dir, "Astir_expressionHeatmap_allMarkers_", cohort, ".pdf"), height = 14, width = 18)
+pdf(paste0(output_dir, "Astir_expressionHeatmap_allMarkers_", cohort, ".pdf"), height = 12, width = 18)
 createHeatmap(sce)
 dev.off()
 
-pdf(paste0(output_dir, "Astir_expressionHeatmap_specifiedMarkers_", cohort, ".pdf"), height = 10, width = 18)
+pdf(paste0(output_dir, "Astir_expressionHeatmap_specifiedMarkers_", cohort, ".pdf"), height = 7, width = 18)
 createHeatmap(sce[unique(unlist(markers$cell_types)),])
 dev.off()

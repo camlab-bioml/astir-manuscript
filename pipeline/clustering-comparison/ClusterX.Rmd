@@ -67,6 +67,7 @@ if(params$cohort == "schapiro"){
 ```{r}
 # ClusterX requires a tsne plot to start with
 imc.tsne <- cytof_dimReduction(data=imc.data, method = "tsne")
+saveRDS(imc.tsne, "clusterX.tsne.troubleshoot.rds")
 imc.clusterX.cluster <- cytof_cluster(ydata = imc.tsne, method = "ClusterX")
 
 sce$clusterX <- imc.clusterX.cluster

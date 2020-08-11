@@ -75,27 +75,43 @@ wagner.max <- lapply(wagner[wagner %>%
   max()
 
 max.clusters <- max(basel.max, schapiro.max, zurich1.max, wagner.max)
+if(max.clusters > 10){
+  max.clusters <- 10
+}
 
 
 # Create colour palette
 gradient<- colorRampPalette(c("#FFEBEE", "#F50025"))
 pal <- c("#FFB60A", "#648FFF", 
          gradient(max.clusters - 1))
-names(pal) <- c(0:max(max.clusters))
+names(pal) <- c(0:(max.clusters - 1), "10+")
+
+tooHigh <- as.character(c(0:5))
 
 # Create matrices to plot
 basel.mat <- basel %>%
   select(-score) %>% 
   as.matrix()
+
+basel.mat[!(basel.mat %in% tooHigh)] <- "10+"
+
 schapiro.mat <- schapiro %>%
   select(-score) %>%
   as.matrix()
+
+schapiro.mat[!(schapiro.mat %in% tooHigh)] <- "10+"
+
 zurich1.mat <- zurich1 %>%
   select(-score) %>% 
   as.matrix()
+
+zurich1.mat[!(zurich1.mat %in% tooHigh)] <- "10+"
+
 wagner.mat <- wagner %>% 
   select(-score) %>% 
   as.matrix()
+
+wagner.mat[!(wagner.mat %in% tooHigh)] <- "10+"
 
 # Create heatmap annotations
 # define plotting order
@@ -155,7 +171,7 @@ basel.hm + schapiro.hm + wagner.hm + zurich1.hm
 
 
 Create individual heatmaps
-```{r fig.width=40, fig.height=10}
+```{r fig.width=40, fig.height=12}
 basel <- read_csv(params$basel_indiv)
 basel <- basel %>% 
   mutate(method = str_replace(method, "_", "\n")) %>% 

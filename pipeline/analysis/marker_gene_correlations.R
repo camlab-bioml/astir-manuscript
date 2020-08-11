@@ -7,6 +7,7 @@ library(ggplot2)
 library(Hmisc)
 library(devtools)
 library(stringr)
+library(reshape2)
 devtools::load_all("../taproom/")
 
 ### [FUNCTIONS] ####
@@ -165,15 +166,10 @@ formated_cors <- function(mat, triangle){
 ### [READ IN DATA] ####
 args <- commandArgs(trailingOnly = TRUE)
 cells <- args[1]
-cells <- "output/v4/zurich1_subset/zurich1_subset_sce.rds"
 type <- args[2]
-type <- "output/v4/zurich1_subset/zurich1_subset_assignments_type.csv"
 state <- args[3]
-state <- "output/v4/zurich1_subset/zurich1_subset_assignments_state.csv"
 markers <- read_markers(args[4])
-markers <- read_markers("markers/jackson-2020-markers-v2.yml")
 cohort <- args[5]
-cohort <- "zurich1"
 output_dir <- args[6]
 
 sce <- assignIdentity(cells, type, state)$sce
@@ -189,14 +185,20 @@ if(cohort == "basel" | cohort == "zurich1"){
   protein.order <- c("CD45", "CD20", "CD3", "CD68", "E-Cadherin", "pan Cytokeratin", 
                      "Cytokeratin 5", "Cytokeratin 14", "Cytokeratin 7",
                      "Cytokeratin 8/18", "Cytokeratin 19", "vWF", 
-                     "Vimentin", "Fibronectin")
+                     "Vimentin", "Fibronectin", "SMA")
+  if(cohort == "basel"){
+    title <- "Basel"
+  }else{
+    title <- "Zurich"
+  }
 }else if(cohort == "wagner"){
-  protein.order <- c("CD45", "CD3", "CD68", "CD24", "CD31", 
-                     "CD49f", "ECadherin", "EpCAM", "panK", "K14", "K5", 
-                     "SMA", "K7", "K8K18", "FAP")
+  protein.order <- c("SMA", "FAP", "Vimentin", "CD45", "CD3", "CD68", "CD24", "CD31", 
+                     "CD49f", "ECadherin", "EpCAM", "panK", "K14", "K5", "K7", "K8K18")
+  title <- "Wagner"
 }else if(cohort == "schapiro"){
   protein.order <- c("CD68", "E-cadherin", "EpCAM", "Cytokeratin7", "Cytokeratin8-18",
                      "Vimentin", "Fibronectin")
+  title <- "Schapiro"
 }
 
 unknown.mat <- t(logcounts(unknown.sce))[, protein.order]
@@ -220,11 +222,11 @@ correlations$Var2 <- str_replace(correlations$Var2, "[.]", " ") %>%
 x_labels <- levels(correlations$Var2)
 y_labels <- levels(correlations$Var1)
 
-pdf(paste0(output_dir, "expression_correlation_assigned_cells_", cohort, ".pdf"))
+pdf(paste0(output_dir, "expression_correlation_", cohort, ".pdf"), height = 8, width = 9)
 correlations %>% 
   ggplot(aes(as.numeric(Var2), as.numeric(Var1), fill = r)) +
   geom_tile(color = "white") +
-  ggtitle(cohort) +
+  ggtitle(title) +
   scale_fill_gradient2(low="#6D9EC1",mid="white",high="#E46726", 
                        midpoint = 0, limits=c(-1,1), name = "Pearson\nCorrelation") +
   labs(x = "Unknown cell types", y = "Assigned cell types") +
@@ -234,7 +236,10 @@ correlations %>%
   scale_y_continuous(position = "left", expand=c(0,0), sec.axis = dup_axis(),
                      breaks = 1:length(y_labels), labels = y_labels) +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, 
-                                   size = 12, hjust = 1),
+                                   size = 20, hjust = 1),
+        axis.text.y = element_text(size = 20),
+        axis.title=element_text(size=20),
+        plot.title = element_text(size=26),
         axis.text.x.top = element_blank(),
         axis.ticks.x.top = element_blank(),
         axis.text.y.right = element_blank(),

@@ -17,9 +17,11 @@ markers <- args[2] %>% read_markers()
 markers <- markers$cell_types
 csvs <- args[3]
 cohort <- args[4]
-output_dir <- args[5]
+markers_rem <- args[5]
+output_dir <- args[6]
 
 files <- unlist(strsplit(csvs, split = " "))
+markers_remove <- unlist(strsplit(markers_rem, split = "_"))
 
 methodOutputs <- lapply(files, function(f) {
   cluster_df <- read_csv(f)
@@ -69,16 +71,17 @@ get_enrichment <- function(cells, markers_list, condition){
 }
 
 # Define markers 
-markers_stromal <- markers[names(markers) != "Stromal"]
-markers_macrophage <- markers_stromal[names(markers_stromal) != "Macrophage"]
-markers_endothelial <- markers_macrophage[names(markers_macrophage) != "Endothelial"]
+final_markers <- markers[!names(markers) %in% markers_remove]
+# markers_stromal <- markers[names(markers) != "Stromal"]
+# markers_macrophage <- markers_stromal[names(markers_stromal) != "Macrophage"]
+# markers_endothelial <- markers_macrophage[names(markers_macrophage) != "Endothelial"]
 
 # Run GSVA
-all_markers <- get_enrichment(cells, markers, "None")
-stromal <- get_enrichment(cells, markers_stromal, "Stromal")
-stromal_macrophage <- get_enrichment(cells, markers_macrophage, "Stromal & macrophage")
-s_m_endothelial <- get_enrichment(cells, markers_endothelial, "Stromal, Macrophage & Endothelial")
+gsva <- get_enrichment(cells, final_markers, paste(markers_remove, collapse = "_"))
+# stromal <- get_enrichment(cells, markers_stromal, paste(markers_rem, collapse = "_"))
+# stromal_macrophage <- get_enrichment(cells, markers_macrophage, paste(markers_rem, collapse = "_"))
+# s_m_endothelial <- get_enrichment(cells, markers_endothelial, paste(markers_rem, collapse = "_"))
 
-all <- rbind(all_markers, stromal, stromal_macrophage, s_m_endothelial)
+#all <- rbind(all_markers, stromal, stromal_macrophage, s_m_endothelial)
 
-write_csv(all, paste0(output_dir, "Other_approaches_GSVA_", cohort, ".csv"))
+write_csv(gsva, paste0(output_dir, "Other_approaches_GSVA_", cohort, "_", paste(markers_remove, collapse = "_"), ".csv"))

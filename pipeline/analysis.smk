@@ -9,16 +9,15 @@ analysis_output = {
     'tSNE_clustering_cellType': expand(output_dir_fig + 'tSNE_cellType-{alpha}.png', alpha = alpha_values),
     'tSNE_clustering_cohort': expand(output_dir_fig + 'tSNE_cohort-{alpha}.png', alpha = alpha_values),
     'tSNE_clustering_results': output_dir_results + "tsne_results.rds",
-    #'tSNE_unknown_cells': output_dir_fig + "tSNE_cellType_unknownCells.png",
+    'tSNE_unknown_cells': output_dir_fig + "tSNE_cellType_unknownCells.png",
     'tSNE_mTOR': expand(output_dir_fig + "tSNE_mTOR-{alpha}.png", alpha = alpha_values),
 
     'patient_analysis': expand(output_dir_reports + "Patient-level-analysis-{cohort}.html", cohort = cohort_list),
     'core_cell_identity': expand(output_dir_fig + "core_cell_identity_barchart_{cohort}.pdf", cohort = cohort_list),
     'core_cell_identity_allCohorts': output_dir_fig + "allCohort_core_cell_identity_barchart.pdf",
-    'unknownCells_correlation': expand(output_dir_fig + "expression_correlation_unknown_cells_{cohort}.pdf", cohort = cohort_list),
+    'marker_correlation': expand(output_dir_fig + "expression_correlation_{cohort}.pdf", cohort = cohort_list),
     'unknownCells_score_hist': expand(output_dir_fig + "Unknown_celltype_mutual_exclusivity_score_hist_{cohort}.pdf", cohort = cohort_list),
     'unknownCells_score_qqplot': expand(output_dir_fig + "Unknown_celltype_mutual_exclusivity_score_qqplot_{cohort}.png", cohort = cohort_list),
-    'assignedCells_correlation': expand(output_dir_fig + "expression_correlation_assigned_cells_{cohort}.pdf", cohort = cohort_list),
     'probability_heatmap': expand(output_dir_fig + "celltype_probability_{cohort}.pdf", cohort = cohort_list),
     'astir_expression_heatmaps': expand(output_dir_fig + "Astir_expressionHeatmap_specifiedMarkers_{cohort}.pdf", cohort = cohort_list),
     'expression_heatmap': expand(output_dir_fig + "Unknown_celltype_expression_{cohort}.pdf", cohort = cohort_list), #created by celltypeProbability.R
@@ -157,7 +156,7 @@ rule astir_expression_heatmaps:
 
 
 ### Unknown celltype analysis
-rule unknown_celltype_correlation:
+rule markers_correlation:
     input:
         cells = output_path + "sces/{cohort}_sce.rds",
         cellTypes = output_path + "astir_assignments/{cohort}_astir_assignments.csv",
@@ -165,11 +164,10 @@ rule unknown_celltype_correlation:
         markers = lambda wildcards: config[wildcards.cohort]['marker_file'],
 
     output:
-        unknownCells = output_dir_fig + "expression_correlation_unknown_cells_{cohort}.pdf",
-        assignedCells = output_dir_fig + "expression_correlation_assigned_cells_{cohort}.pdf",
+        output_dir_fig + "expression_correlation_{cohort}.pdf"
 
     shell:
-        "Rscript pipeline/analysis/Unknown_celltype_correlation.R {input.cells} {input.cellTypes} {input.cellStates} "
+        "Rscript pipeline/analysis/marker_gene_correlations.R {input.cells} {input.cellTypes} {input.cellStates} "
         "{input.markers} {wildcards.cohort} " + output_dir_fig
 
 

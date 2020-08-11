@@ -52,6 +52,9 @@ cohort_metadata = {
     'schapiro': schapiro_samples
 }
 
+# Create list containing markers to be removed from alternative approaches
+markers_removal = ['Stromal', 'Stromal_Macrophage', 'Stromal_Macrophage_Endothelial']
+
 alternate_approaches_output = {
     'Phenograph_analysis_report': expand(output_dir_reports + "Rphenograph-analysis-{cohort}-specified_markers.html", cohort = cohort_list),
     'Phenograph_clusters_output': expand(output_dir_results + "Phenograph_clusters_{cohort}_specified_markers_k{cluster}.csv", cohort = cohort_list, cluster = Phenograph_Cluster_sizes),
@@ -71,12 +74,12 @@ alternate_approaches_output = {
     'ExpressionHeatmaps': expressionPDF,
     'statesBoxPlots': statesBoxPDF,
 
-    'Other_approaches_report': expand(output_dir_reports + "Approaches-comparison-{cohort}.html", cohort = cohort_list),
-    'Other_approaches_heatmaps': expand(output_dir_results + "Assessment-individual-heatmap-{cohort}.csv", cohort = cohort_list),
-    'Other_approaches_summary_heatmap': expand(output_dir_results + "Assessment-heatmap-{cohort}.csv", cohort = cohort_list),
+    #'Other_approaches_report': expand(output_dir_reports + "Approaches-comparison-{cohort}.html", cohort = cohort_list),
+    #'Other_approaches_heatmaps': expand(output_dir_results + "Assessment-individual-heatmap-{cohort}.csv", cohort = cohort_list),
+    #'Other_approaches_summary_heatmap': expand(output_dir_results + "Assessment-heatmap-{cohort}.csv", cohort = cohort_list),
 
-    'final_benchmark': output_dir_reports + "Final-approaches-comparison.html",
-    'GSVA': expand(output_dir_results + "Other_approaches_GSVA_{cohort}.csv", cohort = reduced_cohort_list)
+    #'final_benchmark': output_dir_reports + "Final-approaches-comparison.html",
+    'GSVA': expand(output_dir_results + "Other_approaches_GSVA_{markers_rem}_{cohort}.csv", cohort = reduced_cohort_list, markers_rem = markers_removal)
 }
 
 rule create_sces: 
@@ -111,7 +114,7 @@ rule phenograph_analysis:
         res_dir = output_dir_results
 
     resources:
-        mem_mb=2000
+        mem_mb=5000
 
     output:
         html = output_dir_reports + "Rphenograph-analysis-{cohort}-specified_markers.html",
@@ -135,14 +138,14 @@ rule phenograph_analysis_all_markers:
         res_dir = output_dir_results
 
     resources:
-        mem_mb=2000
+        mem_mb=4000
 
     output:
         html = output_dir_reports + "Rphenograph-analysis-{cohort}-all_markers.html",
         csvs = expand(output_dir_results + "Phenograph_clusters_{{cohort}}_all_markers_k{cluster}.csv", cluster = Phenograph_Cluster_sizes)
 
     shell:
-        "Rscript -e \"Sys.setenv(RSTUDIO_PANDOC='/home/ltri/campbell/share/software/pandoc-2.9.2.1/bin');"
+        "Rscript -e \" Sys.setenv(RSTUDIO_PANDOC='/home/ltri/campbell/share/software/pandoc-2.9.2.1/bin');"
         "rmarkdown::render('pipeline/clustering-comparison/Rphenograph.Rmd', output_file = '{output.html}', output_dir = '" + output_dir_reports + "',"
         "params = list(cells = '{input.cells}', celltypes = '{input.cellTypes}', cellstates = '{input.cellStates}',"
         "create_csv = TRUE, cohort = '{params.cohort}', markers = 'all_markers', output_results = '{params.res_dir}'))\" "
@@ -210,7 +213,7 @@ rule ClusterX_analysis:
         res_dir = output_dir_results
 
     resources:
-        mem_mb=3000
+        mem_mb=4000
     
     output:
         html = output_dir_reports + "ClusterX-analysis-{cohort}-specified_markers.html",
@@ -357,7 +360,6 @@ rule final_approach_comparison:
         wagner_indiv = output_dir_results + "Assessment-individual-heatmap-wagner.csv",
         zurich1_indiv = output_dir_results + "Assessment-individual-heatmap-zurich1.csv"
 
-
     output:
         html = output_dir_reports + "Final-approaches-comparison.html"
 
@@ -372,20 +374,25 @@ gsva_csvs_tmp = [expand(output_dir_results + "{method}_clusters_{cohort}_{marker
 for element in gsva_csvs_tmp:
 	gsva_csvs.extend(element)
 
-gsva_csv_dict = {cohort: [f for f in gsva_csvs if cohort in f] for cohort in reduced_cohort_list}      
+gsva_csv_dict = {cohort: [f for f in gsva_csvs if cohort in f] for cohort in reduced_cohort_list}    
+print(gsva_csv_dict['basel'])
+# markers_removal = ['Stromal', 'Stromal_Macrophage', 'Stromal_Macrophage_Endothelial']
 
 rule GSVA:
     input:
         cells = output_path + "sces/{cohort}_sce.rds",
         markers = lambda wildcards: config[wildcards.cohort]['marker_file'],
         csvs = lambda wildcards: gsva_csv_dict[wildcards.cohort]
-
+        
     output:
-        output_dir_results + "Other_approaches_GSVA_{cohort}.csv"
+        output_dir_results + "Other_approaches_GSVA_{markers_rem}_{cohort}.csv"
+
+    resources:
+        mem_mb=5000
 
     shell:
         "Rscript pipeline/clustering-comparison/GSVA.R {input.cells} {input.markers} "
-        "{input.csvs} {wildcards.cohort} " + output_dir_results
+        "{input.csvs} {wildcards.cohort} {wildcards.markers_rem} " + output_dir_results
 
 # Still need to define clusters here
 
