@@ -1,0 +1,99 @@
+---
+title: "GSVA"
+author: "Michael Geuenich"
+date: "August 11, 2020"
+output: html_document
+params:
+  cells: ""
+  markers: ""
+  csvs: ""
+  cohort: ""
+  output: ""
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = '~/imc-2020/')
+library(devtools)
+library(SingleCellExperiment)
+library(scater)
+library(tidyverse)
+library(GSVA)
+library(ggalluvial)
+source("scripts/functions.R")
+devtools::load_all("~/taproom/")
+```
+
+Read in data
+```{r}
+cells <- readRDS(params$cells)
+markers <- params$markers %>% read_markers()
+markers <- markers$cell_types
+csvs <- params$csvs
+cohort <- params$cohort
+output_dir <- params$output
+
+files <- unlist(strsplit(csvs, split = " "))
+
+methodOutputs <- lapply(files, function(f) {
+  cluster_df <- read_csv(f)
+  names(cluster_df)[2] <- "cluster"
+  cluster_df$cluster <- as.character(cluster_df$cluster)
+  cluster_df$method <- paste0(cluster_df$method, "-", cluster_df$params)
+  cluster_df$params <- NULL
+  cluster_df
+}) %>% 
+  bind_rows()
+```
+
+Define function
+```{r}
+get_enrichment <- function(cells, markers_list, condition){
+  gsva <- gsva(logcounts(cells),
+               markers_list,
+               method="gsva")
+  
+  df_gsva <- t(gsva) %>% 
+    as.data.frame() %>% 
+    rownames_to_column("id") %>% 
+    gather(pathway, score, -id) %>% 
+    as_tibble()
+  
+  methods <- inner_join(methodOutputs, df_gsva, by = "id")
+  
+  methods.summary <- group_by(methods, pathway, method, cluster) %>% 
+    dplyr::summarize(mean_score = mean(score)) %>% 
+    ungroup() %>% 
+    group_by(pathway, method) %>% 
+    mutate(mean_score = (mean_score - mean(mean_score)) / sd(mean_score)) %>% 
+    ungroup() %>% 
+    group_by(cluster, method) %>% 
+    mutate(thresh_score = mean_score == max(mean_score)) %>% 
+    filter(thresh_score == TRUE)
+  
+  cell_assigned <- left_join(select(methods, -score), 
+                             select(methods.summary, -mean_score), 
+                             by = c("method", "pathway", "cluster")) %>% 
+    filter(thresh_score == TRUE) %>% 
+    select(-thresh_score)
+
+  colnames(cell_assigned) <- c("id", "cluster", "method", "cell_type")
+  cell_assigned$condition <- condition
+  
+  cell_assigned
+}
+```
+
+GSVA
+```{r}
+final_markers <- markers[!names(markers) %in% markers_remove]
+
+# Run GSVA
+gsva <- get_enrichment(cells, final_markers, paste(markers_remove, collapse = "_"))
+```
+
+
+```{r}
+write_csv(gsva, paste0(output_dir, "Other_approaches_GSVA_", cohort, "_", paste(markers_remove, collapse = "_"), ".csv"))
+```
+
