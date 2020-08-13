@@ -1,0 +1,67 @@
+---
+title: "EMT"
+author: "Michael Geuenich"
+date: "August 13, 2020"
+output: html_document
+params:
+  cells: ""
+  types: ""
+  states: ""
+  metadata: ""
+  cohort: ""
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(SingleCellExperiment)
+library(scater)
+library(tidyverse)
+library(ggplot2)
+library(devtools)
+devtools::load_all("~/taproom/")
+source("~/imc-2020/scripts/functions.R")
+```
+
+
+```{r}
+sce <- assignIdentity(params$cells, params$types, params$states)$sce
+metadata <- read_csv(params$metadata)
+
+if(params$cohort == "basel"){
+  sce$tumours <- sce %>% colData %>% as.data.frame %>% select(core) %>% 
+    left_join(select(metadata, core, diseasestatus), by = "core") %>% pull(diseasestatus)
+}else{
+  sce$tumours <- sce %>% colData %>% as.data.frame %>% select(core) %>% 
+    left_join(select(metadata, core, location), by = "core") %>% pull(location)
+  
+  sce <- sce[, sce$tumours != "METASTASIS"]
+  sce$tumours[sce$tumours == "PERIPHERY" | sce$tumours == "CENTER"] <- "tumor"
+  sce$tumours[sce$tumours == "[]"] <- "non-tumor"
+}
+```
+
+
+```{r}
+sce %>% colData %>% as.data.frame() %>% 
+  select(cell_type, EPITHELIAL_MESENCHYMAL_TRANSITION.activation, tumours) %>% 
+  ggplot(aes(x = cell_type, y = EPITHELIAL_MESENCHYMAL_TRANSITION.activation, fill = tumours)) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+```
+
+```{r}
+emt_expression <- logcounts(sce)[c("CD44", "SMA", "Vimentin", "Fibronectin", "Slug"),] %>% 
+  t() %>%  as.data.frame()
+
+emt_expression$tumour <- sce$tumours
+emt_expression$cell_type <- sce$cell_type
+```
+
+```{r}
+emt_expression %>%  pivot_longer(-c(tumour, cell_type), values_to = "expression", names_to = "marker") %>% 
+  ggplot(aes(x = marker, y = expression, fill = tumour)) +
+  geom_boxplot() +
+  facet_wrap(~cell_type) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+```
