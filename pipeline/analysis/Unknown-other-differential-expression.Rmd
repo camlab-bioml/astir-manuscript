@@ -1,0 +1,152 @@
+---
+title: "Unknown and other differential expression"
+author: "Michael Geuenich"
+date: "August 31, 2020"
+output: html_document
+params:
+  cells: "output/v6/basel_subset/basel_subset_sce.rds"
+  types: "output/v6/basel_subset/basel_subset_assignments_type.csv"
+  state: "output/v6/basel_subset/basel_subset_assignments_state.csv"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = '../../')
+library(SingleCellExperiment)
+library(scater)
+library(tidyverse)
+library(devtools)
+library(broom)
+source("../../scripts/functions.R")
+devtools::load_all("../../../taproom/")
+```
+
+```{r fig.height=6, fig.width=7}
+sce_7 <- assignIdentity(params$cells, params$types, params$state)$sce
+sce_5 <- assignIdentity(params$cells, params$types, params$state, thresh = 0.5)$sce
+
+get_lm_simple <- function(expr, cell_type_1, cell_type_2){
+  df <- expr %>% 
+    filter(cell_type == cell_type_1 | cell_type == cell_type_2)  %>% 
+    group_by(core, Protein) %>% 
+    do(tidy(lm(Expression ~ cell_type, data = .))) %>% 
+    filter(term != "(Intercept)")
+  
+  design <- expr %>% 
+    filter(cell_type == cell_type_1 | cell_type == cell_type_2)  %>% 
+    group_by(core, Protein) %>% 
+    model.matrix(~cell_type, .)
+  
+  list(df, design)
+}
+
+plot_lm <- function(df, title = ""){
+  df %>% 
+    ggplot(aes(x = Protein, y = estimate)) +
+    geom_boxplot() +
+    ggtitle(title) +
+    astir_paper_theme() + 
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+    geom_hline(yintercept = 0, color = "red")
+}
+```
+
+```{r}
+expression_7 <- logcounts(sce_7) %>% 
+  t() %>% as.data.frame() %>% 
+  mutate(cell_type = sce$cell_type) %>% 
+  mutate(core = sce$core) %>% 
+  pivot_longer(cols = -c(cell_type, core), values_to = "Expression", names_to = "Protein") %>% 
+  mutate(Expression = as.numeric(Expression))
+
+expression_5 <- logcounts(sce_5) %>% 
+  t() %>% as.data.frame() %>% 
+  mutate(cell_type = sce_5$cell_type) %>% 
+  mutate(core = sce_5$core) %>% 
+  pivot_longer(cols = -c(cell_type, core), values_to = "Expression", names_to = "Protein") %>% 
+  mutate(Expression = as.numeric(Expression))
+
+```
+
+```{r}
+# expression_7 %>% 
+#   filter(cell_type == "Stromal" | cell_type == "Unknown") %>% 
+#   group_by(core, Protein) %>% 
+#   left_join(tally(.), by = c("core", "Protein"))
+```
+
+## First thresh = 0.7 for all assigned cells
+```{r}
+unknown <- expression_7 %>% 
+  filter(cell_type != "Other") %>% 
+  mutate(cell_type = ifelse(cell_type == "Unknown", "Unknown", "Assigned")) %>% 
+  group_by(core, Protein) %>% 
+  do(tidy(lm(Expression ~ cell_type, data = .))) %>% 
+  filter(term != "(Intercept)")
+
+plot_lm(unknown)
+head(model.matrix(~cell_type))
+
+
+other <- expression_7 %>% 
+  filter(cell_type != "Unknown") %>% 
+  mutate(cell_type = ifelse(cell_type == "Other", "Other", "Assigned")) %>% 
+  group_by(core, Protein) %>% 
+  do(tidy(lm(Expression ~ cell_type, data = .))) %>% 
+  filter(term != "(Intercept)")
+
+plot_lm(other)
+head(model.matrix(~cell_type))
+```
+
+
+### next thresh = 0.5 for all assgigned cells
+```{r}
+unknown <- expression_5 %>% 
+  filter(cell_type != "Other") %>% 
+  mutate(cell_type = ifelse(cell_type == "Unknown", "Unknown", "Assigned")) %>% 
+  group_by(core, Protein) %>% 
+  do(tidy(lm(Expression ~ cell_type, data = .))) %>% 
+  filter(term != "(Intercept)")
+
+plot_lm(unknown)
+head(model.matrix(~cell_type))
+
+
+other <- expression_5 %>% 
+  filter(cell_type != "Unknown") %>% 
+  mutate(cell_type = ifelse(cell_type == "Other", "Other", "Assigned")) %>% 
+  group_by(core, Protein) %>% 
+  do(tidy(lm(Expression ~ cell_type, data = .))) %>% 
+  filter(term != "(Intercept)")
+
+plot_lm(other)
+head(model.matrix(~cell_type))
+```
+
+
+
+### Now unknown and stromal
+```{r fig.height=6, fig.width=7}
+unknown_vs_stromal_7 <- get_lm_simple(expression_7, "Unknown", "Stromal")
+unknown_vs_stromal_5 <- get_lm_simple(expression_5, "Unknown", "Stromal")
+
+plot_lm(unknown_vs_stromal_7[[1]], "Unknown vs stromal; thresh = 0.7")
+head(unknown_vs_stromal_7[[2]])
+plot_lm(unknown_vs_stromal_5[[1]], "Unknown vs stromal; thresh = 0.5")
+head(unknown_vs_stromal_5[[2]])
+```
+
+
+
+### Other and stromal
+```{r fig.height=6, fig.width=7}
+other_vs_stromal_7 <- get_lm_simple(expression_7, "Other", "Stromal")
+other_vs_stromal_5 <- get_lm_simple(expression_5, "Other", "Stromal")
+
+plot_lm(unknown_vs_stromal_7[[1]], "Other vs stromal; thresh = 0.7")
+head(unknown_vs_stromal_7[[2]])
+plot_lm(unknown_vs_stromal_5[[1]], "Other vs stromal; thresh = 0.5")
+head(unknown_vs_stromal_5[[2]])
+```
+
