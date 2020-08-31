@@ -28,7 +28,7 @@ createSCE <- function(path){
   sce
 }
 
-assignIdentity <- function(raw.sce, types, states, dimReduct = F){
+assignIdentity <- function(raw.sce, types, states, dimReduct = F, thresh = 0.7){
   #### REad in data
   # raw.sce <- "output/v4/zurich1_subset/zurich1_subset_sce.rds"
   # types <- "output/v4/zurich1_subset/zurich1_subset_assignments_type.csv"
@@ -53,7 +53,7 @@ assignIdentity <- function(raw.sce, types, states, dimReduct = F){
     as.data.frame()
   rownames(types_mat) <- types$X1
   
-  assignments <- taproom::get_celltypes(types_mat) %>% as.data.frame()
+  assignments <- taproom::get_celltypes(types_mat, thresh) %>% as.data.frame()
   colnames(assignments) <- "cell_type"
   assignments$id <- rownames(assignments)
   
@@ -133,7 +133,7 @@ create.alluvial <- function(df, method) {
     labs(fill = "Cell Types") +
     scale_x_discrete(limits = c("Astir cell type", paste(method, "cluster")), 
                      expand = c(0, 0)) +
-    scale_y_continuous(expand = c(0, 0)) +
+    scale_y_continuous(expand = c(0, 0)) + 
     astir_paper_theme() +
     theme(axis.ticks.x = element_blank(),
           axis.ticks.y = element_blank(),

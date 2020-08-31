@@ -8,6 +8,7 @@ params:
   markers: ""
   csvs: ""
   cohort: ""
+  markers_rem: ""
   output: ""
 ---
 
@@ -20,7 +21,7 @@ library(scater)
 library(tidyverse)
 library(GSVA)
 library(ggalluvial)
-source("scripts/functions.R")
+source("~/imc-2020/scripts/functions.R")
 devtools::load_all("~/taproom/")
 ```
 
@@ -31,19 +32,27 @@ markers <- params$markers %>% read_markers()
 markers <- markers$cell_types
 csvs <- params$csvs
 cohort <- params$cohort
+markers_rem <- params$markers_rem
 output_dir <- params$output
 
-files <- unlist(strsplit(csvs, split = " "))
+file <- read_csv(csvs)
+names(file)[2] <- "cluster"
+file$cluster <- as.character(file$cluster)
+file$method <- paste0(file$method, "-", file$params)
+file$params <- NULL
 
-methodOutputs <- lapply(files, function(f) {
-  cluster_df <- read_csv(f)
-  names(cluster_df)[2] <- "cluster"
-  cluster_df$cluster <- as.character(cluster_df$cluster)
-  cluster_df$method <- paste0(cluster_df$method, "-", cluster_df$params)
-  cluster_df$params <- NULL
-  cluster_df
-}) %>% 
-  bind_rows()
+
+markers_remove <- unlist(strsplit(markers_rem, split = "-"))
+
+#methodOutputs <- lapply(files, function(f) {
+#  cluster_df <- read_csv(f)
+#  names(cluster_df)[2] <- "cluster"
+#  cluster_df$cluster <- as.character(cluster_df$cluster)
+#  cluster_df$method <- paste0(cluster_df$method, "-", cluster_df$params)
+#  cluster_df$params <- NULL
+#  cluster_df
+#}) %>% 
+#  bind_rows()
 ```
 
 Define function
@@ -59,7 +68,7 @@ get_enrichment <- function(cells, markers_list, condition){
     gather(pathway, score, -id) %>% 
     as_tibble()
   
-  methods <- inner_join(methodOutputs, df_gsva, by = "id")
+  methods <- inner_join(file, df_gsva, by = "id")
   
   methods.summary <- group_by(methods, pathway, method, cluster) %>% 
     dplyr::summarize(mean_score = mean(score)) %>% 
@@ -89,11 +98,19 @@ GSVA
 final_markers <- markers[!names(markers) %in% markers_remove]
 
 # Run GSVA
-gsva <- get_enrichment(cells, final_markers, paste(markers_remove, collapse = "_"))
+gsva <- get_enrichment(cells, final_markers, paste(markers_remove, collapse = "-"))
 ```
 
-
 ```{r}
-write_csv(gsva, paste0(output_dir, "Other_approaches_GSVA_", cohort, "_", paste(markers_remove, collapse = "_"), ".csv"))
+method <- unique(gsva$method)
+
+if(cohort == "basel" & grepl('specified', csvs)){
+  method <- "ClusterX-specified_markers_default"
+}
+
+split_one <- strsplit(method[1], "-")
+split_two <- strsplit(split_one[[1]][2], "_")
+
+write_csv(gsva, paste0(output_dir, "GSVA-Other-methods-robustness_", cohort, "_", split_one[[1]][1], "_", tolower(split_two[[1]][3]), "_", paste(split_two[[1]][1:2], collapse = "-"), "_", paste(markers_remove, collapse = "-"), ".csv"))
 ```
 

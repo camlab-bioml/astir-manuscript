@@ -167,12 +167,27 @@ formated_cors <- function(mat, triangle){
 args <- commandArgs(trailingOnly = TRUE)
 cells <- args[1]
 type <- args[2]
-state <- args[3]
-markers <- read_markers(args[4])
-cohort <- args[5]
-output_dir <- args[6]
+#state <- args[3]
+markers <- read_markers(args[3])
+cohort <- args[4]
+output_dir <- args[5]
 
-sce <- assignIdentity(cells, type, state)$sce
+if(cohort == "lin_cycif"){
+  thresh <- 0.7
+}else{
+  thresh <- 0.7
+}
+
+# read in data 
+sce <- readRDS(cells)
+type <- read_csv(type)
+
+type$cell_type <- get_celltypes(select(type, -X1), thresh) 
+type <- select(type, X1, cell_type) %>%
+  column_to_rownames("X1")
+colData(sce)["cell_type"] <- type[colnames(sce),]
+
+#sce <- assignIdentity(cells, type, state)$sce
 
 ### [SUBSET DATA] #####
 unknown.sce <- sce[, sce$cell_type == "Unknown" | sce$cell_type == "Other"]
@@ -199,6 +214,10 @@ if(cohort == "basel" | cohort == "zurich1"){
   protein.order <- c("CD68", "E-cadherin", "EpCAM", "Cytokeratin7", "Cytokeratin8-18",
                      "Vimentin", "Fibronectin")
   title <- "Schapiro"
+}else if(cohort == "lin_cycif"){
+  protein.order <- c("Vimentin", "E_Cadherin", "Keratin")
+
+  title <- "Lin"
 }
 
 unknown.mat <- t(logcounts(unknown.sce))[, protein.order]
@@ -209,8 +228,8 @@ penalty <- (length(protein.order) * length(protein.order)) / 2 - length(protein.
 sig.levels <- c(0.001, 0.01, 0.05)
 corrected.sig <- sig.levels / penalty
 
-unknown.cor <- formated_cors(unknown.mat, "upper")
-assigned.cor <- formated_cors(assigned.mat, "lower")
+unknown.cor <- formated_cors(unknown.mat, "lower")
+assigned.cor <- formated_cors(assigned.mat, "upper")
 
 correlations <- rbind(unknown.cor, assigned.cor)
 correlations$Var1 <- str_replace(correlations$Var1, "[.]", " ") %>% 
@@ -222,14 +241,14 @@ correlations$Var2 <- str_replace(correlations$Var2, "[.]", " ") %>%
 x_labels <- levels(correlations$Var2)
 y_labels <- levels(correlations$Var1)
 
-pdf(paste0(output_dir, "expression_correlation_", cohort, ".pdf"), height = 8, width = 9)
+pdf(paste0(output_dir, "expression_correlation_", cohort, ".pdf"), height = 10, width = 9)
 correlations %>% 
   ggplot(aes(as.numeric(Var2), as.numeric(Var1), fill = r)) +
   geom_tile(color = "white") +
   ggtitle(title) +
   scale_fill_gradient2(low="#6D9EC1",mid="white",high="#E46726", 
-                       midpoint = 0, limits=c(-1,1), name = "Pearson\nCorrelation") +
-  labs(x = "Unknown cell types", y = "Assigned cell types") +
+                       midpoint = 0, limits=c(-1,1), name = "Pearson\nCorrelation  ") +
+  labs(y = "Unknown and Other cell types", x = "Assigned cell types") +
   astir_paper_theme() + 
   scale_x_continuous(position = "bottom", expand=c(0,0), sec.axis = dup_axis(),
                      breaks = 1:length(x_labels), labels = x_labels) +
@@ -246,7 +265,9 @@ correlations %>%
         axis.ticks.y.right = element_blank(),
         axis.title.x.bottom = element_blank(), # remove titles
         axis.title.y.left = element_blank(),
-        axis.ticks = element_blank()) +
+        axis.ticks = element_blank(),
+        legend.position = "bottom",
+        legend.key.width = unit(1,"cm")) +
   coord_fixed()
 dev.off()
 

@@ -55,25 +55,25 @@ dataset <- c(rep("Basel", length(basel_output$spatial_score)), rep("Zurich", len
 
 ```{r}
 top_annot <- HeatmapAnnotation(`# cells` = anno_barplot(cell_num_vec),
-                                     `Spatial score` = spatial_score,
-                                     col = list(
-                                       `Spatial score` = col_fun2
-                                     ),
+                               `Spatial score` = spatial_score,
+                               col = list(
+                                 `Spatial score` = col_fun2
+                               ),
                                annotation_legend_param = list(
                                  legend_direction = "horizontal"
                                ))
 
 ht <- Heatmap(t(mat), 
-                    na_col = "grey90", 
-                    show_column_names = FALSE, 
-                    col = col_fun,
-                    top_annotation = top_annot,
-                    column_order = order(spatial_score),
-                    name = "Average distance",
-                    column_split = dataset,
-                    heatmap_legend_param = list(legend_direction = "horizontal", 
-                                                ncol = 2))
-draw(ht, heatmap_legend_side = "bottom", annotation_legend_side = "bottom")
+              na_col = "grey90", 
+              show_column_names = FALSE, 
+              col = col_fun,
+              top_annotation = top_annot,
+              column_order = order(spatial_score),
+              name = "Average distance",
+              column_split = dataset,
+              heatmap_legend_param = list(legend_direction = "horizontal", 
+                                          ncol = 2))
+draw(ht, merge_legend = TRUE, heatmap_legend_side = "bottom", annotation_legend_side = "bottom")
 ```
 
 
@@ -81,7 +81,7 @@ draw(ht, heatmap_legend_side = "bottom", annotation_legend_side = "bottom")
 
 ```{r}
 pdf(params$spatial_heatmap, width = 8, height = 4.5)
-draw(ht, heatmap_legend_side = "bottom", annotation_legend_side = "bottom",
+draw(ht, merge_legend = TRUE, heatmap_legend_side = "bottom", annotation_legend_side = "bottom",
      padding = unit(c(2, 2, 2, 15), "mm"))
 dev.off()
 ```
@@ -101,7 +101,7 @@ df_test$state <- gsub("HALLMARK_", "", df_test$state)
 df_test$dataset <- str_to_title(gsub("1", "", df_test$dataset))
 
 ggplot(df_test, aes(x = -log10(p.value), y = fct_reorder(state, -log10(p.value)))) +
-  geom_point(aes(fill = estimate), shape = 21, size = 4) +
+  geom_point(aes(fill = estimate), shape = 21, size = 6) +
   facet_wrap(~ dataset, scales = "free_x") +
   scale_fill_gradient2(name = "Change with increasing spatial score",
                        breaks = c(-0.01, 0),
@@ -115,7 +115,7 @@ ggplot(df_test, aes(x = -log10(p.value), y = fct_reorder(state, -log10(p.value))
 
 
 ```{r}
-pdf(params$pathway_fig, width = 8, height = 4)
+pdf(params$pathway_fig, width = 8.2, height = 4)
 print(last_plot())
 dev.off()
 ```
