@@ -28,6 +28,7 @@ sce_5 <- assignIdentity(params$cells, params$types, params$state, thresh = 0.5)$
 get_lm_simple <- function(expr, cell_type_1, cell_type_2){
   df <- expr %>% 
     filter(cell_type == cell_type_1 | cell_type == cell_type_2)  %>% 
+    rem_low_cell_cores() %>% 
     group_by(core, Protein) %>% 
     do(tidy(lm(Expression ~ cell_type, data = .))) %>% 
     filter(term != "(Intercept)")
@@ -49,13 +50,35 @@ plot_lm <- function(df, title = ""){
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
     geom_hline(yintercept = 0, color = "red")
 }
+
+allDuplicated <- function(vec){
+  front <- duplicated(vec)
+  back <- duplicated(vec, fromLast = TRUE)
+  all_dup <- front + back > 0
+  return(all_dup)
+}
+
+rem_low_cell_cores <- function(df){
+  number_of_proteins <- length(unique(df$Protein))
+  
+  cores_keep <- df %>% 
+    group_by(core, cell_type) %>% 
+    tally() %>% 
+    filter(n > number_of_proteins) %>% 
+    pull(core)
+  
+  cores_keep <- cores_keep[allDuplicated(cores_keep)]
+  
+  df %>% 
+    filter(core %in% cores_keep)
+}
 ```
 
 ```{r}
 expression_7 <- logcounts(sce_7) %>% 
   t() %>% as.data.frame() %>% 
-  mutate(cell_type = sce$cell_type) %>% 
-  mutate(core = sce$core) %>% 
+  mutate(cell_type = sce_7$cell_type) %>% 
+  mutate(core = sce_7$core) %>% 
   pivot_longer(cols = -c(cell_type, core), values_to = "Expression", names_to = "Protein") %>% 
   mutate(Expression = as.numeric(Expression))
 
@@ -68,60 +91,66 @@ expression_5 <- logcounts(sce_5) %>%
 
 ```
 
-```{r}
-# expression_7 %>% 
-#   filter(cell_type == "Stromal" | cell_type == "Unknown") %>% 
-#   group_by(core, Protein) %>% 
-#   left_join(tally(.), by = c("core", "Protein"))
-```
 
 ## First thresh = 0.7 for all assigned cells
 ```{r}
-unknown <- expression_7 %>% 
+unknown_data <- expression_7 %>% 
   filter(cell_type != "Other") %>% 
   mutate(cell_type = ifelse(cell_type == "Unknown", "Unknown", "Assigned")) %>% 
-  group_by(core, Protein) %>% 
+  rem_low_cell_cores() %>% 
+  group_by(core, Protein) 
+
+unknown <- unknown_data %>% 
   do(tidy(lm(Expression ~ cell_type, data = .))) %>% 
   filter(term != "(Intercept)")
 
 plot_lm(unknown)
-head(model.matrix(~cell_type))
+head(model.matrix(~cell_type, unknown_data))
 
 
-other <- expression_7 %>% 
+other_data <- expression_7 %>% 
   filter(cell_type != "Unknown") %>% 
   mutate(cell_type = ifelse(cell_type == "Other", "Other", "Assigned")) %>% 
-  group_by(core, Protein) %>% 
+  rem_low_cell_cores() %>% 
+  group_by(core, Protein)
+
+other <-  other_data %>% 
   do(tidy(lm(Expression ~ cell_type, data = .))) %>% 
   filter(term != "(Intercept)")
 
 plot_lm(other)
-head(model.matrix(~cell_type))
+head(model.matrix(~cell_type, other_data))
 ```
 
 
 ### next thresh = 0.5 for all assgigned cells
 ```{r}
-unknown <- expression_5 %>% 
+unknown_data <- expression_5 %>% 
   filter(cell_type != "Other") %>% 
   mutate(cell_type = ifelse(cell_type == "Unknown", "Unknown", "Assigned")) %>% 
-  group_by(core, Protein) %>% 
+  rem_low_cell_cores() %>% 
+  group_by(core, Protein) 
+
+unknown <- unknown_data %>% 
   do(tidy(lm(Expression ~ cell_type, data = .))) %>% 
   filter(term != "(Intercept)")
 
 plot_lm(unknown)
-head(model.matrix(~cell_type))
+head(model.matrix(~cell_type, unknown_data))
 
 
-other <- expression_5 %>% 
+other_data <- expression_5 %>% 
   filter(cell_type != "Unknown") %>% 
   mutate(cell_type = ifelse(cell_type == "Other", "Other", "Assigned")) %>% 
-  group_by(core, Protein) %>% 
+  rem_low_cell_cores() %>% 
+  group_by(core, Protein)
+
+other <-  other_data %>% 
   do(tidy(lm(Expression ~ cell_type, data = .))) %>% 
   filter(term != "(Intercept)")
 
 plot_lm(other)
-head(model.matrix(~cell_type))
+head(model.matrix(~cell_type, other_data))
 ```
 
 
