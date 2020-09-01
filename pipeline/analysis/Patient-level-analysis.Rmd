@@ -133,7 +133,6 @@ if(params$cohort == "basel"){
 
 freqPerPatient$PID <- as.factor(freqPerPatient$PID)
 freqPerPatient
-
 ```
 
 Start the clustering
@@ -141,69 +140,85 @@ Start the clustering
 freqPerPatient <- as.data.frame(freqPerPatient)
 rownames(freqPerPatient) <- freqPerPatient$PID
 
-freqPerPatientClean <- freqPerPatient %>% 
-  as.data.frame() %>% 
-  select_if(is.numeric)
+plotClusteringHeatmapPatient <- function(freqPerPatient){
+  freqPerPatientClean <- freqPerPatient %>% 
+    as.data.frame() %>% 
+    select_if(is.numeric)
 
-if(params$cohort == "basel"){
-  freqPerPatientClean <- freqPerPatientClean %>% 
-    select(-OSmonth)
-}
+  if(params$cohort == "basel"){
+    freqPerPatientClean <- freqPerPatientClean %>% 
+      select(-OSmonth)
+  }
 
-## Create dendrogram
-col_dend <- freqPerPatientClean %>% 
-    dist() %>% 
-    hclust() %>% 
-    as.dendrogram() %>% 
-    set("branches_k_color", k = 5) %>% 
-    set("branches_lwd", 3)
+  ## Create dendrogram
+  col_dend <- freqPerPatientClean %>% 
+      dist() %>% 
+      hclust(method = "ward.D2") %>% 
+      as.dendrogram() %>% 
+      set("branches_k_color", k = 5) %>% 
+      set("branches_lwd", 3)
 
 
 
-if (params$cohort == "basel"){
-  col_fun <- colorRamp2(c(min(freqPerPatient$OSmonth),
-                        max(freqPerPatient$OSmonth)/2,
-                        max(freqPerPatient$OSmonth)), viridis(3))
-  
-  patient_annotation <- HeatmapAnnotation(OSmonth = freqPerPatient$OSmonth,
-                        Subtype = freqPerPatient$clinical_type,
-                        response = freqPerPatient$response,
-                        which = "column",
-                        col = list(OSmonth = col_fun,
-                                   Subtype = patient_clinSubtype_colours(),
-                                   response = patient_response_colours()),
-                        na_col = "lightgrey",
-                        border = T)
-  
-}else if(params$cohort == "zurich1"){
-  patient_annotation <- HeatmapAnnotation(Subtype = freqPerPatient$clinical_type,
+  if (params$cohort == "basel"){
+    col_fun <- colorRamp2(c(min(freqPerPatient$OSmonth),
+                          max(freqPerPatient$OSmonth)/2,
+                          max(freqPerPatient$OSmonth)), viridis(3))
+    
+    patient_annotation <- HeatmapAnnotation(OSmonth = freqPerPatient$OSmonth,
+                          Subtype = freqPerPatient$clinical_type,
+                          response = freqPerPatient$response,
                           which = "column",
-                          col = list(Subtype = patient_clinSubtype_colours()),
+                          col = list(OSmonth = col_fun,
+                                    Subtype = patient_clinSubtype_colours(),
+                                    response = patient_response_colours()),
                           na_col = "lightgrey",
                           border = T)
-  
-} else if(params$cohort == "wagner"){
-  patient_annotation <- HeatmapAnnotation(
-    Subtype = freqPerPatient$`Clinical Subtype`,
-    Grade = freqPerPatient$Grade,
-    which = "column",
-    col = list(Subtype = patient_clinSubtype_colours_wagner()),
-    na_col =  "lightgrey",
-    border = T)
+    
+  }else if(params$cohort == "zurich1"){
+    patient_annotation <- HeatmapAnnotation(Subtype = freqPerPatient$clinical_type,
+                            which = "column",
+                            col = list(Subtype = patient_clinSubtype_colours()),
+                            na_col = "lightgrey",
+                            border = T)
+    
+  } else if(params$cohort == "wagner"){
+    patient_annotation <- HeatmapAnnotation(
+      Subtype = freqPerPatient$`Clinical Subtype`,
+      Grade = freqPerPatient$Grade,
+      which = "column",
+      col = list(Subtype = patient_clinSubtype_colours_wagner()),
+      na_col =  "lightgrey",
+      border = T)
+  }
+
+  if(params$cohort != "schapiro"){
+  Heatmap(t(as.matrix(freqPerPatientClean)),
+          column_dend_height = unit(5, "cm"),
+          column_title = "Patients", row_title = "Cell types",
+          cluster_columns = col_dend, border = T,
+          top_annotation = patient_annotation)
+  }else{
+    Heatmap(t(as.matrix(freqPerPatientClean)),
+          column_dend_height = unit(5, "cm"),
+          column_title = "Patients", row_title = "Cell types",
+          cluster_columns = col_dend, border = T)
+  }
 }
 
-if(params$cohort != "schapiro"){
-Heatmap(t(as.matrix(freqPerPatientClean)),
-        column_dend_height = unit(5, "cm"),
-        column_title = "Patients", row_title = "Cell types",
-        cluster_columns = col_dend, border = T,
-        top_annotation = patient_annotation)
+plotClusteringHeatmapPatient(freqPerPatient)
+
+if(params$cohort == "schapiro"){
+  freqPerPatient_normalized <- freqPerPatient %>% 
+    mutate(across(`Epithelial (luminal)`:Unknown, function(x){scale(x, center = TRUE, scale = TRUE)}))
+  rownames(freqPerPatient_normalized) <- freqPerPatient$PID
 }else{
-  Heatmap(t(as.matrix(freqPerPatientClean)),
-        column_dend_height = unit(5, "cm"),
-        column_title = "Patients", row_title = "Cell types",
-        cluster_columns = col_dend, border = T)
+  freqPerPatient_normalized <- freqPerPatient %>% 
+    mutate(across(`B cells`:Unknown, function(x){scale(x, center = TRUE, scale = TRUE)}))
+  rownames(freqPerPatient_normalized) <- freqPerPatient$PID
 }
+
+plotClusteringHeatmapPatient(freqPerPatient_normalized)
 ```
 
 ```{r eval = evalStatement}
@@ -221,75 +236,88 @@ freqPerCore <- scePatient %>%
 
 freqPerCore[is.na(freqPerCore)] <- 0
 
-if(params$cohort == "basel"){
-  freqPerCore <- left_join(freqPerCore, 
-                             (select(metadata, core, PID, clinical_type, OSmonth,
-                                     response) 
-                              %>% unique()), 
-                             by = "core")
-} else if(params$cohort == "zurich1"){
-  freqPerCore <- left_join(freqPerCore, 
-                             (select(metadata, core, PID, clinical_type) 
-                              %>% unique()), 
-                             by = "core")
+plotClusteringHeatmapCore <- function(freqPerCore){
+  if(params$cohort == "basel"){
+    col_fun <- colorRamp2(c(min(freqPerPatient$OSmonth),
+                          max(freqPerPatient$OSmonth)/2,
+                          max(freqPerPatient$OSmonth)), viridis(3))
+
+    freqPerCore <- left_join(freqPerCore, 
+                              (select(metadata, core, PID, clinical_type, OSmonth,
+                                      response) 
+                                %>% unique()), 
+                              by = "core")
+  } else if(params$cohort == "zurich1"){
+    freqPerCore <- left_join(freqPerCore, 
+                              (select(metadata, core, PID, clinical_type) 
+                                %>% unique()), 
+                              by = "core")
+  }
+
+  #rownames(freqPerCore) <- freqPerCore$core
+  freqPerCore$PID <- as.factor(freqPerCore$PID)
+
+
+  if(params$cohort == "basel"){
+    # Create heatmap annotation
+    core_annotation <- HeatmapAnnotation(OSmonth = freqPerCore$OSmonth,
+                          Subtype = freqPerCore$clinical_type,
+                          response = freqPerCore$response,
+                          PID = freqPerCore$PID,
+                          which = "column",
+                          col = list(OSmonth = col_fun,
+                                    Subtype = patient_clinSubtype_colours(),
+                                    response = patient_response_colours()),
+                          na_col = "lightgrey",
+                          border = T)
+  } else if(params$cohort == "zurich1"){
+    core_annotation <- HeatmapAnnotation(Subtype = freqPerCore$clinical_type,
+                          which = "column",
+                          col = list(Subtype = patient_clinSubtype_colours()),
+                          na_col = "lightgrey",
+                          border = T)
+  }
+
+  if(params$cohort == "basel"){
+    freqPerCore <- freqPerCore %>% 
+      select(-OSmonth)
+  }
+
+  totalFrequenciesCore <- freqPerCore %>% 
+    select_if(is.numeric) %>% 
+    sapply(function(x) sum(x))
+
+  freqPerCoreClean <- freqPerCore %>% 
+    select(PID, names(which(totalFrequenciesCore > 0.2)))
+
+  # Create dendrogram
+  col_dend <- freqPerCore %>% 
+    select_if(is.numeric) %>% 
+    dist() %>% 
+    hclust(method = "ward.D2") %>% 
+    as.dendrogram() %>% 
+    set("branches_k_color", k = 5) %>% 
+    set("branches_lwd", 3)
+
+
+  Heatmap(t(as.matrix(freqPerCore %>% 
+                        select_if(is.numeric))),
+        column_dend_height = unit(5, "cm"),
+        column_title = "Cores", row_title = "Cell types",
+        cluster_columns = col_dend, border = T,
+        top_annotation = core_annotation)
 }
 
-#rownames(freqPerCore) <- freqPerCore$core
-freqPerCore$PID <- as.factor(freqPerCore$PID)
+plotClusteringHeatmapCore(freqPerCore)
 
+freqPerCoreNorm <- freqPerCore %>% 
+  mutate(across(`B cells`:Unknown, function(x){scale(x, center = TRUE, scale = TRUE)}))
 
-if(params$cohort == "basel"){
-  # Create heatmap annotation
-  core_annotation <- HeatmapAnnotation(OSmonth = freqPerCore$OSmonth,
-                        Subtype = freqPerCore$clinical_type,
-                        response = freqPerCore$response,
-                        PID = freqPerCore$PID,
-                        which = "column",
-                        col = list(OSmonth = col_fun,
-                                   Subtype = patient_clinSubtype_colours(),
-                                   response = patient_response_colours()),
-                        na_col = "lightgrey",
-                        border = T)
-} else if(params$cohort == "zurich1"){
-  core_annotation <- HeatmapAnnotation(Subtype = freqPerCore$clinical_type,
-                        which = "column",
-                        col = list(Subtype = patient_clinSubtype_colours()),
-                        na_col = "lightgrey",
-                        border = T)
-}
-
-if(params$cohort == "basel"){
-  freqPerCore <- freqPerCore %>% 
-    select(-OSmonth)
-}
-
-totalFrequenciesCore <- freqPerCore %>% 
-  select_if(is.numeric) %>% 
-  sapply(function(x) sum(x))
-
-freqPerCoreClean <- freqPerCore %>% 
-  select(PID, names(which(totalFrequenciesCore > 0.2)))
-
-# Create dendrogram
-col_dend <- freqPerCoreClean %>% 
-  select_if(is.numeric) %>% 
-  dist() %>% 
-  hclust() %>% 
-  as.dendrogram() %>% 
-  set("branches_k_color", k = 5) %>% 
-  set("branches_lwd", 3)
-
-
-Heatmap(t(as.matrix(freqPerCoreClean %>% 
-                      select(-PID))),
-      column_dend_height = unit(5, "cm"),
-      column_title = "Cores", row_title = "Cell types",
-      cluster_columns = col_dend, border = T,
-      top_annotation = core_annotation)
+plotClusteringHeatmapCore(freqPerCoreNorm)
 ```
 
 
-```{r fig.height=8, eval= evalStatement}
+```{r fig.height=8, eval= F}
 freqPerCellType <- freqPerCore %>% ungroup()
 basal <- freqPerCellType[["Epithelial (basal)"]]
 if(is.null(basal)){basal <- 0}
@@ -323,7 +351,7 @@ ggplot(freqPerCellType, aes(reorder_within(PID, freq, cell_type), y = freq)) +
 ```
 
 
-```{r eval = evalStatement, fig.height=9}
+```{r eval = F, fig.height=9}
 combinations <- matrix(ncol = 2, nrow = 0)
 
 for (i in levels(freqPerCellType$PID)){

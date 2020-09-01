@@ -111,10 +111,10 @@ alternate_approaches_output = {
 
     'final_benchmark': output_dir_reports + "Final-approaches-comparison.html",
     'final_benchmark_heatmap': output_dir_fig + "Final_benchmarking_heatmap.pdf",
-    'GSVA_csv_all': gsva_robustness_all,
-    'GSVA_html_all': gsva_assignments_reports_all,
-    'GSVA_csv_spec': gsva_robustness_spec,
-    'GSVA_html_spec': gsva_assignments_reports_spec,
+    # 'GSVA_csv_all': gsva_robustness_all,
+    # 'GSVA_html_all': gsva_assignments_reports_all,
+    # 'GSVA_csv_spec': gsva_robustness_spec,
+    # 'GSVA_html_spec': gsva_assignments_reports_spec,
     #'GSVA_html': expand(output_dir_reports + "GSVA_{markers_rem}_{cohort}.html", cohort = reduced_cohort_list, markers_rem = markers_removal),
     #'GSVA_csv': expand(output_dir_results + "Other_approaches_GSVA_{markers_rem}_{cohort}.csv", cohort = reduced_cohort_list, markers_rem = markers_removal),
 

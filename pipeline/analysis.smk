@@ -22,6 +22,7 @@ analysis_output = {
     'astir_expression_heatmaps': expand(output_dir_fig + "Astir_expressionHeatmap_specifiedMarkers_{cohort}.pdf", cohort = cohort_list),
     # 'expression_heatmap': expand(output_dir_fig + "Unknown_celltype_expression_{cohort}.pdf", cohort = cohort_list), #created by celltypeProbability.R
     # 'EMT_expression_diagnostic': expand(output_dir_reports + "EMT_expression_{cohort}.html", cohort = ['basel', 'zurich1'])
+    'Other-unknown-diff-expression': expand(output_dir_reports + "Unknown-other-differential-expression-{cohort}.html", cohort = 'basel')
 }
 
 rule dim_reduct:
@@ -222,3 +223,16 @@ rule cell_type_probability_heatmap:
         "{input.markers} {wildcards.cohort} " + output_dir_fig
 
 
+rule other_unknown_expression:
+    input:
+        cells = output_path + "sces/{cohort}_sce.rds",
+        cellTypes = output_path + "astir_assignments/{cohort}_astir_assignments.csv",
+        cellStates = output_path + "astir_assignments/{cohort}_astir_assignments_state.csv"
+
+    output:
+        output_dir_reports + "Unknown-other-differential-expression-{cohort}.html"
+
+    shell:
+        "Rscript -e \"Sys.setenv(RSTUDIO_PANDOC='/home/ltri/campbell/share/software/pandoc-2.9.2.1/bin');"
+        "rmarkdown::render('pipeline/analysis/Unknown-other-differential-expression.Rmd', output_file = '{output}', output_dir = '" + output_dir_reports + "', "
+        "params = list(cells = '{input.cells}', types = '{input.cellTypes}', state = '{input.cellStates}' ))\" "
