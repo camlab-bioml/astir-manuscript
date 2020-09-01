@@ -37,7 +37,7 @@ source("scripts/functions.R")
 
 ```{r message = F, warning = F}
 # read in data
-sce <- assignIdentity(params$cells, params$celltypes, params$cellstates)
+sce <- assignIdentity(params$cells, params$celltypes, params$cellstates, thresh = 0.5)
 pathways <- sce$pathways
 sce <- sce$sce
 

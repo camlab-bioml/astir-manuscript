@@ -34,3 +34,6 @@ schapiro:
     sample_txt: data-raw/schapiro-2017/samples.txt
     data_dir: data-raw/schapiro-2017/single-cell-data/
     marker_file: markers/schapiro-markers.yml
+
+lin_cycif:
+    marker_file: markers/lin_cycif-markers.yml

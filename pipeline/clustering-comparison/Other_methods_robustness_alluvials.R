@@ -3,7 +3,7 @@ library(tidyverse)
 library(devtools)
 devtools::load_all("~/taproom/")
 
-#read in all
+#read in all 
 args <- commandArgs(trailingOnly = TRUE)
 all <- args[1] %>% read_csv()
 method <- args[2]

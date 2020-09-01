@@ -48,7 +48,7 @@ tsne_plot$cell_type <- factor(tsne_plot$cell_type,
                                          "Endothelial", "Other", "Unknown"))
   
 
-png(paste0(output_dir, "tSNE_mTOR-", a, ".png"), width = 1700, height = 283)
+png(paste0(output_dir, "tSNE_mTOR-", a, ".png"), width = 7083, height = 1180, res = 300)
 ggplot(NULL, aes(x = `tSNE Dim1`, y = `tSNE Dim2`)) +
   geom_point(data = wagner_tsne[,1:2], color = "grey90", alpha = a) +
   geom_point(data = select(tsne_plot, -cell_type), colour = "grey90", alpha = a) +
@@ -57,7 +57,12 @@ ggplot(NULL, aes(x = `tSNE Dim1`, y = `tSNE Dim2`)) +
   scale_color_viridis(name = "mTOR \nSignalling") +
   astir_paper_theme() +
   facet_wrap(~cell_type, ncol = 8) +
-  theme(panel.spacing.x = unit(7, "mm")) +
+  theme(panel.spacing.x = unit(7, "mm"),
+        axis.text = element_text(size = 16),
+        axis.title = element_text(size = 16),
+        legend.title=element_text(size=18),
+        legend.text=element_text(size=16),
+        strip.text.x = element_text(size = 19.5)) +
   coord_fixed()
 dev.off()
 

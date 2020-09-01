@@ -83,5 +83,5 @@ gsva <- get_enrichment(cells, final_markers, paste(markers_remove, collapse = "_
 # s_m_endothelial <- get_enrichment(cells, markers_endothelial, paste(markers_rem, collapse = "_"))
 
 #all <- rbind(all_markers, stromal, stromal_macrophage, s_m_endothelial)
-
+ 
 write_csv(gsva, paste0(output_dir, "Other_approaches_GSVA_", cohort, "_", paste(markers_remove, collapse = "_"), ".csv"))

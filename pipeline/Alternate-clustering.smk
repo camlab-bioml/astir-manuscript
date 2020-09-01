@@ -1,4 +1,4 @@
-cohort_list = ['basel', 'zurich1', 'wagner', 'schapiro']
+cohort_list = ['basel', 'zurich1', 'wagner', 'schapiro', 'lin_cycif']
 reduced_cohort_list = ['basel', 'zurich1', 'wagner']
 markers_spec = ['specified_markers', 'all_markers']
 
@@ -49,13 +49,44 @@ cohort_metadata = {
     'basel': basel_cores,
     'zurich1': zurich1_cores,
     'wagner': wagner_samples,
-    'schapiro': schapiro_samples
+    'schapiro': schapiro_samples,
+    'lin_cycif': cycif_samples
 }
 
 # Create list containing markers to be removed from alternative approaches
-markers_removal = ['Stromal', 'Stromal_Macrophage', 'Stromal_Macrophage_Endothelial']
+markers_removal = ['None', 'Stromal', 'Stromal-Macrophage', 'Stromal-Macrophage-Endothelial']
+markers_gsva = ['specified-markers', 'all-markers']
+
+gsva_robustness_all = []
+gsva_robustness_tmp_all = [expand(output_dir_results + "GSVA-Other-methods-robustness_{cohort}_{method}_{clusters}_all-markers_{markers_rem}.csv", 
+cohort = reduced_cohort_list, method = [m], clusters = conditions[m], markers_rem = markers_removal) for m in conditions.keys()]
+for element in gsva_robustness_tmp_all:
+	gsva_robustness_all.extend(element)
+
+gsva_assignments_reports_all = []
+gsva_assignments_reports_tmp_all = [expand(output_dir_reports + "GSVA/GSVA-Other-methods-robustness_{cohort}_{method}_{clusters}_all-markers_{markers_rem}.html", 
+cohort = reduced_cohort_list, method = [m], clusters = conditions[m], markers_rem = markers_removal) for m in conditions.keys()]
+for element in gsva_assignments_reports_tmp_all:
+	gsva_assignments_reports_all.extend(element)
+
+
+gsva_robustness_spec = []
+gsva_robustness_tmp_spec = [expand(output_dir_results + "GSVA-Other-methods-robustness_{cohort}_{method}_{clusters}_specified-markers_{markers_rem}.csv", 
+cohort = reduced_cohort_list, method = [m], clusters = conditions[m], markers_rem = markers_removal) for m in conditions.keys()]
+for element in gsva_robustness_tmp_spec:
+	gsva_robustness_spec.extend(element)
+
+gsva_assignments_reports_spec = []
+gsva_assignments_reports_tmp_spec = [expand(output_dir_reports + "GSVA/GSVA-Other-methods-robustness_{cohort}_{method}_{clusters}_specified-markers_{markers_rem}.html", 
+cohort = reduced_cohort_list, method = [m], clusters = conditions[m], markers_rem = markers_removal) for m in conditions.keys()]
+for element in gsva_assignments_reports_tmp_spec:
+	gsva_assignments_reports_spec.extend(element)
+
+#out_dict = {cohort: [f for f in out_perm if cohort in f] for cohort in reduced_cohort_list}
+
 
 alternate_approaches_output = {
+    'sces': expand(output_path + "sces/{cohort}_sce.rds", cohort = cohort_list),
     'Phenograph_analysis_report': expand(output_dir_reports + "Rphenograph-analysis-{cohort}-specified_markers.html", cohort = cohort_list),
     'Phenograph_clusters_output': expand(output_dir_results + "Phenograph_clusters_{cohort}_specified_markers_k{cluster}.csv", cohort = cohort_list, cluster = Phenograph_Cluster_sizes),
     'Phenograph_analysis_report_all': expand(output_dir_reports + "Rphenograph-analysis-{cohort}-all_markers.html", cohort = cohort_list),
@@ -69,17 +100,26 @@ alternate_approaches_output = {
     'ClusterX_analysis_report_all': expand(output_dir_reports + "ClusterX-analysis-{cohort}-all_markers.html", cohort = cohort_list),
     'ClusterX_clusters_output_all': expand(output_dir_results + "ClusterX_clusters_{cohort}_all_markers_default.csv", cohort = cohort_list),
 
-    # Analysis
+    # # Analysis
     'Alluvial': alluvialPDF,
-    'ExpressionHeatmaps': expressionPDF,
-    'statesBoxPlots': statesBoxPDF,
+    # 'ExpressionHeatmaps': expressionPDF,
+    # 'statesBoxPlots': statesBoxPDF,
 
-    #'Other_approaches_report': expand(output_dir_reports + "Approaches-comparison-{cohort}.html", cohort = cohort_list),
-    #'Other_approaches_heatmaps': expand(output_dir_results + "Assessment-individual-heatmap-{cohort}.csv", cohort = cohort_list),
-    #'Other_approaches_summary_heatmap': expand(output_dir_results + "Assessment-heatmap-{cohort}.csv", cohort = cohort_list),
+    'Other_approaches_report': expand(output_dir_reports + "Approaches-comparison-{cohort}.html", cohort = cohort_list),
+    'Other_approaches_heatmaps': expand(output_dir_results + "Assessment-individual-heatmap-{cohort}.csv", cohort = cohort_list),
+    'Other_approaches_summary_heatmap': expand(output_dir_results + "Assessment-heatmap-{cohort}.csv", cohort = cohort_list),
 
-    #'final_benchmark': output_dir_reports + "Final-approaches-comparison.html",
-    'GSVA': expand(output_dir_results + "Other_approaches_GSVA_{markers_rem}_{cohort}.csv", cohort = reduced_cohort_list, markers_rem = markers_removal)
+    'final_benchmark': output_dir_reports + "Final-approaches-comparison.html",
+    'final_benchmark_heatmap': output_dir_fig + "Final_benchmarking_heatmap.pdf",
+    'GSVA_csv_all': gsva_robustness_all,
+    'GSVA_html_all': gsva_assignments_reports_all,
+    'GSVA_csv_spec': gsva_robustness_spec,
+    'GSVA_html_spec': gsva_assignments_reports_spec,
+    #'GSVA_html': expand(output_dir_reports + "GSVA_{markers_rem}_{cohort}.html", cohort = reduced_cohort_list, markers_rem = markers_removal),
+    #'GSVA_csv': expand(output_dir_results + "Other_approaches_GSVA_{markers_rem}_{cohort}.csv", cohort = reduced_cohort_list, markers_rem = markers_removal),
+
+    #'GSVA_robust': expand(output_dir_fig + "robustness/other_approaches/Other_methods_robustness_{cohort}.pdf", cohort = reduced_cohort_list)
+    #'GSVA_robust': out_dict.values()
 }
 
 rule create_sces: 
@@ -87,26 +127,28 @@ rule create_sces:
         basel = ','.join(expand(output_path + "basel_processed/{core}.rds", core = basel_cores)),
         zurich1 = ','.join(expand(output_path + "zurich1_processed/{core}.rds", core = zurich1_cores)),
         wagner = ','.join(expand(output_path + "wagner_processed/{core}.rds", core = wagner_samples)),
-        schapiro = ','.join(expand(output_path + "schapiro_processed/{core}.rds", core = schapiro_samples))
+        schapiro = ','.join(expand(output_path + "schapiro_processed/{core}.rds", core = schapiro_samples)),
+        lin = ','.join(expand(output_path + "lin-cycif_processed/{core}.rds", core = cycif_samples))
 
     output:
         basel = output_path + "sces/basel_sce.rds",
         wagner = output_path + "sces/wagner_sce.rds",
         zurich1 = output_path + "sces/zurich1_sce.rds",
-        schapiro = output_path + "sces/schapiro_sce.rds"
+        schapiro = output_path + "sces/schapiro_sce.rds",
+        lin = output_path + "sces/lin_cycif_sce.rds"
 
     shell:
         "Rscript pipeline/rds_to_sce.R {params.basel} {output.basel};"
         "Rscript pipeline/rds_to_sce.R {params.zurich1} {output.zurich1};"
         "Rscript pipeline/rds_to_sce.R {params.wagner} {output.wagner};"
         "Rscript pipeline/rds_to_sce.R {params.schapiro} {output.schapiro};"
+        "Rscript pipeline/rds_to_sce.R {params.lin} {output.lin};"
         
 
 rule phenograph_analysis:
     input:
         cells = output_path + "sces/{cohort}_sce.rds",
         cellTypes = output_path + "astir_assignments/{cohort}_astir_assignments.csv",
-        cellStates = output_path + "astir_assignments/{cohort}_astir_assignments_state.csv",
         markers = lambda wildcards: config[wildcards.cohort]['marker_file'],
     
     params:
@@ -123,7 +165,7 @@ rule phenograph_analysis:
     shell:
         "Rscript -e \"Sys.setenv(RSTUDIO_PANDOC='/home/ltri/campbell/share/software/pandoc-2.9.2.1/bin');"
         "rmarkdown::render('pipeline/clustering-comparison/Rphenograph.Rmd', output_file = '{output.html}', output_dir = '" + output_dir_reports + "', "
-        "params = list(cells = '{input.cells}', celltypes = '{input.cellTypes}', cellstates = '{input.cellStates}', "
+        "params = list(cells = '{input.cells}', celltypes = '{input.cellTypes}', " 
         "create_csv = TRUE, cohort = '{params.cohort}', markers = 'specified_markers', markers_list = '{input.markers}', output_results = '{params.res_dir}'))\" "
 
 
@@ -131,7 +173,6 @@ rule phenograph_analysis_all_markers:
     input:
         cells = output_path + "sces/{cohort}_sce.rds",
         cellTypes = output_path + "astir_assignments/{cohort}_astir_assignments.csv",
-        cellStates = output_path + "astir_assignments/{cohort}_astir_assignments_state.csv",
     
     params:
         cohort = "{cohort}",
@@ -147,7 +188,7 @@ rule phenograph_analysis_all_markers:
     shell:
         "Rscript -e \" Sys.setenv(RSTUDIO_PANDOC='/home/ltri/campbell/share/software/pandoc-2.9.2.1/bin');"
         "rmarkdown::render('pipeline/clustering-comparison/Rphenograph.Rmd', output_file = '{output.html}', output_dir = '" + output_dir_reports + "',"
-        "params = list(cells = '{input.cells}', celltypes = '{input.cellTypes}', cellstates = '{input.cellStates}',"
+        "params = list(cells = '{input.cells}', celltypes = '{input.cellTypes}', "
         "create_csv = TRUE, cohort = '{params.cohort}', markers = 'all_markers', output_results = '{params.res_dir}'))\" "
 
 
@@ -155,7 +196,6 @@ rule FlowSOM_analysis:
     input:
         cells = output_path + "sces/{cohort}_sce.rds",
         cellTypes = output_path + "astir_assignments/{cohort}_astir_assignments.csv",
-        cellStates = output_path + "astir_assignments/{cohort}_astir_assignments_state.csv",
         markers = lambda wildcards: config[wildcards.cohort]['marker_file']
     
     params:
@@ -172,7 +212,7 @@ rule FlowSOM_analysis:
     shell:
         "Rscript -e \" Sys.setenv(RSTUDIO_PANDOC='/home/ltri/campbell/share/software/pandoc-2.9.2.1/bin');"
         "rmarkdown::render('pipeline/clustering-comparison/FlowSOM.Rmd', output_file = '{output.html}', output_dir = '" + output_dir_reports + "',"
-        "params = list(cells = '{input.cells}', celltypes = '{input.cellTypes}', cellstates = '{input.cellStates}', markers = 'specified_markers',"
+        "params = list(cells = '{input.cells}', celltypes = '{input.cellTypes}', markers = 'specified_markers', "
         "create_csv = TRUE, cohort = '{params.cohort}',  markers_list = '{input.markers}', output_results = '{params.res_dir}'))\" "
 
 
@@ -181,7 +221,6 @@ rule FlowSOM_analysis_all_markers:
     input:
         cells = output_path + "sces/{cohort}_sce.rds",
         cellTypes = output_path + "astir_assignments/{cohort}_astir_assignments.csv",
-        cellStates = output_path + "astir_assignments/{cohort}_astir_assignments_state.csv",
     
     params:
         cohort = "{cohort}",
@@ -197,7 +236,7 @@ rule FlowSOM_analysis_all_markers:
     shell:
         "Rscript -e \" Sys.setenv(RSTUDIO_PANDOC='/home/ltri/campbell/share/software/pandoc-2.9.2.1/bin');"
         "rmarkdown::render('pipeline/clustering-comparison/FlowSOM.Rmd', output_file = '{output.html}', output_dir = '" + output_dir_reports + "',"
-        "params = list(cells = '{input.cells}', celltypes = '{input.cellTypes}', cellstates = '{input.cellStates}', markers = 'all_markers',"
+        "params = list(cells = '{input.cells}', celltypes = '{input.cellTypes}', markers = 'all_markers', "
         "create_csv = TRUE, cohort = '{params.cohort}', output_results = '{params.res_dir}'))\" "
 
     
@@ -205,7 +244,6 @@ rule ClusterX_analysis:
     input:
         cells = output_path + "sces/{cohort}_sce.rds",
         cellTypes = output_path + "astir_assignments/{cohort}_astir_assignments.csv",
-        cellStates = output_path + "astir_assignments/{cohort}_astir_assignments_state.csv",
         markers = lambda wildcards: config[wildcards.cohort]['marker_file'],
 
     params:
@@ -222,7 +260,7 @@ rule ClusterX_analysis:
     shell:
         "Rscript -e \" Sys.setenv(RSTUDIO_PANDOC='/home/ltri/campbell/share/software/pandoc-2.9.2.1/bin');"
         "rmarkdown::render('pipeline/clustering-comparison/ClusterX.Rmd', output_file = '{output.html}', output_dir = '" + output_dir_reports + "',"
-        "params = list(cells = '{input.cells}', celltypes = '{input.cellTypes}', cellstates = '{input.cellStates}', markers = 'specified_markers',"
+        "params = list(cells = '{input.cells}', celltypes = '{input.cellTypes}', markers = 'specified_markers', "
         "create_csv = TRUE, cohort = '{params.cohort}', markers_list = '{input.markers}', output_results = '{params.res_dir}'))\" "
 
 
@@ -230,7 +268,6 @@ rule ClusterX_analysis_all_markers:
     input:
         cells = output_path + "sces/{cohort}_sce.rds",
         cellTypes = output_path + "astir_assignments/{cohort}_astir_assignments.csv",
-        cellStates = output_path + "astir_assignments/{cohort}_astir_assignments_state.csv",
 
     params:
         cohort = "{cohort}",
@@ -246,7 +283,7 @@ rule ClusterX_analysis_all_markers:
     shell:
         "Rscript -e \" Sys.setenv(RSTUDIO_PANDOC='/home/ltri/campbell/share/software/pandoc-2.9.2.1/bin');"
         "rmarkdown::render('pipeline/clustering-comparison/ClusterX.Rmd', output_file = '{output.html}', output_dir = '" + output_dir_reports + "',"
-        "params = list(cells = '{input.cells}', celltypes = '{input.cellTypes}', cellstates = '{input.cellStates}', markers = 'all_markers',"
+        "params = list(cells = '{input.cells}', celltypes = '{input.cellTypes}', markers = 'all_markers', "
         "create_csv = TRUE, cohort = '{params.cohort}', output_results = '{params.res_dir}'))\" "
 
 
@@ -255,7 +292,6 @@ rule create_alluvials:
     input:
         cells = output_path + "sces/{cohort}_sce.rds",
         cellTypes = output_path + "astir_assignments/{cohort}_astir_assignments.csv",
-        cellStates = output_path + "astir_assignments/{cohort}_astir_assignments_state.csv",
         clusters = output_path + "results/{method}_clusters_{cohort}_{markers}_{clusters}.csv"
 
     params:
@@ -267,7 +303,7 @@ rule create_alluvials:
         pdf = output_dir_fig + "Alluv_cohort_{cohort}_method_{method}_markers_{markers}_clusters_{clusters}.pdf"
  
     shell:
-        "Rscript pipeline/clustering-comparison/alluvials.R {input.cells} {input.cellTypes} {input.cellStates} {input.clusters} "
+        "Rscript pipeline/clustering-comparison/alluvials.R {input.cells} {input.cellTypes} {input.clusters} "
         "{params.cohort} {params.method} {params.clustering_params} " + output_dir_fig +""
 
 
@@ -354,20 +390,24 @@ rule final_approach_comparison:
         schapiro = output_dir_results + "Assessment-heatmap-schapiro.csv",
         wagner = output_dir_results + "Assessment-heatmap-wagner.csv",
         zurich1 = output_dir_results + "Assessment-heatmap-zurich1.csv",
+        lin = output_dir_results + "Assessment-heatmap-lin_cycif.csv",
 
         basel_indiv = output_dir_results + "Assessment-individual-heatmap-basel.csv",
         schapiro_indiv = output_dir_results + "Assessment-individual-heatmap-schapiro.csv",
         wagner_indiv = output_dir_results + "Assessment-individual-heatmap-wagner.csv",
-        zurich1_indiv = output_dir_results + "Assessment-individual-heatmap-zurich1.csv"
+        zurich1_indiv = output_dir_results + "Assessment-individual-heatmap-zurich1.csv",
+        lin_indiv = output_dir_results + "Assessment-individual-heatmap-lin_cycif.csv"
 
     output:
-        html = output_dir_reports + "Final-approaches-comparison.html"
+        html = output_dir_reports + "Final-approaches-comparison.html",
+        heatmap = output_dir_fig + "Final_benchmarking_heatmap.pdf"
 
     shell:
         "Rscript -e \" Sys.setenv(RSTUDIO_PANDOC='/home/ltri/campbell/share/software/pandoc-2.9.2.1/bin');"
         "rmarkdown::render('pipeline/clustering-comparison/Final-approaches-comparison.Rmd', output_file = '{output.html}', output_dir = '" + output_dir_reports + "',"
-        "params = list(basel = '{input.basel}', schapiro = '{input.schapiro}', wagner = '{input.wagner}', zurich1 = '{input.zurich1}', "
-        "basel_indiv = '{input.basel_indiv}', schapiro_indiv = '{input.schapiro_indiv}', wagner_indiv = '{input.wagner_indiv}', zurich1_indiv = '{input.zurich1_indiv}'))\" "
+        "params = list(basel = '{input.basel}', schapiro = '{input.schapiro}', wagner = '{input.wagner}', zurich1 = '{input.zurich1}', lin = '{input.lin}', "
+        "basel_indiv = '{input.basel_indiv}', schapiro_indiv = '{input.schapiro_indiv}', wagner_indiv = '{input.wagner_indiv}', "
+        "zurich1_indiv = '{input.zurich1_indiv}', lin_indiv = '{input.lin_indiv}', output_dir = '"+ output_dir_fig + "'))\" "
 
 gsva_csvs = []
 gsva_csvs_tmp = [expand(output_dir_results + "{method}_clusters_{cohort}_{markers}_{clusters}.csv", method = [m], markers = markers_spec, cohort = reduced_cohort_list, clusters = conditions[m]) for m in conditions.keys()]
@@ -375,34 +415,98 @@ for element in gsva_csvs_tmp:
 	gsva_csvs.extend(element)
 
 gsva_csv_dict = {cohort: [f for f in gsva_csvs if cohort in f] for cohort in reduced_cohort_list}    
-print(gsva_csv_dict['basel'])
-# markers_removal = ['Stromal', 'Stromal_Macrophage', 'Stromal_Macrophage_Endothelial']
 
-rule GSVA:
+rule GSVA_all_markers:
     input:
         cells = output_path + "sces/{cohort}_sce.rds",
         markers = lambda wildcards: config[wildcards.cohort]['marker_file'],
-        csvs = lambda wildcards: gsva_csv_dict[wildcards.cohort]
+        csvs = output_dir_results + "{method}_clusters_{cohort}_all_markers_{clusters}.csv"
         
     output:
-        output_dir_results + "Other_approaches_GSVA_{markers_rem}_{cohort}.csv"
+        html = output_dir_reports + "GSVA/GSVA-Other-methods-robustness_{cohort}_{method}_{clusters}_all-markers_{markers_rem}.html",
+        csv = output_dir_results + "GSVA-Other-methods-robustness_{cohort}_{method}_{clusters}_all-markers_{markers_rem}.csv"
 
     resources:
         mem_mb=5000
 
     shell:
-        "Rscript pipeline/clustering-comparison/GSVA.R {input.cells} {input.markers} "
-        "{input.csvs} {wildcards.cohort} {wildcards.markers_rem} " + output_dir_results
+        "Rscript -e \" Sys.setenv(RSTUDIO_PANDOC='/home/ltri/campbell/share/software/pandoc-2.9.2.1/bin');"
+        "rmarkdown::render('pipeline/clustering-comparison/GSVA.Rmd', output_file = '{output.html}', output_dir = '" + output_dir_reports + "GSVA/', "
+        "params = list(cells = '{input.cells}', markers = '{input.markers}', csvs = '{input.csvs}', cohort = '{wildcards.cohort}', "
+        "markers_rem = '{wildcards.markers_rem}', output = '" + output_dir_results + "' ))\" "
 
+
+rule GSVA_specified_markers:
+    input:
+        cells = output_path + "sces/{cohort}_sce.rds",
+        markers = lambda wildcards: config[wildcards.cohort]['marker_file'],
+        csvs = output_dir_results + "{method}_clusters_{cohort}_specified_markers_{clusters}.csv"
+        
+    output:
+        html = output_dir_reports + "GSVA/GSVA-Other-methods-robustness_{cohort}_{method}_{clusters}_specified-markers_{markers_rem}.html",
+        csv = output_dir_results + "GSVA-Other-methods-robustness_{cohort}_{method}_{clusters}_specified-markers_{markers_rem}.csv"
+
+    resources:
+        mem_mb=5000
+
+    shell:
+        "Rscript -e \" Sys.setenv(RSTUDIO_PANDOC='/home/ltri/campbell/share/software/pandoc-2.9.2.1/bin');"
+        "rmarkdown::render('pipeline/clustering-comparison/GSVA.Rmd', output_file = '{output.html}', output_dir = '" + output_dir_reports + "GSVA/', "
+        "params = list(cells = '{input.cells}', markers = '{input.markers}', csvs = '{input.csvs}', cohort = '{wildcards.cohort}', "
+        "markers_rem = '{wildcards.markers_rem}', output = '" + output_dir_results + "' ))\" "
+
+
+
+print([expand(output_dir_results + "GSVA-robustness-alluv_{cohort}_{method}_{clusters}_{markers}_{{markers_rem}}.csv", 
+cohort = reduced_cohort_list, method = [m], clusters = conditions[m], markers = markers_gsva) for m in conditions.keys()])
+
+rule GSVA_create_alluvs:
+    input:
+        none_rem = output_dir_results + "GSVA-Other-methods-robustness_{cohort}_{method}_{clusters}_{markers}_None.csv",
+        stromal_rem = output_dir_results + "GSVA-Other-methods-robustness_{cohort}_{method}_{clusters}_{markers}_Stromal.csv",
+        strom_macr_rem = output_dir_results + "GSVA-Other-methods-robustness_{cohort}_{method}_{clusters}_{markers}_Stromal-Macrophage.csv",
+        strom_macr_end_rem = output_dir_results + "GSVA-Other-methods-robustness_{cohort}_{method}_{clusters}_{markers}_Stromal-Macrophage-Endothelial.csv"
+
+    output:
+        output_dir_fig + "robustness/GSVA-robustness-alluv_{cohort}_{method}_{clusters}_{markers}.pdf"
+
+    shell:
+        "Rscript pipeline/clustering-comparison/robustness_alluvials.R {input.none_rem} {input.stromal_rem} {input.strom_macr_rem} {input.strom_macr_end_rem} "
+        "{wildcards.cohort} {wildcards.method} {wildcards.clusters} {wildcards.markers} " + output_dir_fig + "robustness/"
 # Still need to define clusters here
+
+# GSVA_csv_f = []
+# GSVA_csv = [expand(output_dir_results + "Other_approaches_GSVA_{rem}_{cohort}.csv", rem = markers_removal, cohort = reduced_cohort_list)]
+# for element in GSVA_csv:
+#     GSVA_csv_f.extend(element)
+
+# print(GSVA_csv_f)
+
+# gsva_dict = {cohort: [f for f in GSVA_csv_f if cohort in f] for cohort in reduced_cohort_list}
+# print(gsva_dict)
+
+
+# out_perm = []
+#out_tmp = [expand(output_dir_fig + "robustness/other_approaches/Other_methods_robustness_{method}_{markers}_{clusters}_{cohort}.pdf", 
+#method = [m], markers = markers_spec, cohort = reduced_cohort_list, clusters = conditions[m]) for m in conditions.keys()]
+# for element in out_tmp:
+# 	out_perm.extend(element)
+
+# #print(out_tmp)
+# #print("============")
+
+# out_dict = {cohort: [f for f in out_perm if cohort in f] for cohort in reduced_cohort_list}
+# print(out_dict.values())
 
 # rule GSVA_alluvials:
 #     input:
-#         gsva_assignments = output_dir_results + "Other_approaches_GSVA_{cohort}.csv",
+#         gsva_assignments = lambda wildcards: gsva_dict[wildcards.cohort]
 #         method = tmp_methods
 
 #     output:
 #         output_dir_fig + "robustness/other_approaches/Other_methods_robustness_{wildcards.method}_{cohort}.pdf"
+#         output_dir_fig + "robustness/other_approaches/Other_methods_robustness_{cohort}.pdf"
+#         out_dict.values()
 
 #     shell:
 #         "Rscript pipeline/clustering-comparison/Other_methods_robustness_alluvials.R {input.gsva_assignments} "

@@ -19,6 +19,7 @@ library(viridis)
 library(broom)
 library(survival)
 library(glue)
+library(DelayedArray)
 # library(survminer)
 
 devtools::load_all("../taproom")

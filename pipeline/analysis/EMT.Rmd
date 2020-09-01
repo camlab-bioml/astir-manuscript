@@ -8,11 +8,13 @@ params:
   types: ""
   states: ""
   metadata: ""
+  markers: ""
   cohort: ""
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = '~/imc-2020/')
 library(SingleCellExperiment)
 library(scater)
 library(tidyverse)
@@ -25,6 +27,7 @@ source("~/imc-2020/scripts/functions.R")
 
 ```{r}
 sce <- assignIdentity(params$cells, params$types, params$states)$sce
+markers <- read_markers(params$markers)
 metadata <- read_csv(params$metadata)
 
 if(params$cohort == "basel"){
@@ -49,19 +52,43 @@ sce %>% colData %>% as.data.frame() %>%
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 ```
 
+
 ```{r}
-emt_expression <- logcounts(sce)[c("CD44", "SMA", "Vimentin", "Fibronectin", "Slug"),] %>% 
+markers_plot <- unique(c(markers$cell_states$HALLMARK_EPITHELIAL_MESENCHYMAL_TRANSITION,
+                       markers$cell_types$`Epithelial (basal)`,
+                       markers$cell_types$`Epithelial (luminal)`))
+emt_expression <- logcounts(sce)[markers_plot,] %>% 
   t() %>%  as.data.frame()
 
 emt_expression$tumour <- sce$tumours
 emt_expression$cell_type <- sce$cell_type
 ```
 
-```{r}
+```{r fig.width = 12, fig.height = 15}
 emt_expression %>%  pivot_longer(-c(tumour, cell_type), values_to = "expression", names_to = "marker") %>% 
   ggplot(aes(x = marker, y = expression, fill = tumour)) +
   geom_boxplot() +
-  facet_wrap(~cell_type) +
+  facet_wrap(~cell_type, ncol = 3) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+```
 
+```{r fig.width = 15, fig.height = 12}
+emt_expression %>%  pivot_longer(-c(tumour, cell_type), values_to = "expression", names_to = "marker") %>% 
+  ggplot(aes(x = cell_type, y = expression, fill = tumour)) +
+  geom_boxplot() +
+  facet_wrap(~marker, ncol = 4, scales="free_y") +
+  ggtitle(params$cohort) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+```
+
+```{r}
+emt_expression %>%  pivot_longer(-c(tumour, cell_type), values_to = "expression", names_to = "marker") %>% 
+  ggplot(aes(x = cell_type, y = expression, fill = tumour)) +
+  geom_boxplot() +
+  ggtitle(params$cohort) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+```
+
+```{r}
+table(emt_expression$tumour)
 ```
