@@ -4,16 +4,16 @@ author: "Michael Geuenich"
 date: "May 19, 2020"
 output: html_document
 params:
-  cells: "raw_data/schapiro/schapiro_subset_sce.rds"
-  celltypes: "raw_data/schapiro/schapiro_subset_assignments_type.csv"
-  cellstates: "raw_data/schapiro/schapiro_subset_assignments_state.csv" 
-  metadata: "raw_data/schapiro/schapiro_PatientMetadata.csv"
-  cohort: "schapiro"
+  cells: "output/v6/basel_subset/basel_subset_sce.rds"
+  celltypes: "output/v6/basel_subset/basel_subset_assignments_type.csv"
+  cellstates: "output/v6/basel_subset/basel_subset_assignments_state.csv" 
+  metadata: "output/v6/basel_subset/basel_PatientMetadata.csv"
+  cohort: "basel"
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = '~/imc-2020/')
+knitr::opts_knit$set(root.dir = '../../')
 library(SingleCellExperiment)
 library(tidyverse)
 library(devtools)
@@ -31,7 +31,7 @@ library(circlize)
 ```{r}
 library(tidytext)
 library(ggpubr)
-devtools::load_all('~/taproom/')
+devtools::load_all('../taproom/')
 source("scripts/functions.R")
 ```
 
@@ -269,7 +269,8 @@ plotClusteringHeatmapCore <- function(freqPerCore){
                                     Subtype = patient_clinSubtype_colours(),
                                     response = patient_response_colours()),
                           na_col = "lightgrey",
-                          border = T)
+                          border = T,
+                          show_legend = F)
   } else if(params$cohort == "zurich1"){
     core_annotation <- HeatmapAnnotation(Subtype = freqPerCore$clinical_type,
                           which = "column",
