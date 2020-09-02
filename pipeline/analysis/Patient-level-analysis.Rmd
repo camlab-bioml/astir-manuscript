@@ -269,13 +269,15 @@ plotClusteringHeatmapCore <- function(freqPerCore){
                                     Subtype = patient_clinSubtype_colours(),
                                     response = patient_response_colours()),
                           na_col = "lightgrey",
-                          border = T)
+                          border = T,
+                          show_legend = FALSE)
   } else if(params$cohort == "zurich1"){
     core_annotation <- HeatmapAnnotation(Subtype = freqPerCore$clinical_type,
                           which = "column",
                           col = list(Subtype = patient_clinSubtype_colours()),
                           na_col = "lightgrey",
-                          border = T)
+                          border = T,
+                          show_legend = FALSE)
   }
 
   if(params$cohort == "basel"){
@@ -296,7 +298,7 @@ plotClusteringHeatmapCore <- function(freqPerCore){
     dist() %>% 
     hclust(method = "ward.D2") %>% 
     as.dendrogram() %>% 
-    set("branches_k_color", k = 5) %>% 
+    set("branches_k_color", k = 11) %>% 
     set("branches_lwd", 3)
 
 
