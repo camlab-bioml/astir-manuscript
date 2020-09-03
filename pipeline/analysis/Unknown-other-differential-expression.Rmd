@@ -204,7 +204,7 @@ unknown_vs_stromal_plot <- unknown_vs_stromal[[1]] %>%
 box <- rbind(unknown_plot, unknown_vs_stromal_plot)
 
 plot <- box %>% 
-  mutate(origin = ifelse(origin == "Unknown & Other vs Assigned", "Unknown & Other vs Assigned", origin)) %>% 
+  mutate(origin = ifelse(origin == "Unknown & Other vs Assigned", "Unknown & Other vs all Assigned", origin)) %>% 
   mutate(origin = ifelse(origin == "Unknown & Other vs Stromal", "Unknown & Other vs Stromal", origin)) %>% 
   ggplot(aes(x = Protein, y = estimate, fill = origin, color = origin)) +
     geom_hline(yintercept = 0, color = "black") +
@@ -212,15 +212,7 @@ plot <- box %>%
     geom_hline(yintercept = -0.5, color = "lightgrey") +
     geom_hline(yintercept = -1, color = "lightgrey") +
     geom_hline(yintercept = -1.5, color = "lightgrey") +
-    geom_hline(yintercept = -2, color = "lightgrey") + 
-    geom_boxplot() +
-    guides(color = FALSE) +
-    scale_color_manual(values = c("#E4790A", "#8B5B42")) +
-    scale_fill_manual(values = c("#E4790A", "#8B5B42")) +
-    astir_paper_theme() + 
-    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
-    labs(fill = "Comparison", y = "Coefficient", x = "Feature") + 
-    theme(legend.position = "top")
+    geom_hline(yintercept = -2, color = "lightgrey")
 
 
 if(params$cohort == "basel"){
@@ -229,13 +221,10 @@ if(params$cohort == "basel"){
     geom_hline(yintercept = -2, color = "lightgrey") + 
     geom_hline(yintercept = -2.5, color = "lightgrey")
 
-  plot
-
 }else if(params$cohort == "schapiro"){
   plot <- plot +
     geom_hline(yintercept = -2, color = "lightgrey")
-  
-  plot
+
 }else if(params$cohort == "zurich1"){
   plot <- plot +
     geom_hline(yintercept = 2, color = "lightgrey") +
@@ -244,9 +233,9 @@ if(params$cohort == "basel"){
     geom_hline(yintercept = -2, color = "lightgrey") +
     geom_hline(yintercept = -2.5, color = "lightgrey")
 
-  plot
 }else if(params$cohort == "wagner"){
   plot <- plot +
+    geom_hline(yintercept = 3, color = "lightgrey") +
     geom_hline(yintercept = 2.5, color = "lightgrey") +
     geom_hline(yintercept = 2, color = "lightgrey") +
     geom_hline(yintercept = 1.5, color = "lightgrey") +
@@ -255,9 +244,23 @@ if(params$cohort == "basel"){
     geom_hline(yintercept = -2.5, color = "lightgrey") +
     geom_hline(yintercept = -3, color = "lightgrey") +
     geom_hline(yintercept = -3.5, color = "lightgrey") +
-    geom_hline(yintercept = -4, color = "lightgrey")
-
-  plot
+    geom_hline(yintercept = -4, color = "lightgrey") +
+    geom_hline(yintercept = -4.5, color = "lightgrey")
 }
+
+plot <- plot + geom_boxplot(outlier.colour = "lightgrey") +
+    guides(color = FALSE) +
+    scale_color_manual(values = c("#E4790A", "#8B5B42")) +
+    scale_fill_manual(values = c("#E4790A", "#8B5B42")) +
+    astir_paper_theme() + 
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+    labs(fill = "Comparison", y = "Coefficient", x = "Feature") + 
+    theme(legend.position = "top")
+
+plot
+
+pdf(paste0(params$output_dir, "Unknown-other-differential-expression-", params$cohort, ".pdf"), width = 7, height = 8)
+  plot
+dev.off()
 ```
 
