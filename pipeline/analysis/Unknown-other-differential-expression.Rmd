@@ -170,10 +170,6 @@ head(model.matrix(~cell_type, unknown_data))
 ```{r}
 plot_estimate_hist(unknown, "Unknown & Other")
 
-unknown %>% ggplot(aes(x = estimate)) +
-    geom_histogram(bins = 100) +
-    astir_paper_theme()
-
 plot(sort(unknown$estimate))
 abline(0,0,col='red')
 ```
@@ -187,7 +183,7 @@ plot_lm(unknown_vs_stromal[[1]], "Unknown & Other vs stromal")
 head(unknown_vs_stromal[[2]])
 ```
 
-```{r fig.width=10, fig.height=8}
+```{r}
 plot_estimate_hist(unknown_vs_stromal[[1]], "Unknown & Other")
 ```
 
@@ -216,6 +212,7 @@ plot <- box %>%
     geom_hline(yintercept = -0.5, color = "lightgrey") +
     geom_hline(yintercept = -1, color = "lightgrey") +
     geom_hline(yintercept = -1.5, color = "lightgrey") +
+    geom_hline(yintercept = -2, color = "lightgrey") + 
     geom_boxplot() +
     guides(color = FALSE) +
     scale_color_manual(values = c("#E4790A", "#8B5B42")) +
@@ -227,10 +224,40 @@ plot <- box %>%
 
 
 if(params$cohort == "basel"){
+  plot <- plot +
+    geom_hline(yintercept = 1, color = "lightgrey") +
+    geom_hline(yintercept = -2, color = "lightgrey") + 
+    geom_hline(yintercept = -2.5, color = "lightgrey")
+
   plot
+
 }else if(params$cohort == "schapiro"){
-  plot +
+  plot <- plot +
     geom_hline(yintercept = -2, color = "lightgrey")
+  
+  plot
+}else if(params$cohort == "zurich1"){
+  plot <- plot +
+    geom_hline(yintercept = 2, color = "lightgrey") +
+    geom_hline(yintercept = 1.5, color = "lightgrey") +
+    geom_hline(yintercept = 1, color = "lightgrey") +
+    geom_hline(yintercept = -2, color = "lightgrey") +
+    geom_hline(yintercept = -2.5, color = "lightgrey")
+
+  plot
+}else if(params$cohort == "wagner"){
+  plot <- plot +
+    geom_hline(yintercept = 2.5, color = "lightgrey") +
+    geom_hline(yintercept = 2, color = "lightgrey") +
+    geom_hline(yintercept = 1.5, color = "lightgrey") +
+    geom_hline(yintercept = 1, color = "lightgrey") +
+    geom_hline(yintercept = -2, color = "lightgrey") +
+    geom_hline(yintercept = -2.5, color = "lightgrey") +
+    geom_hline(yintercept = -3, color = "lightgrey") +
+    geom_hline(yintercept = -3.5, color = "lightgrey") +
+    geom_hline(yintercept = -4, color = "lightgrey")
+
+  plot
 }
 ```
 
