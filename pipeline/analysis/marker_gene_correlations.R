@@ -166,10 +166,14 @@ formated_cors <- function(mat, triangle){
 ### [READ IN DATA] ####
 args <- commandArgs(trailingOnly = TRUE)
 cells <- args[1]
+#cells <- "output/v6/schapiro_subset/schapiro_subset_sce.rds"
 type <- args[2]
+#type <- "output/v6/schapiro_subset/schapiro_subset_assignments_type.csv"
 #state <- args[3]
 markers <- read_markers(args[3])
+#markers <- read_markers("markers/schapiro-markers.yml")
 cohort <- args[4]
+#cohort <- "schapiro"
 output_dir <- args[5]
 
 if(cohort == "lin_cycif"){
@@ -191,9 +195,11 @@ colData(sce)["cell_type"] <- type[colnames(sce),]
 
 ### [SUBSET DATA] #####
 unknown.sce <- sce[, sce$cell_type == "Unknown" | sce$cell_type == "Other"]
-unknown.sce <- unknown.sce[unique(unlist(markers$cell_types)),]
+unknown.sce <- unknown.sce[unique(unlist(markers$cell_types)),] %>% 
+  logcounts() %>% t()
 assigned.sce <- sce[, sce$cell_type != "Unknown" & sce$cell_type != "Other"]
-assigned.sce <- assigned.sce[unique(unlist(markers$cell_types)),]
+assigned.sce <- assigned.sce[unique(unlist(markers$cell_types)),] %>% 
+  logcounts() %>% t()
 
 # Create plotting order
 if(cohort == "basel" | cohort == "zurich1"){
@@ -209,19 +215,31 @@ if(cohort == "basel" | cohort == "zurich1"){
 }else if(cohort == "wagner"){
   protein.order <- c("SMA", "FAP", "Vimentin", "CD45", "CD3", "CD68", "CD24", "CD31", 
                      "CD49f", "ECadherin", "EpCAM", "panK", "K14", "K5", "K7", "K8K18")
+  correct_names <- c("SMA", "FAP", "Vimentin", "CD45", "CD3", "CD68", "CD24", "CD31", 
+                     "CD49f", "E-Cadherin", "EpCAM", "pan Cytokeratin", "Cytokeratin 14", 
+                     "Cytokeratin 5", "Cytokeratin 7", "Cytokeratin 8/18")
   title <- "Wagner"
 }else if(cohort == "schapiro"){
   protein.order <- c("CD68", "E-cadherin", "EpCAM", "Cytokeratin7", "Cytokeratin8-18",
                      "Vimentin", "Fibronectin")
+  correct_names <- c("CD68", "E-cadherin", "EpCAM", "Cytokeratin 7", "Cytokeratin 8/18",
+                     "Vimentin", "Fibronectin")
   title <- "Schapiro"
 }else if(cohort == "lin_cycif"){
   protein.order <- c("Vimentin", "E_Cadherin", "Keratin")
+  correct_names <- c("Vimentin", "E Cadherin", "Keratin")
 
   title <- "Lin"
 }
 
-unknown.mat <- t(logcounts(unknown.sce))[, protein.order]
-assigned.mat <- t(logcounts(assigned.sce))[, protein.order]
+unknown.mat <- unknown.sce[, protein.order]
+assigned.mat <- assigned.sce[, protein.order]
+
+if(cohort == "wagner" | cohort == "schapiro" | cohort == "lin-cycif"){
+  colnames(unknown.mat) <- correct_names
+  colnames(assigned.mat) <- correct_names
+  protein.order <- correct_names
+}
 
 
 penalty <- (length(protein.order) * length(protein.order)) / 2 - length(protein.order)
@@ -232,11 +250,6 @@ unknown.cor <- formated_cors(unknown.mat, "lower")
 assigned.cor <- formated_cors(assigned.mat, "upper")
 
 correlations <- rbind(unknown.cor, assigned.cor)
-correlations$Var1 <- str_replace(correlations$Var1, "[.]", " ") %>% 
- str_replace("-", " ") %>% as.factor()
-correlations$Var2 <- str_replace(correlations$Var2, "[.]", " ") %>% 
-  str_replace("-", " ") %>% as.factor()
-
 
 x_labels <- levels(correlations$Var2)
 y_labels <- levels(correlations$Var1)
