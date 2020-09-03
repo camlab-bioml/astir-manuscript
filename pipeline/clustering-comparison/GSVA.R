@@ -12,16 +12,15 @@ devtools::load_all("~/taproom/")
 
 ### [READ IN DATA] #####
 args <- commandArgs(trailingOnly = TRUE)
-cells <- readRDS(args[1])
-markers <- args[2] %>% read_markers()
-markers <- markers$cell_types
-csvs <- args[3]
-cohort <- args[4]
-markers_rem <- args[5]
-output_dir <- args[6]
-
-files <- unlist(strsplit(csvs, split = " "))
-markers_remove <- unlist(strsplit(markers_rem, split = "_"))
+rem_none <- args[1] %>% read_csv()
+rem_stromal <- args[2] %>% read_csv()
+rem_macrophages <- args[3] %>% read_csv()
+rem_endothelial <- args[4] %>% read_csv()
+cohort <- args[5]
+method <- args[6]
+clusters <- args[7]
+markers <- args[8]
+output_dir <- args[9]
 
 methodOutputs <- lapply(files, function(f) {
   cluster_df <- read_csv(f)
