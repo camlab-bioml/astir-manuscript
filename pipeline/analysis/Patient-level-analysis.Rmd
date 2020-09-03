@@ -193,11 +193,11 @@ plotClusteringHeatmapPatient <- function(freqPerPatient){
   }
 
   if(params$cohort != "schapiro"){
-  Heatmap(t(as.matrix(freqPerPatientClean)),
-          column_dend_height = unit(5, "cm"),
-          column_title = "Patients", row_title = "Cell types",
-          cluster_columns = col_dend, border = T,
-          top_annotation = patient_annotation)
+    Heatmap(t(as.matrix(freqPerPatientClean)),
+            column_dend_height = unit(5, "cm"),
+            column_title = "Patients", row_title = "Cell types",
+            cluster_columns = col_dend, border = T,
+            top_annotation = patient_annotation)
   }else{
     Heatmap(t(as.matrix(freqPerPatientClean)),
           column_dend_height = unit(5, "cm"),
@@ -270,7 +270,6 @@ plotClusteringHeatmapCore <- function(freqPerCore){
                                     response = patient_response_colours()),
                           na_col = "lightgrey",
                           border = T,
-                          show_legend = F)
                           show_legend = FALSE)
   } else if(params$cohort == "zurich1"){
     core_annotation <- HeatmapAnnotation(Subtype = freqPerCore$clinical_type,
@@ -303,20 +302,68 @@ plotClusteringHeatmapCore <- function(freqPerCore){
     set("branches_lwd", 3)
 
 
-  Heatmap(t(as.matrix(freqPerCore %>% 
-                        select_if(is.numeric))),
-        column_dend_height = unit(5, "cm"),
-        column_title = "Cores", row_title = "Cell types",
-        cluster_columns = col_dend, border = T,
-        top_annotation = core_annotation)
+  hm <- Heatmap(t(as.matrix(freqPerCore %>% 
+                              select_if(is.numeric))),
+                column_dend_height = unit(5, "cm"),
+                column_title = "Cores", row_title = "Cell types",
+                cluster_columns = col_dend, border = T,
+                top_annotation = core_annotation)
+  
+  list(hm = hm, dend = col_dend)
 }
 
-plotClusteringHeatmapCore(freqPerCore)
+plotClusteringHeatmapCore(freqPerCore)$hm
 
 freqPerCoreNorm <- freqPerCore %>% 
   mutate(across(`B cells`:Unknown, function(x){scale(x, center = TRUE, scale = TRUE)}))
 
-plotClusteringHeatmapCore(freqPerCoreNorm)
+coreNormPlot <- plotClusteringHeatmapCore(freqPerCoreNorm)
+coreNormPlot$hm
+```
+
+```{r fig.height=12, fig.width=5, eval=params$cohort == "basel"}
+metadata <- metadata %>% 
+  dplyr::rename(perc_tumorcells = `%tumorcells`, 
+                perc_normalepithelialcells = `%normalepithelialcells`,
+                perc_stroma = `%stroma`, perc_inflammatory = `%inflammatorycells`)
+
+# removed tumor size, %inflamatory because these are numeric
+core_cluster_chr <- freqPerCoreNorm %>% 
+  mutate(cluster = cutree(coreNormPlot$dend,k=11)) %>% 
+  select(core, cluster) %>% 
+  left_join(select(metadata, core, grade, diseasestatus, 
+                   ERStatus, PRStatus, HER2Status, clinical_type, response), by = "core") %>% 
+  column_to_rownames("core") %>% 
+  mutate(grade = as.factor(grade)) %>% 
+  pivot_longer(cols = -cluster, values_to = "value", names_to = "covariate")
+
+core_cluster_chr %>% 
+  mutate(cluster = as.factor(cluster)) %>% 
+  group_by(covariate, cluster, value) %>% 
+  tally() %>% 
+  ggplot(aes(x = cluster, y = n, fill = value)) +
+  geom_bar(stat = "identity") +
+  labs(x = "Cluster", y = "Number of cores") +
+  facet_wrap(~covariate, ncol = 1, scale = "free") +
+  astir_paper_theme()
+```
+
+
+```{r fig.height=4, fig.width=12, eval=params$cohort == "basel"}
+core_cluster_int <- freqPerCoreNorm %>% 
+  mutate(cluster = cutree(coreNormPlot$dend,k=11)) %>% 
+  select(core, cluster) %>% 
+  left_join(select(metadata, core, tumor_size, perc_tumorcells, perc_normalepithelialcells, 
+                   perc_stroma, perc_inflammatory, DFSmonth, OSmonth), by = "core") %>% 
+  column_to_rownames("core") %>% 
+  pivot_longer(cols = -cluster, values_to = "value", names_to = "covariate")
+
+core_cluster_int %>% 
+  mutate(cluster = as.factor(cluster)) %>% 
+  ggplot(aes(x = cluster, y = value)) +
+  geom_boxplot() +
+  facet_wrap(~covariate, scales = "free_y", ncol = 7) +
+  astir_paper_theme()
 ```
 
 
