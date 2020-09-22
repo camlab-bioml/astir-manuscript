@@ -26,6 +26,7 @@ library(ape)
 library(dichromat)
 library(viridis)
 library(circlize)
+library(broom)
 ```
 
 ```{r}
@@ -236,7 +237,7 @@ freqPerCore <- scePatient %>%
 
 freqPerCore[is.na(freqPerCore)] <- 0
 
-plotClusteringHeatmapCore <- function(freqPerCore){
+plotClusteringHeatmapCore <- function(freqPerCore, cl = NA){
   if(params$cohort == "basel"){
     col_fun <- colorRamp2(c(min(freqPerPatient$OSmonth),
                           max(freqPerPatient$OSmonth)/2,
@@ -256,21 +257,32 @@ plotClusteringHeatmapCore <- function(freqPerCore){
 
   #rownames(freqPerCore) <- freqPerCore$core
   freqPerCore$PID <- as.factor(freqPerCore$PID)
-
+  
+    # Create dendrogram
+  col_dend <- freqPerCore %>% 
+    select_if(is.numeric) %>% 
+    dist() %>% 
+    hclust(method = "ward.D2") %>% 
+    as.dendrogram() %>% 
+    set("branches_k_color", k = 10) %>% 
+    set("branches_lwd", 3)
 
   if(params$cohort == "basel"){
+    cluster_annotation <- as.factor(cutree(col_dend,k=10))
+
     # Create heatmap annotation
     core_annotation <- HeatmapAnnotation(OSmonth = freqPerCore$OSmonth,
                           Subtype = freqPerCore$clinical_type,
                           response = freqPerCore$response,
-                          PID = freqPerCore$PID,
+                          #PID = freqPerCore$PID,
+                          cluster = cluster_annotation,
                           which = "column",
                           col = list(OSmonth = col_fun,
                                     Subtype = patient_clinSubtype_colours(),
                                     response = patient_response_colours()),
                           na_col = "lightgrey",
                           border = T,
-                          show_legend = FALSE)
+                          show_legend = TRUE)
   } else if(params$cohort == "zurich1"){
     core_annotation <- HeatmapAnnotation(Subtype = freqPerCore$clinical_type,
                           which = "column",
@@ -284,23 +296,6 @@ plotClusteringHeatmapCore <- function(freqPerCore){
     freqPerCore <- freqPerCore %>% 
       select(-OSmonth)
   }
-
-  totalFrequenciesCore <- freqPerCore %>% 
-    select_if(is.numeric) %>% 
-    sapply(function(x) sum(x))
-
-  freqPerCoreClean <- freqPerCore %>% 
-    select(PID, names(which(totalFrequenciesCore > 0.2)))
-
-  # Create dendrogram
-  col_dend <- freqPerCore %>% 
-    select_if(is.numeric) %>% 
-    dist() %>% 
-    hclust(method = "ward.D2") %>% 
-    as.dendrogram() %>% 
-    set("branches_k_color", k = 11) %>% 
-    set("branches_lwd", 3)
-
 
   hm <- Heatmap(t(as.matrix(freqPerCore %>% 
                               select_if(is.numeric))),
@@ -329,7 +324,7 @@ metadata <- metadata %>%
 
 # removed tumor size, %inflamatory because these are numeric
 core_cluster_chr <- freqPerCoreNorm %>% 
-  mutate(cluster = cutree(coreNormPlot$dend,k=11)) %>% 
+  mutate(cluster = cutree(coreNormPlot$dend,k=10)) %>% 
   select(core, cluster) %>% 
   left_join(select(metadata, core, grade, diseasestatus, 
                    ERStatus, PRStatus, HER2Status, clinical_type, response), by = "core") %>% 
@@ -342,12 +337,44 @@ core_cluster_chr %>%
   group_by(covariate, cluster, value) %>% 
   tally() %>% 
   ggplot(aes(x = cluster, y = n, fill = value)) +
-  geom_bar(stat = "identity") +
+  geom_bar(stat = "identity", position = "fill") +
   labs(x = "Cluster", y = "Number of cores") +
   facet_wrap(~covariate, ncol = 1, scale = "free") +
   astir_paper_theme()
 ```
 
+
+
+Test for statistical significance by doing a PCA regression
+```{r eval= params$cohort == "basel"}
+core_freq_pca <- freqPerCoreNorm %>% 
+  column_to_rownames("core")
+
+core.pca <- prcomp(core_freq_pca, scale. = T, center = T)
+
+fviz_eig(core.pca)
+fviz_pca_ind(core.pca, repel = TRUE)
+
+fviz_pca_var(core.pca,
+             col.var = "contrib", # Color by contributions to the PC
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE, title = "Correlation plot for patient summary")
+
+covariates_summary <- core.pca$x %>% 
+  as.data.frame() %>% 
+  rownames_to_column("core") %>% 
+  pivot_longer(-core, values_to = "loadings", names_to = "PCs") %>% 
+  left_join(select(metadata, core, grade, diseasestatus, 
+                   ERStatus, PRStatus, HER2Status, clinical_type, response), by = "core") %>% 
+  mutate(grade = as.character(grade)) %>% 
+  pivot_longer(cols = c(grade, diseasestatus, ERStatus, PRStatus, HER2Status, clinical_type, response), 
+               names_to = "covariate", values_to = "category")
+
+covariates_summary %>% 
+  filter(PCs %in% c("PC1", "PC2", "PC3")) %>% 
+  group_by(PCs, covariate) %>% 
+  do(tidy(lm(loadings ~ category, data = .)))
+```
 
 ```{r fig.height=4, fig.width=12, eval=params$cohort == "basel"}
 core_cluster_int <- freqPerCoreNorm %>% 
@@ -366,6 +393,39 @@ core_cluster_int %>%
   astir_paper_theme()
 ```
 
+Anova on the above results
+```{r}
+anovas <- core_cluster_int %>% 
+  group_by(covariate) %>% 
+  do(Model = aov(value ~ cluster, data = .))
+
+lapply(anovas$Model, function(x){broom::tidy(x)}) %>% 
+  bind_rows() %>% 
+  filter(term == "cluster") %>% 
+  mutate(pathway = sort(anovas$covariate)) %>% 
+  column_to_rownames("pathway")
+
+# Will follow up with tukeys test if any of them are significant
+```
+
+
+```{r fig.width = 11}
+patient_cores <- freqPerCoreNorm %>% 
+  mutate(cluster = as.factor(cutree(coreNormPlot$dend,k=10))) %>% 
+  select(core, cluster) %>% 
+  left_join(select(metadata, core, PID), by = "core")
+
+patient_cores_summary <- patient_cores %>% 
+  group_by(PID, cluster) %>% 
+  tally() %>% 
+  mutate(PID = as.factor(PID))
+
+patient_cores_summary
+
+patient_cores_summary %>% 
+  ggplot(aes(x = PID, y = n, fill = cluster)) +
+    geom_bar(stat = "identity")
+```
 
 ```{r fig.height=8, eval= F}
 freqPerCellType <- freqPerCore %>% ungroup()
