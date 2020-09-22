@@ -342,7 +342,7 @@ core_cluster_chr %>%
   group_by(covariate, cluster, value) %>% 
   tally() %>% 
   ggplot(aes(x = cluster, y = n, fill = value)) +
-  geom_bar(stat = "identity") +
+  geom_bar(stat = "identity", position = "fill") +
   labs(x = "Cluster", y = "Number of cores") +
   facet_wrap(~covariate, ncol = 1, scale = "free") +
   astir_paper_theme()
