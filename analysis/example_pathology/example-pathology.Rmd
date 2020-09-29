@@ -1,0 +1,125 @@
+---
+title: "Example pathology SP43_115_X4Y8"
+output: html_document
+---
+
+```{r}
+suppressPackageStartupMessages({
+  library(cytomapper)
+  library(SingleCellExperiment)
+  library(dplyr)
+  library(tidyverse)
+  library(scater)
+  library(ComplexHeatmap)
+})
+
+devtools::load_all("~/toronto/taproom/")
+```
+
+```{r}
+sce <- readRDS("../../output/v4/basel_processed/BaselTMA_SP43_115_X4Y8.rds")
+```
+
+```{r}
+assignments <- read_csv("../../output/v4/assignments_subset_for_pathology/SP43_115_X4Y8.csv")
+# assignments <- read_csv("~/toronto/imc/asinh-test/prototype-celltypes.csv")
+cell_names <- assignments$X1
+assignments$X1 <- NULL
+
+cell_types <- get_celltypes(assignments)
+names(cell_types) <- cell_names
+
+sce$cell_type <- cell_types[colnames(sce)]
+table(sce$cell_type)
+```
+
+
+Need to match cell ids after they were renamed:
+
+
+```{r}
+cl <- loadImages("../../data-raw/jackson-2020/OMEnMasks/Basel_Zuri_masks/BaselTMA_SP43_25.8kx22ky_10500x6500_8_20170928_114_115_X4Y8_262_a0_full_maks.tiff", 
+                 type="tiff",
+                 as.is=TRUE)
+```
+
+```{r}
+mcols(cl) <- data.frame(img_id = "SP43_115_X4Y8")
+sce$img_id <- "SP43_115_X4Y8"
+colData(sce)[[ 'Astir cell type' ]] <- sce$cell_type
+```
+
+
+```{r}
+# jackson_basel_colours()
+
+plotCells(cl, 
+          sce,
+            img_id = "img_id",
+            cell_id = "ObjectNumber",
+            exprs_values = "logcounts",
+            outline_by = "core",
+            colour_by = "Astir cell type",
+            image_title = list(text=""),
+            colour = list(`Astir cell type`=c(jackson_basel_colours(), "Endothelial"="red"),
+                          core = c("BaselTMA_SP43_115_X4Y8"="black")),
+            save_plot = list(filename="SP43_115_X4Y8_path.png"))
+```
+
+# 
+
+# TSNE
+
+```{r}
+set.seed(123L)
+sce <- runPCA(sce, ncomponents = 10)
+sce <- runUMAP(sce, ncomponents = 2)
+```
+
+```{r}
+plotUMAP(sce, colour_by = "Astir cell type") +
+scale_fill_manual(values = jackson_basel_colours(),
+                  name = "Astir cell type")
+```
+
+```{r}
+ggsave("BaselTMA_SP43_115_X4Y8-tsne.png", width = 5, height = 4)
+```
+
+##
+
+```{r}
+heatmap <- taproom::createHeatmap(sce)
+draw(heatmap)
+```
+
+```{r}
+plot(
+  logcounts(sce)['vWF',],
+  logcounts(sce)['Vimentin',]
+)
+```
+
+```{r}
+plot(
+  logcounts(sce)['vWF',],
+  logcounts(sce)['SMA',]
+)
+```
+
+```{r}
+tibble(cellty)
+```
+
+```{r}
+plot(
+  assay(sce, 'raw_imc')['vWF',],
+  assay(sce, 'logcounts')['vWF',],
+)
+```
+```{r}
+plot(
+  assay(sce, 'raw_imc')['SMA',],
+  asinh( assay(sce, 'raw_imc')['SMA',] / 5 )
+)
+```
