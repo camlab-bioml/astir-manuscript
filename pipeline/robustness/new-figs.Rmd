@@ -1,0 +1,89 @@
+---
+title: "R Notebook"
+output: html_document
+params:
+  input_dir_removed: input_removed
+  input_dir_added: input_added
+  output_fig_removed: "removed.pdf"
+  output_fig_added: "added.pdf"
+---
+
+```{r}
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(taproom)
+  library(glue)
+})
+```
+
+```{r}
+d <- dir(params$input_dir_removed,
+         patter="*.tsv",
+         full.names=TRUE)
+```
+
+
+```{r}
+df <- map_dfr(d, read_tsv)
+```
+
+```{r}
+df$cohort <- stringr::str_to_title(gsub("1", "", df$cohort))
+
+ggplot(df, aes(x = threshold, y = mean_unknown, colour = condition)) +
+  geom_line(size = 1.2) +
+  facet_wrap(~ cohort) +
+  cowplot::theme_cowplot() +
+  theme(panel.grid.major.y = element_line(colour="grey50", size=0.2, linetype = 2),
+        strip.background = element_rect(fill = 'white'),
+        strip.text = element_text(face = "bold"),
+        legend.position = "bottom") +
+  scale_colour_manual(values = jackson_basel_colours(),
+                      name = "High confidence cell type\nusing full marker information") +
+  labs(x = "Probability threshold for assigning cells",
+       y = "% assigned to unknown/other")
+```
+
+```{r}
+pdf(params$output_fig_removed, width=9,height=5)
+print(last_plot())
+dev.off()
+```
+
+
+# Added
+
+
+```{r}
+d <- dir(params$input_dir_added,
+         pattern="*.tsv",
+         full.names=TRUE)
+```
+
+
+```{r}
+df2 <- map_dfr(d, read_tsv)
+```
+
+```{r}
+df2$cohort <- stringr::str_to_title(gsub("1", "", df2$cohort))
+
+ggplot(df2, aes(x = threshold, y = 100 * prop_assigned, colour = condition)) +
+  geom_line(size = 1.2) +
+  facet_wrap(~ cohort) +
+  cowplot::theme_cowplot() +
+  theme(panel.grid.major.y = element_line(colour="grey50", size=0.2, linetype = 2),
+        strip.background = element_rect(fill = 'white'),
+        strip.text = element_text(face = "bold"),
+        legend.position = "bottom") +
+  scale_colour_brewer(palette = "Dark2",
+                      name = "Fake cell type") +
+  labs(x = "Probability threshold for assigning cells",
+       y = "% assigned to fake cell type")
+```
+
+```{r}
+pdf(params$output_fig_added, width=9,height=5)
+print(last_plot())
+dev.off()
+```
