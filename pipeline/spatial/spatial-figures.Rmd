@@ -2,12 +2,17 @@
 title: "spatial-figures.Rmd"
 output: html_document
 params:
-  basel_output: ../../output/v6/spatial/rds_output_basel.rds
-  zurich1_output: ../../output/v6/spatial/rds_output_zurich1.rds
-  basel_metadata: mdata.csv
+  basel_output: ../../output/chipmunk/spatial/rds_output_basel.rds
+  zurich1_output: ../../output/chipmunk/spatial/rds_output_zurich1.rds
+  basel_expression: ../../output/chipmunk/spatial/summarized-expression-basel.tsv
+  zurich1_expression: ../../output/chipmunk/spatial/summarized-expression-zurich1.tsv
+  basel_metadata: ../../data-raw/jackson-2020/SingleCell_and_Metadata/BaselTMA/Basel_PatientMetadata.csv
+  zurich1_metadata: ../../data-raw/jackson-2020/SingleCell_and_Metadata/ZurichTMA/Zuri_PatientMetadata.csv
+  cells_counted_basel: cells_counted_basel.tsv
   kaplan_meier: km.pdf
   pathway_fig: pw.pdf
   spatial_heatmap: hm.pdf
+  pathologist_plot: path.pdf
 ---
 
 ```{r setup, include=FALSE}
@@ -34,6 +39,22 @@ basel_output <- readRDS(params$basel_output)
 zurich1_output <- readRDS(params$zurich1_output)
 ```
 
+```{r}
+basel_expression <- read_tsv(params$basel_expression)
+zurich1_expression <- read_tsv(params$zurich1_expression)
+```
+
+Zurich metadata:
+
+```{r}
+zm <- read_csv(params$zurich1_metadata)
+bm <- read_csv(params$basel_metadata)
+```
+
+```{r}
+zm_cores_to_use <- filter(zm, location == "CENTER") %>% .$core
+bm_cores_to_use <- filter(bm, diseasestatus == "tumor") %>% .$core
+```
 
 
 # Overall heatmap
@@ -79,27 +100,114 @@ draw(ht, heatmap_legend_side = "bottom", annotation_legend_side = "bottom")
 
 
 ```{r}
-pdf(params$spatial_heatmap, width = 8, height = 4.5)
+pdf(params$spatial_heatmap, width = 8, height = 6)
 draw(ht, heatmap_legend_side = "bottom", annotation_legend_side = "bottom",
      padding = unit(c(2, 2, 2, 15), "mm"))
 dev.off()
 ```
 
+# Differential expression
+
+```{r}
+df_basel <- enframe(basel_output$spatial_score, "core", "spatial_score") %>% 
+  inner_join(basel_expression, by = "core") %>% 
+  filter(core %in% bm_cores_to_use)
+```
+
+```{r}
+df_test_basel <- group_by(df_basel, cell_type, marker) %>% 
+  do(tidy(lm(mean_expression ~ spatial_score, data=.))) %>% 
+  filter(term == "spatial_score") %>% 
+  mutate(q_val = p.adjust(p.value, method="BH"))
+```
+
+```{r}
+filter(df_test_basel, q_val < 0.05) %>% 
+  ggplot(aes(x = cell_type, y = marker, size = -log10(q_val), colour=estimate)) +
+  geom_point() +
+  scale_colour_gradient2()
+```
+```{r}
+df_zurich <- enframe(zurich1_output$spatial_score, "core", "spatial_score") %>% 
+  inner_join(zurich1_expression, by = "core") %>% 
+  filter(core %in% zm_cores_to_use)
+```
+
+```{r}
+df_test_zurich <- group_by(df_zurich, cell_type, marker) %>% 
+  do(tidy(lm(mean_expression ~ spatial_score, data=.))) %>% 
+  filter(term == "spatial_score") %>% 
+  mutate(q_val = p.adjust(p.value, method="BH"))
+```
+
+```{r}
+filter(df_test_zurich, q_val < 0.05) %>% 
+  ggplot(aes(x = cell_type, y = marker, size = -log10(q_val), colour=estimate)) +
+  geom_point() +
+  scale_colour_gradient2()
+```
+
+```{r}
+df_test <- inner_join(df_test_basel, df_test_zurich,
+           by = c("cell_type", "marker", "term"),
+           suffix = c("_basel", "_zurich")) 
+
+```
+
+```{r}
+df_cor <- group_by(df_test, cell_type) %>% 
+  do(tidy(cor.test(.$estimate_basel, .$estimate_zurich, method="pearson")))
+```
+
+```{r}
+df_test <- inner_join(df_cor, df_test, by = "cell_type")
+
+roundn <- function(x, n = 2) format(round(x, n), nsmall = n)
+```
+
+```{r}
+df_test <- mutate(df_test, label = paste0(cell_type, "\n", "Correlation", " = ", roundn(estimate), "\np = ", format(p.value,digits=3)))
+
+# df_test$label2 = expression(paste("rho"))
+```
+
+
+```{r}
+
+df_test %>% 
+  filter(!grepl("Unknown|Other", cell_type)) %>% 
+  ggplot(aes(x = estimate_basel, y = estimate_zurich)) +
+  geom_point(alpha = 0.5, size =2) +
+  facet_wrap(~ label, scales = "free",nrow=2) +
+  cowplot::theme_cowplot() +
+  geom_smooth(method="lm", colour = "darkred", linetype=2) +
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 3)) +
+  theme(strip.text = element_text(face="bold"),
+        strip.background = element_rect(fill='white')) +
+  labs(x = "Effect size (Basel cohort)", y = "Effect size (Zurich cohort)")
+```
+```{r}
+pdf(params$pathway_fig, width = 9, height = 5)
+print(last_plot())
+dev.off()
+```
+
+
 
 # Associating pathway activation
 
-```{r}
-df_test <- bind_rows(
+```{r, eval=FALSE}
+df_test2 <- bind_rows(
   basel_output$df_test,
   zurich1_output$df_test
 )
 ```
 
-```{r}
-df_test$state <- gsub("HALLMARK_", "", df_test$state)
-df_test$dataset <- str_to_title(gsub("1", "", df_test$dataset))
+```{r, eval=FALSE}
+df_test2$state <- gsub("HALLMARK_", "", df_test$state)
+df_test2$dataset <- str_to_title(gsub("1", "", df_test$dataset))
 
-ggplot(df_test, aes(x = -log10(p.value), y = fct_reorder(state, -log10(p.value)))) +
+ggplot(df_test2, aes(x = -log10(p.value), y = fct_reorder(state, -log10(p.value)))) +
   geom_point(aes(fill = estimate), shape = 21, size = 4) +
   facet_wrap(~ dataset, scales = "free_x") +
   scale_fill_gradient2(name = "Change with increasing spatial score",
@@ -113,7 +221,7 @@ ggplot(df_test, aes(x = -log10(p.value), y = fct_reorder(state, -log10(p.value))
 ```
 
 
-```{r}
+```{r, eval=FALSE}
 pdf(params$pathway_fig, width = 9, height = 3)
 print(last_plot())
 dev.off()
@@ -126,7 +234,7 @@ dev.off()
 mdata <- read_csv(params$basel_metadata)
 
 df_surv <- filter(mdata, diseasestatus == "tumor") %>% 
-  select(PID, core, Patientstatus, DFSmonth, OSmonth, grade) %>% 
+  select(PID, core, Patientstatus, DFSmonth, OSmonth, grade, contains("status")) %>% 
   mutate(vital_status = grepl("death", Patientstatus)) 
 ```
 
@@ -143,6 +251,16 @@ df_surv <- inner_join(
 ```
 
 ```{r}
+select(df_surv, spatial_score, contains("Status", ignore.case=FALSE)) %>% 
+  gather(receptor, status, -spatial_score) %>% 
+  ggplot(aes(x = status, y = spatial_score)) +
+  geom_boxplot() +
+  facet_wrap(~ receptor) +
+  ggsignif::geom_signif(comparisons = list(c("negative", "positive")))
+```
+
+
+```{r}
 df_surv2 <- group_by(df_surv, PID, Patientstatus, DFSmonth, OSmonth, vital_status, grade) %>% 
   summarize(spatial_score = mean(spatial_score)) %>% 
   ungroup() 
@@ -151,7 +269,7 @@ df_surv2 <- group_by(df_surv, PID, Patientstatus, DFSmonth, OSmonth, vital_statu
 
 
 ```{r}
-q <- quantile(df_surv2$spatial_score, c(0.5, 0.5))
+q <- quantile(df_surv2$spatial_score, c(0.25, 0.75))
 df_surv2 <- mutate(df_surv2,
                   level = case_when(
                     spatial_score > q[2] ~ "high",
@@ -159,12 +277,20 @@ df_surv2 <- mutate(df_surv2,
                   ))
 ```
 
+```{r}
+save.image(paste0(params$kaplan_meier, "-img.rds"))
+# load("../../output/chipmunk/figures/spatial/km.pdf-img.rds")
+```
 
+```{r}
+grades <- sort(unique(df_surv2$grade))
+```
 
 
 ````{r}
+df_tmp <- filter(df_surv2)
 
-fit <- survfit(Surv(DFSmonth, vital_status) ~ grade + level, data = drop_na(df_surv2))
+fit <- survfit(Surv(DFSmonth, vital_status) ~ level + grade, data = drop_na(df_tmp))
 
 ```
 
@@ -172,7 +298,8 @@ fit <- survfit(Surv(DFSmonth, vital_status) ~ grade + level, data = drop_na(df_s
 plt <- ggsurvplot(fit, 
            pval = surv_pvalue(fit)[1,4],
            palette = "Set1",
-           legend.title = NA)
+           legend.title = NA,
+           conf.int=TRUE)
 ```
 
 ```{r}
@@ -192,7 +319,7 @@ new <- gsub("level", "\nSpatial score", new, fixed=TRUE)
 ```
 
 
-```{r}
+```{r, eval=FALSE}
 
 cols <- c(
   "#a1d99b",
@@ -218,4 +345,107 @@ pdf(params$kaplan_meier, width = 6, height = 3.5)
 print(last_plot())
 dev.off()
 ```
+
+# Consistency with pathologist annotated cell types
+
+```{r}
+cells_counted_basel <- read_tsv(params$cells_counted_basel)
+```
+
+```{r}
+df_ast <- select(cells_counted_basel, -n) %>% 
+  spread(cell_type, frac_cells, fill = 0)
+```
+
+```{r}
+df_ast$astir_epithelial <- df_ast$`Epithelial (basal)` + df_ast$`Epithelial (luminal)` + df_ast$`Epithelial (other)`
+df_ast$astir_inflammatory <- df_ast$`B cells` + df_ast$`T cells` + df_ast$Macrophage
+df_ast$astir_stromal <- df_ast$Stromal 
+```
+
+
+
+```{r}
+pathologist <- select(mdata, core, contains("%")) %>% 
+  dplyr::rename(pct_inflammatory = `%inflammatorycells`,
+         pct_stromal = `%stroma`,
+         pct_tumour = `%tumorcells`,
+         pct_normal = `%normalepithelialcells`)
+```
+
+```{r}
+df_ast_path <- inner_join(df_ast, pathologist, by = "core")
+```
+
+```{r}
+t1 <- tidy(cor.test(df_ast_path$pct_stromal, df_ast_path$astir_stromal))
+
+ggplot(df_ast_path, aes(x = pct_stromal, y = 100 * astir_stromal)) +
+  geom_point(alpha = 0.5, size =2) +
+  cowplot::theme_cowplot() +
+  geom_smooth(method="lm", colour = "darkred", linetype=2) +
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 3)) +
+  labs(
+    x = "% Stromal cells\n(pathologist estimate)",
+    y = "% Stromal cells\n(astir estimate)",
+    subtitle = paste("Correlation =", roundn(t1$estimate, 2), "\np = ", format(t1$p.value,digits=3))
+  )
+
+stromal_plot <- last_plot()
+```
+
+```{r}
+t2 <- tidy(cor.test(df_ast_path$pct_inflammatory, df_ast_path$astir_inflammatory))
+
+ggplot(df_ast_path, aes(x = pct_inflammatory, y = 100 * astir_inflammatory)) +
+  geom_point(alpha = 0.5, size =2) +
+  cowplot::theme_cowplot() +
+  geom_smooth(method="lm", colour = "darkred", linetype=2) +
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 3)) +
+  labs(
+    x = "% Inflammatory\n(pathologist estimate)",
+    y = "% T, B, and macrophage cells\n(astir estimate)",
+    subtitle = paste("Correlation =", roundn(t2$estimate, 2), "\np = ", format(t2$p.value, digits=3))
+  )
+inf_plot <- last_plot()
+```
+
+```{r}
+t3 <- tidy(cor.test(df_ast_path$pct_tumour + df_ast_path$pct_normal, df_ast_path$astir_epithelial))
+
+ggplot(df_ast_path, aes(x = pct_tumour + pct_normal, y = 100 * astir_epithelial)) +
+  geom_point(alpha = 0.5, size =2) +
+  cowplot::theme_cowplot() +
+  geom_smooth(method="lm", colour = "darkred", linetype=2) +
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 3)) +
+  labs(
+    x = "% Tumour and normal cells\n(pathologist estimate)",
+    y = "% Epithelial cells\n(astir estimate)",
+    subtitle = paste("Correlation =", roundn(t2$estimate, 2), "\np = ", format(t3$p.value, digits=3))
+  ) 
+
+epi_plot <- last_plot()
+```
+
+```{r}
+cowplot::plot_grid(epi_plot, inf_plot, stromal_plot, nrow=1)
+```
+
+```{r}
+pdf(params$pathologist_plot, width = 9.5, height = 3.2)
+print(last_plot())
+dev.off()
+```
+
+
+
+
+
+
+
+
+
+
+
+
 
