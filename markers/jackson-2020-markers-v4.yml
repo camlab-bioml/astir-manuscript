@@ -62,11 +62,11 @@ cell_types:
   B cells:
     - CD45
     - CD20
-    - Vimentin
+    # - Vimentin
   T cells:
     - CD45
     - CD3
-    - Vimentin
+    # - Vimentin
   Epithelial (basal):
     - E-Cadherin
     - pan Cytokeratin
@@ -84,10 +84,9 @@ cell_types:
   Macrophage:
     - CD45
     - CD68
-    - Vimentin
+    # - Vimentin
   Endothelial:
     - vWF
     - Vimentin
-    
     
 
