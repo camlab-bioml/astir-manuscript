@@ -1,9 +1,9 @@
 
-version: v6
+version: chipmunk
 
 astir_opts:
-    max_epochs: 400
-    batch_size: 512
+    max_epochs: 1000
+    batch_size: 32
     learning_rate: 2e-3
     n_initial_epochs: 3
 
@@ -13,18 +13,18 @@ n_subsample: 15000
 basel:
     base_dir: data-raw/jackson-2020/SingleCell_and_Metadata/BaselTMA/
     metadata_file: Basel_PatientMetadata.csv
-    marker_file: markers/jackson-2020-markers-v3.yml
+    marker_file: markers/jackson-2020-markers-v4.yml
 
 zurich1:
     base_dir: data-raw/jackson-2020/SingleCell_and_Metadata/ZurichTMA/
     metadata_file: Zuri_PatientMetadata.csv
-    marker_file: markers/jackson-2020-markers-v3.yml
+    marker_file: markers/jackson-2020-markers-v4.yml
 
 ## Data config for Wagner 2019 cell
 wagner:
     fcs_dir: data-raw/wagner-2019/fcs_files
     sample_file: data-raw/wagner-2019/wagner-2019-samples.csv
-    marker_file: markers/wagner-2019-markers-v2.yml
+    marker_file: markers/wagner-2019-markers-v4.yml
 
 schapiro:
     sample_txt: data-raw/schapiro-2017/samples.txt
@@ -33,3 +33,40 @@ schapiro:
 
 lin_cycif:
     marker_file: markers/lin_cycif-markers.yml
+
+
+## Fake celltypes:
+fake_celltypes:
+    basel:
+        'CD3+Keratin+':
+            - pan Cytokeratin
+            - CD3
+        'CD20+CDH1+':
+            - CD20
+            - E-Cadherin
+        'CK5+VIM+':
+            - Cytokeratin 5
+            - Vimentin
+    zurich1:
+        'CD3+Keratin+':
+            - pan Cytokeratin
+            - CD3
+        'CD20+CDH1+':
+            - CD20
+            - E-Cadherin
+        'CK5+VIM+':
+            - Cytokeratin 5
+            - Vimentin
+    wagner:
+        'CD3+Keratin+':
+            - panK
+            - CD3
+        'CK5+VIM+':
+            - K5
+            - Vimentin
+    schapiro:
+        'CD68+CDH1+':
+            - CD68
+            - E-cadherin
+
+                    
