@@ -1,4 +1,4 @@
-#!/usr/local/bin/Rscript
+#!/usr/local/bin/Rscript 
 library(ggplot2)
 library(dplyr)
 library(devtools)
@@ -12,7 +12,9 @@ rds <- args[1]
 a <- as.numeric(args[2])
 output_dir <- args[3]
 
-tsne <- readRDS(rds) %>% sample_frac(1)
+tsne <- readRDS(rds) %>% sample_frac(1) %>% mutate(cohort = as.character(cohort))
+
+tsne$cohort[tsne$cohort == "Zurich1"] <- "Zurich"
 
 ### [SAVE PLOT AS PDF] #####
 # save as png

@@ -11,7 +11,7 @@ library(devtools)
 devtools::load_all("~/taproom/")
 
 ### [FUNCTIONS] ####
-get_celltypes <- function(prob_mat, thresh = 0.7) {
+get_celltypes <- function(prob_mat, thresh = 0.5) {
   if(is.data.frame(prob_mat)) {
     prob_mat <- as.matrix(prob_mat)
   }
@@ -64,7 +64,7 @@ assignIdentity <- function(raw.sce, types, states, dimReduct = F){
     as.data.frame()
   rownames(types_mat) <- types$X1
   
-  assignments <- get_celltypes(types_mat) %>% as.data.frame()
+  assignments <- get_celltypes(types_mat, thresh = 0.5) %>% as.data.frame()
   colnames(assignments) <- "cell_type"
   assignments$id <- rownames(assignments)
   

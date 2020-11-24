@@ -84,6 +84,13 @@ for element in gsva_assignments_reports_tmp_spec:
 
 #out_dict = {cohort: [f for f in out_perm if cohort in f] for cohort in reduced_cohort_list}
 
+robustness_alluvials = []
+robustness_alluvials_tmp = [expand(output_dir_fig + "robustness/GSVA-robustness-alluv_{cohort}_{method}_{clusters}_{markers}.pdf", 
+cohort = reduced_cohort_list, method = [m], clusters = conditions[m], markers = markers_gsva) for m in conditions.keys()]
+#cohort = 'wagner', method = "FlowSOM", clusters = "k7", markers = "specified-markers")
+for element in robustness_alluvials_tmp:
+    robustness_alluvials.extend(element)
+
 
 alternate_approaches_output = {
     'sces': expand(output_path + "sces/{cohort}_sce.rds", cohort = cohort_list),
@@ -100,10 +107,10 @@ alternate_approaches_output = {
     'ClusterX_analysis_report_all': expand(output_dir_reports + "ClusterX-analysis-{cohort}-all_markers.html", cohort = cohort_list),
     'ClusterX_clusters_output_all': expand(output_dir_results + "ClusterX_clusters_{cohort}_all_markers_default.csv", cohort = cohort_list),
 
-    # # Analysis
+    # # # Analysis
     'Alluvial': alluvialPDF,
-    # 'ExpressionHeatmaps': expressionPDF,
-    # 'statesBoxPlots': statesBoxPDF,
+    # # 'ExpressionHeatmaps': expressionPDF,
+    # # 'statesBoxPlots': statesBoxPDF,
 
     'Other_approaches_report': expand(output_dir_reports + "Approaches-comparison-{cohort}.html", cohort = cohort_list),
     'Other_approaches_heatmaps': expand(output_dir_results + "Assessment-individual-heatmap-{cohort}.csv", cohort = cohort_list),
@@ -111,15 +118,15 @@ alternate_approaches_output = {
 
     'final_benchmark': output_dir_reports + "Final-approaches-comparison.html",
     'final_benchmark_heatmap': output_dir_fig + "Final_benchmarking_heatmap.pdf",
-    # 'GSVA_csv_all': gsva_robustness_all,
-    # 'GSVA_html_all': gsva_assignments_reports_all,
-    # 'GSVA_csv_spec': gsva_robustness_spec,
-    # 'GSVA_html_spec': gsva_assignments_reports_spec,
+    'GSVA_csv_all': gsva_robustness_all,
+    'GSVA_html_all': gsva_assignments_reports_all,
+    #'GSVA_csv_spec': gsva_robustness_spec,
+    #'GSVA_html_spec': gsva_assignments_reports_spec,
     #'GSVA_html': expand(output_dir_reports + "GSVA_{markers_rem}_{cohort}.html", cohort = reduced_cohort_list, markers_rem = markers_removal),
     #'GSVA_csv': expand(output_dir_results + "Other_approaches_GSVA_{markers_rem}_{cohort}.csv", cohort = reduced_cohort_list, markers_rem = markers_removal),
 
-    #'GSVA_robust': expand(output_dir_fig + "robustness/other_approaches/Other_methods_robustness_{cohort}.pdf", cohort = reduced_cohort_list)
-    #'GSVA_robust': out_dict.values()
+    #'GSVA_robust': robustness_alluvials,
+    #'Astir-robustness': expand(output_dir_fig + "Astir-robustness-{cohort}.pdf", cohort = reduced_cohort_list)
 }
 
 rule create_sces: 
@@ -456,10 +463,6 @@ rule GSVA_specified_markers:
         "markers_rem = '{wildcards.markers_rem}', output = '" + output_dir_results + "' ))\" "
 
 
-
-print([expand(output_dir_results + "GSVA-robustness-alluv_{cohort}_{method}_{clusters}_{markers}_{{markers_rem}}.csv", 
-cohort = reduced_cohort_list, method = [m], clusters = conditions[m], markers = markers_gsva) for m in conditions.keys()])
-
 rule GSVA_create_alluvs:
     input:
         none_rem = output_dir_results + "GSVA-Other-methods-robustness_{cohort}_{method}_{clusters}_{markers}_None.csv",
@@ -471,43 +474,5 @@ rule GSVA_create_alluvs:
         output_dir_fig + "robustness/GSVA-robustness-alluv_{cohort}_{method}_{clusters}_{markers}.pdf"
 
     shell:
-        "Rscript pipeline/clustering-comparison/robustness_alluvials.R {input.none_rem} {input.stromal_rem} {input.strom_macr_rem} {input.strom_macr_end_rem} "
-        "{wildcards.cohort} {wildcards.method} {wildcards.clusters} {wildcards.markers} " + output_dir_fig + "robustness/"
-# Still need to define clusters here
-
-# GSVA_csv_f = []
-# GSVA_csv = [expand(output_dir_results + "Other_approaches_GSVA_{rem}_{cohort}.csv", rem = markers_removal, cohort = reduced_cohort_list)]
-# for element in GSVA_csv:
-#     GSVA_csv_f.extend(element)
-
-# print(GSVA_csv_f)
-
-# gsva_dict = {cohort: [f for f in GSVA_csv_f if cohort in f] for cohort in reduced_cohort_list}
-# print(gsva_dict)
-
-
-# out_perm = []
-#out_tmp = [expand(output_dir_fig + "robustness/other_approaches/Other_methods_robustness_{method}_{markers}_{clusters}_{cohort}.pdf", 
-#method = [m], markers = markers_spec, cohort = reduced_cohort_list, clusters = conditions[m]) for m in conditions.keys()]
-# for element in out_tmp:
-# 	out_perm.extend(element)
-
-# #print(out_tmp)
-# #print("============")
-
-# out_dict = {cohort: [f for f in out_perm if cohort in f] for cohort in reduced_cohort_list}
-# print(out_dict.values())
-
-# rule GSVA_alluvials:
-#     input:
-#         gsva_assignments = lambda wildcards: gsva_dict[wildcards.cohort]
-#         method = tmp_methods
-
-#     output:
-#         output_dir_fig + "robustness/other_approaches/Other_methods_robustness_{wildcards.method}_{cohort}.pdf"
-#         output_dir_fig + "robustness/other_approaches/Other_methods_robustness_{cohort}.pdf"
-#         out_dict.values()
-
-#     shell:
-#         "Rscript pipeline/clustering-comparison/Other_methods_robustness_alluvials.R {input.gsva_assignments} "
-#         "{input.method} {wildcards.cohort} " + output_dir_fig + "robustness/other_approaches/"
+        "Rscript pipeline/clustering-comparison/Other_methods_robustness_alluvials.R {input.none_rem} {input.stromal_rem} {input.strom_macr_rem} {input.strom_macr_end_rem} "
+        "{wildcards.cohort} {wildcards.method} {wildcards.clusters} {wildcards.markers} " + output_dir_fig + "robustness/" 

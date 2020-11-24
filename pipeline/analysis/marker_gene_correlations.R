@@ -11,7 +11,7 @@ library(reshape2)
 devtools::load_all("../taproom/")
 
 ### [FUNCTIONS] ####
-get_celltypes <- function(prob_mat, thresh = 0.7) {
+get_celltypes <- function(prob_mat, thresh = 0.5) {
   if(is.data.frame(prob_mat)) {
     prob_mat <- as.matrix(prob_mat)
   }
@@ -64,7 +64,7 @@ assignIdentity <- function(raw.sce, types, states, dimReduct = F){
     as.data.frame()
   rownames(types_mat) <- types$X1
   
-  assignments <- get_celltypes(types_mat) %>% as.data.frame()
+  assignments <- get_celltypes(types_mat, thresh = 0.5) %>% as.data.frame()
   colnames(assignments) <- "cell_type"
   assignments$id <- rownames(assignments)
   
@@ -176,11 +176,13 @@ cohort <- args[4]
 #cohort <- "schapiro"
 output_dir <- args[5]
 
-if(cohort == "lin_cycif"){
-  thresh <- 0.7
-}else{
-  thresh <- 0.7
-}
+# if(cohort == "lin_cycif"){
+#   thresh <- 0.7
+# }else{
+#   thresh <- 0.7
+# }
+
+thresh <- 0.5
 
 # read in data 
 sce <- readRDS(cells)
@@ -222,12 +224,12 @@ if(cohort == "basel" | cohort == "zurich1"){
 }else if(cohort == "schapiro"){
   protein.order <- c("CD68", "E-cadherin", "EpCAM", "Cytokeratin7", "Cytokeratin8-18",
                      "Vimentin", "Fibronectin")
-  correct_names <- c("CD68", "E-cadherin", "EpCAM", "Cytokeratin 7", "Cytokeratin 8/18",
+  correct_names <- c("CD68", "E-Cadherin", "EpCAM", "Cytokeratin 7", "Cytokeratin 8/18",
                      "Vimentin", "Fibronectin")
   title <- "Schapiro"
 }else if(cohort == "lin_cycif"){
   protein.order <- c("Vimentin", "E_Cadherin", "Keratin")
-  correct_names <- c("Vimentin", "E Cadherin", "Keratin")
+  correct_names <- c("Vimentin", "E-Cadherin", "Keratin")
 
   title <- "Lin"
 }
@@ -235,7 +237,7 @@ if(cohort == "basel" | cohort == "zurich1"){
 unknown.mat <- unknown.sce[, protein.order]
 assigned.mat <- assigned.sce[, protein.order]
 
-if(cohort == "wagner" | cohort == "schapiro" | cohort == "lin-cycif"){
+if(cohort == "wagner" | cohort == "schapiro" | cohort == "lin_cycif"){
   colnames(unknown.mat) <- correct_names
   colnames(assigned.mat) <- correct_names
   protein.order <- correct_names
@@ -254,11 +256,10 @@ correlations <- rbind(unknown.cor, assigned.cor)
 x_labels <- levels(correlations$Var2)
 y_labels <- levels(correlations$Var1)
 
-pdf(paste0(output_dir, "expression_correlation_", cohort, ".pdf"), height = 10, width = 9)
+pdf(paste0(output_dir, "expression_correlation_", cohort, ".pdf"), height = 9.5, width = 9)
 correlations %>% 
   ggplot(aes(as.numeric(Var2), as.numeric(Var1), fill = r)) +
   geom_tile(color = "white") +
-  ggtitle(title) +
   scale_fill_gradient2(low="#6D9EC1",mid="white",high="#E46726", 
                        midpoint = 0, limits=c(-1,1), name = "Pearson\nCorrelation  ") +
   labs(y = "Unknown and Other cell types", x = "Assigned cell types") +
@@ -267,11 +268,10 @@ correlations %>%
                      breaks = 1:length(x_labels), labels = x_labels) +
   scale_y_continuous(position = "left", expand=c(0,0), sec.axis = dup_axis(),
                      breaks = 1:length(y_labels), labels = y_labels) +
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
-                                   size = 20, hjust = 1),
-        axis.text.y = element_text(size = 20),
-        axis.title=element_text(size=20),
-        plot.title = element_text(size=26),
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, size = 24, hjust = 1),
+        axis.text.y = element_text(size = 24),
+        axis.title=element_text(size=30),
+        plot.title = element_text(size=40),
         axis.text.x.top = element_blank(),
         axis.ticks.x.top = element_blank(),
         axis.text.y.right = element_blank(),
@@ -279,8 +279,10 @@ correlations %>%
         axis.title.x.bottom = element_blank(), # remove titles
         axis.title.y.left = element_blank(),
         axis.ticks = element_blank(),
-        legend.position = "bottom",
-        legend.key.width = unit(1,"cm")) +
+        legend.position = "top",
+        legend.key.width = unit(2,"cm"),
+        legend.title=element_text(size=25),
+        legend.text=element_text(size=22))
   coord_fixed()
 dev.off()
 

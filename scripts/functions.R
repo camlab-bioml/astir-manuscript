@@ -28,7 +28,7 @@ createSCE <- function(path){
   sce
 }
 
-assignIdentity <- function(raw.sce, types, states, dimReduct = F, thresh = 0.7){
+assignIdentity <- function(raw.sce, types, states, dimReduct = F, thresh = 0.5){
   #### REad in data
   # raw.sce <- "output/v4/zurich1_subset/zurich1_subset_sce.rds"
   # types <- "output/v4/zurich1_subset/zurich1_subset_assignments_type.csv"

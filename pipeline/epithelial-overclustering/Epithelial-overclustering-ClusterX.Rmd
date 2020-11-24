@@ -58,8 +58,8 @@ ClusterX$method <- "ClusterX"
 ClusterX$params <- paste(params$markers, "Default", sep = "_")
 ClusterX$percent_epithelial <- percent_luminal
 write.csv(ClusterX, file = paste0(params$output_results, 
-                                  "Epithelial_overclustering_ClusterX_clusters_",
-                                  params$markers, "_default.csv"),
+                                  "Epithelial_overclustering_ClusterX_clusters-",
+                                  params$markers, "-default-", percent_luminal, ".csv"),
           col.names = T, row.names = F, sep = ",")
 
 ```

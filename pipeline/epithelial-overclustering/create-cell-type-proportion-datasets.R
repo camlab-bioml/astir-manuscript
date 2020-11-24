@@ -2,11 +2,12 @@
 
 library(tidyverse)
 library(devtools)
+library(DelayedArray)
 devtools::load_all("../taproom/")
 
 args <- commandArgs(trailingOnly = TRUE)
 astir_assignments <- args[1]
-percentage_luminal <- args[2]
+percentage_luminal <- as.numeric(args[2])
 output_dir <- args[3]
 
 # Read in data & remove other, Unknown & basal cells
@@ -31,7 +32,7 @@ cell_number_per_sample <- min_cells * cell_type_number
 get_cell_names <- function(type, number){
   wagner_assignments %>% 
     filter(cell_type == type) %>% 
-    slice(1:number) %>% 
+    dplyr::slice(1:number) %>% 
     rownames_to_column("cell_ID") %>%
     pull("cell_ID")
 }
@@ -48,7 +49,7 @@ create_sample <- function(percent_luminal){
   # Create subset of non luminal cells
   other_cells <- lapply(cell_types_wout_luminal, get_cell_names, number = other_no) %>% 
     bind_cols()
-  colnames(other_cells) <- cell_types_no_luminal
+  colnames(other_cells) <- cell_types_wout_luminal
   
   other_cells <- other_cells %>% 
     pivot_longer(everything(), names_to = "type", values_to = "cell_id")
@@ -63,7 +64,7 @@ create_sample <- function(percent_luminal){
 
 
 luminal_99 <- create_sample(percentage_luminal)
-write_csv(luminal_99, file = paste0(output_dir, "luminal_", percentage_luminal, ".csv"))
+write_csv(luminal_99, paste0(output_dir, "luminal-", percentage_luminal, ".csv"))
 
 # luminal_80 <- create_sample(0.8)
 # write_csv(luminal_80, file = "output/chipmunk/results/epithelial_overclustering/luminal_80.csv")

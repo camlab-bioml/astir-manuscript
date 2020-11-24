@@ -104,7 +104,7 @@ gsva <- get_enrichment(cells, final_markers, paste(markers_remove, collapse = "-
 ```{r}
 method <- unique(gsva$method)
 
-if(cohort == "basel" & grepl('specified', csvs)){
+if(cohort == "basel" & grepl('specified', csvs) & grepl('ClusterX', csvs)){
   method <- "ClusterX-specified_markers_default"
 }
 

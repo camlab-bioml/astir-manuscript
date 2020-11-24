@@ -22,7 +22,9 @@ output_dir <- args[9]
 rem <- bind_rows(rem_none, rem_stromal, rem_macrophages, rem_endothelial) %>% 
   mutate(condition = factor(condition, levels = c("None", "Stromal", 
                                                  "Stromal-Macrophage",
-                                                 "Stromal-Macrophage-Endothelial")))
+                                                 "Stromal-Macrophage-Endothelial"))) %>%
+  mutate(cell_type = ifelse(cell_type == "T cell", "T cells", cell_type)) %>%
+  mutate(cell_type = ifelse(cell_type == "B cell", "B cells", cell_type))
 
 keep_cells <- rem %>% filter(condition == "None") %>% 
   filter(cell_type == "Stromal" | 
@@ -32,15 +34,15 @@ keep_cells <- rem %>% filter(condition == "None") %>%
 
 
 # Plot
-pdf(paste0(output_dir, "Other-methods-robustness-", method, "_", cohort, ".pdf"), height = 3, width = 6.75)
+pdf(paste0(output_dir, "GSVA-robustness-alluv_", cohort, "_", method, "_", clusters, "_", markers, ".pdf"), height = 4.3, width = 8.5)
 rem %>% filter(id %in% keep_cells) %>% 
   mutate(condition = str_replace_all(condition, "-", "\n")) %>%
   ggplot(aes(x = condition, stratum = cell_type, alluvium = id, 
              fill = cell_type)) +
-  geom_stratum(fill = "grey", color = "black") +
+  geom_stratum(color = "black", alpha = 0.5) +
   stat_flow() + 
   labs(y = "Cells", x = "Cell type(s) for which markers were removed",
-       fill = "Assigned Cell type") +
+       fill = "Assigned\ncell type") +
   scale_x_discrete(expand = c(0,0)) +
   scale_y_discrete(expand = c(0,0)) +
   scale_fill_manual(values = jackson_basel_colours()) +

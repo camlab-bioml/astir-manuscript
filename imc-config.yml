@@ -1,5 +1,5 @@
 
-version: v6
+version: chipmunk
 
 astir_opts:
     max_epochs: 400

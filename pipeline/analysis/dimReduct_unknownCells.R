@@ -7,7 +7,7 @@ library(DelayedArray)
 library(ggplot2)
 
 ### define functions ####
-get_celltypes <- function(prob_mat, thresh = 0.7) {
+get_celltypes <- function(prob_mat, thresh = 0.5) {
   if(is.data.frame(prob_mat)) {
     prob_mat <- as.matrix(prob_mat)
   }

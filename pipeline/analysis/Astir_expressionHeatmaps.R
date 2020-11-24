@@ -16,11 +16,7 @@ markers <- read_markers(args[3])
 cohort <- args[4]
 output_dir <- args[5]
 
-if(cohort == "lin_cycif"){
-    thresh <- 0.5
-}else{
-    thresh <- 0.7
-}
+thresh <- 0.5
 
 sce <- readRDS(cells)
 type$cell_type <- get_celltypes(select(type, -X1), thresh) 

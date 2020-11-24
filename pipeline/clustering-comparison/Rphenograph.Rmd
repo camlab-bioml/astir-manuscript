@@ -40,7 +40,7 @@ if(params$cohort == "lin_cycif"){
   thresh <- 0.7
 }
 
-# read in data 
+# read in data
 sce <- readRDS(params$cells)
 type <- read_csv(params$celltypes)
 
