@@ -1,0 +1,105 @@
+---
+title: "Rphenograph different cell type proportions"
+author: "Michael Geuenich"
+date: "November 25, 2020"
+output: html_document
+params:
+  markers: "all_markers"
+  cells: "output/chipmunk/sces/wagner_sce.rds"
+  cellSubset: "output/chipmunk/results/epithelial_overclustering/luminal_20.csv" 
+  markers_list: ""
+  output_results: ""
+  percent_luminal: ""
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = '~/imc-2020/')
+library(tidyverse)
+library(devtools)
+library(SingleCellExperiment)
+library(cytofkit)
+devtools::load_all('~/taproom/')
+```
+
+
+```{r}
+cell_subset <- read_csv(params$cellSubset)
+
+sce <- readRDS(params$cells)[,cell_subset$cell_id]
+
+percent_luminal <- params$percent_luminal
+```
+
+
+Clustering
+```{r}
+if(params$markers == "all_markers"){
+  imc.data <- t(logcounts(sce))
+}else if(params$markers == "specified_markers"){
+  markers <- read_markers(params$markers_list)
+  
+  imc.data <- t(logcounts(sce[unique(unlist(markers$cell_types)),]))
+}
+```
+
+```{r}
+# Find clusters using different methods
+imc.pheno.cluster.k20 <- cytof_cluster(xdata = imc.data, method = "Rphenograph",
+                                   Rphenograph_k = 20)
+imc.pheno.cluster.k30 <- cytof_cluster(xdata = imc.data, method = "Rphenograph",
+                                   Rphenograph_k = 30)
+imc.pheno.cluster.k40 <- cytof_cluster(xdata = imc.data, method = "Rphenograph",
+                                   Rphenograph_k = 40)
+imc.pheno.cluster.k50 <- cytof_cluster(xdata = imc.data, method = "Rphenograph",
+                                   Rphenograph_k = 50)
+
+# Add newly defined clusters to sc data
+sce$phenograph.k20 <- imc.pheno.cluster.k20
+sce$phenograph.k30 <- imc.pheno.cluster.k30
+sce$phenograph.k40 <- imc.pheno.cluster.k40
+sce$phenograph.k50 <- imc.pheno.cluster.k50
+```
+
+
+```{r}
+phenograph.k20 <- sce %>% colData() %>% as.data.frame() %>% select(id, "phenograph.k20")
+rownames(phenograph.k20) <- c()
+phenograph.k20$method <- "Phenograph"
+phenograph.k20$params <- paste(params$markers, "k20", sep = "_")
+phenograph.k50$percent_epithelial <- percent_luminal
+write.csv(phenograph.k20, file = paste0(params$output_results, 
+                                        "Epithelial_overclustering_Phenograph_clusters-",
+                                        params$markers, "-k20-", percent_luminal, ".csv"),
+          col.names = T, row.names = F, sep = ",")
+
+phenograph.k30 <- sce %>% colData() %>% as.data.frame() %>% select(id, "phenograph.k30")
+rownames(phenograph.k30) <- c()
+phenograph.k30$method <- "Phenograph"
+phenograph.k30$params <- paste(params$markers, "k30", sep = "_")
+phenograph.k50$percent_epithelial <- percent_luminal
+write.csv(phenograph.k30, file = paste0(params$output_results, 
+                                        "Epithelial_overclustering_Phenograph_clusters-",
+                                        params$markers, "-k30-", percent_luminal, ".csv"),
+          col.names = T, row.names = F, sep = ",")
+
+phenograph.k40 <- sce %>% colData() %>% as.data.frame() %>% select(id, "phenograph.k40")
+rownames(phenograph.k40) <- c()
+phenograph.k40$method <- "Phenograph"
+phenograph.k40$params <- paste(params$markers, "k40", sep = "_")
+phenograph.k50$percent_epithelial <- percent_luminal
+write.csv(phenograph.k40, file = paste0(params$output_results, 
+                                        "Epithelial_overclustering_Phenograph_clusters-",
+                                        params$markers, "-k40-", percent_luminal, ".csv"),
+          col.names = T, row.names = F, sep = ",")
+
+phenograph.k50 <- sce %>% colData() %>% as.data.frame() %>% select(id, "phenograph.k50")
+rownames(phenograph.k50) <- c()
+phenograph.k50$method <- "Phenograph"
+phenograph.k50$params <- paste(params$markers, "k50", sep = "_")
+phenograph.k50$percent_epithelial <- percent_luminal
+write.csv(phenograph.k50, file = paste0(params$output_results, 
+                                        "Epithelial_overclustering_Phenograph_clusters-",
+                                        params$markers, "-k50-", percent_luminal, ".csv"),
+          col.names = T, row.names = F, sep = ",")
+```
