@@ -1,10 +1,28 @@
 
 
 cell_states:
-    proliferation:
-        - Ki-67
-    EMT:
-        - Twist
+    HALLMARK_TGF_BETA_SIGNALING:
+        - b-catenin
+        - E-cadherin
+    HALLMARK_APOPTOSIS:
+        - b-catenin
+        - CD44
+        - Cytokeratin8-18
+        - Her2
+    HALLMARK_ESTROGEN_RESPONSE_EARLY:
+        - CD44
+        - Cytokeratin8-18
+    HALLMARK_ESTROGEN_RESPONSE_LATE:
+        - CD44
+        - E-cadherin
+    HALLMARK_COMPLEMENT:
+        - Fibronectin
+        - GATA3
+    HALLMARK_EPITHELIAL_MESENCHYMAL_TRANSITION:
+        - CD44
+        - Fibronectin
+        - SMA
+        - Vimentin
 
 cell_types:
     Epithelial (luminal):

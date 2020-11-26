@@ -7,7 +7,10 @@ spatial_output = {
     'reports': expand(output_path + "spatial/spatial_report_{dataset}.html", dataset=['basel','zurich1']),
     'kaplan_meier': output_path + "figures/spatial/km.pdf",
     'pathway_fig': output_path + "figures/spatial/pathway_fig.pdf",
-    'spatial_heatmap': output_path + "figures/spatial/heatmap.pdf"
+    'spatial_heatmap': output_path + "figures/spatial/heatmap.pdf",
+    'summarized_expression':  expand(output_path + "spatial/summarized-expression-{cohort}.tsv", cohort=['basel','zurich1']),
+    'cells_counted': expand(output_path + "spatial/cells-counted-{cohort}.tsv",  cohort=['basel','zurich1']),
+    'pathologist_plot': output_path + "figures/spatial/pathologist.pdf"
 }
 
 rule calc_dists:
@@ -25,6 +28,22 @@ rule calc_dists:
         "--marker_yaml {input.markers} "
         "--core {wildcards.core} "
         "--output_csv {output}"
+
+rule summarize_expression:
+    params:
+        input_dir=output_path + "{cohort}_processed/"
+    input:
+        assignments=output_path + "astir_assignments/{cohort}_astir_assignments.csv",
+    output:
+        se=output_path + "spatial/summarized-expression-{cohort}.tsv",
+        cells_counted = output_path + "spatial/cells-counted-{cohort}.tsv"
+    shell:
+        "Rscript pipeline/spatial/summarize-expression.R "
+        "--input_dir {params.input_dir} "
+        "--input_assignments {input.assignments} "
+        "--output_tsv {output.se} "
+        "--output_cells_counted {output.cells_counted} "
+
 
 rule dist_report:
     params:
@@ -63,19 +82,29 @@ rule spatial_figures:
         basel=output_path + "spatial/rds_output_basel.rds",
         zurich1=output_path + "spatial/rds_output_zurich1.rds",
         basel_metadata=config['basel']['base_dir']+ config['basel']['metadata_file'],
+        zurich1_metadata=config['zurich1']['base_dir'] + config['zurich1']['metadata_file'],
+        basel_expression=output_path + "spatial/summarized-expression-basel.tsv",
+        zurich1_expression=output_path + "spatial/summarized-expression-zurich1.tsv",
+        cells_counted_basel =  output_path + "spatial/cells-counted-basel.tsv"
     output:
         html=output_path + "spatial/spatial_figures.html",
         kaplan_meier = output_path + "figures/spatial/km.pdf",
         pathway_fig = output_path + "figures/spatial/pathway_fig.pdf",
         spatial_heatmap = output_path + "figures/spatial/heatmap.pdf",
+        pathologist = output_path + "figures/spatial/pathologist.pdf",
     shell:
         "Rscript -e \"Sys.setenv(RSTUDIO_PANDOC='/home/ltri/campbell/share/software/pandoc-2.9.2.1/bin'); "
         "rmarkdown::render('pipeline/spatial/spatial-figures.Rmd',   "
         "output_file='{output.html}', "
         "params=list(basel_output='{input.basel}', "
+        "basel_expression='{input.basel_expression}', "
+        "zurich1_expression='{input.zurich1_expression}', "
         "zurich1_output='{input.zurich1}', "
         "basel_metadata='{input.basel_metadata}', "  
+        "zurich1_metadata='{input.zurich1_metadata}', "  
         "kaplan_meier='{output.kaplan_meier}', "
+        "pathologist_plot='{output.pathologist}', "
+        "cells_counted_basel='{input.cells_counted_basel}', "
         "pathway_fig='{output.pathway_fig}', "      
         "spatial_heatmap='{output.spatial_heatmap}'), "
         "knit_root_dir='{params.curr_dir}', "

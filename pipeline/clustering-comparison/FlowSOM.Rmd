@@ -34,12 +34,6 @@ source("~/imc-2020/scripts/functions.R")
 
 First read in all sc data and assign cell type
 ```{r message=F, warning=F}
-if(params$cohort == "lin_cycif"){
-  thresh <- 0.5
-}else{
-  thresh <- 0.7
-}
-
 # read in data 
 sce <- readRDS(params$cells)
 type <- read_csv(params$celltypes)
@@ -55,7 +49,9 @@ colData(sce)["cell_type"] <- type[colnames(sce),]
 #sce <- sce$sce
 
 # Just for the time being until we switch everything over to remove s' at the end
-sce$cell_type[which(sce$cell_type == "B cell")] <- "B cells"
+if(params$cohort != "wagner"){
+  sce$cell_type[which(sce$cell_type == "B cell")] <- "B cells"
+}
 sce$cell_type[which(sce$cell_type == "T cell")] <- "T cells"
 ```
 
