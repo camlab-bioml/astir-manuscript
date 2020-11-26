@@ -1,0 +1,142 @@
+---
+title: "FlowSOM different cell type proportions"
+author: "Michael Geuenich"
+date: "November 26, 2020"
+output: html_document
+params:
+  markers: "all_markers"
+  cells: "output/chipmunk/sces/wagner_sce.rds"
+  cellSubset: "output/chipmunk/results/epithelial_overclustering/luminal_20.csv" 
+  markers_list: ""
+  output_results: ""
+  percent_luminal: ""
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = '~/imc-2020/')
+library(tidyverse)
+library(devtools)
+library(SingleCellExperiment)
+library(cytofkit)
+devtools::load_all('~/taproom/')
+```
+
+
+
+```{r}
+cell_subset <- read_csv(params$cellSubset)
+
+sce <- readRDS(params$cells)[,cell_subset$cell_id]
+
+percent_luminal <- params$percent_luminal
+```
+
+Clustering
+```{r}
+if(params$markers == "all_markers"){
+  imc.data <- t(logcounts(sce))
+}else if(params$markers == "specified_markers"){
+  markers <- read_markers(params$markers_list)
+  
+  imc.data <- t(logcounts(sce[unique(unlist(markers$cell_types)),]))
+}
+```
+
+```{r}
+# FlowSOM - just going with the number of cell types for now
+imc.flowSOM.cluster <- cytof_cluster(xdata = imc.data, method = "FlowSOM",
+                                     FlowSOM_k = 4)
+sce$FlowSOM.k4 <- imc.flowSOM.cluster
+
+imc.flowSOM.cluster <- cytof_cluster(xdata = imc.data, method = "FlowSOM",
+                                     FlowSOM_k = 7)
+sce$FlowSOM.k7 <- imc.flowSOM.cluster
+
+imc.flowSOM.cluster <- cytof_cluster(xdata = imc.data, method = "FlowSOM",
+                                     FlowSOM_k = 8)
+sce$FlowSOM.k8 <- imc.flowSOM.cluster
+
+#K 12
+imc.flowSOM.cluster <- cytof_cluster(xdata = imc.data, method = "FlowSOM",
+                                     FlowSOM_k = 12)
+sce$FlowSOM.k12 <- imc.flowSOM.cluster
+
+
+# K15
+imc.flowSOM.cluster <- cytof_cluster(xdata = imc.data, method = "FlowSOM",
+                                     FlowSOM_k = 15)
+sce$FlowSOM.k15 <- imc.flowSOM.cluster
+
+
+#K 20
+imc.flowSOM.cluster <- cytof_cluster(xdata = imc.data, method = "FlowSOM",
+                                     FlowSOM_k = 20)
+sce$FlowSOM.k20 <- imc.flowSOM.cluster
+```
+
+Write out the files as csv's.
+```{r eval=params$create_csv}
+flowSOM_k4 <- sce %>% colData() %>% as.data.frame() %>% select(id, "FlowSOM.k4")
+rownames(flowSOM_k4) <- c()
+flowSOM_k4$method <- "FlowSOM"
+flowSOM_k4$params <- paste(params$markers, "k4", sep = "_")
+flowSOM_k4$percent_epithelial <- percent_luminal
+write.csv(flowSOM_k4, file = paste0(params$output_results, 
+                                    "Epithelial_overclustering_FlowSOM_clusters-",
+                                        params$markers, "-k4-", percent_luminal, ".csv"),
+          col.names = T, row.names = F, sep = ",")
+
+
+flowSOM_k7 <- sce %>% colData() %>% as.data.frame() %>% select(id, "FlowSOM.k7")
+rownames(flowSOM_k7) <- c()
+flowSOM_k7$method <- "FlowSOM"
+flowSOM_k7$params <- paste(params$markers, "k7", sep = "_")
+flowSOM_k7$percent_epithelial <- percent_luminal
+write.csv(flowSOM_k7, file = paste0(params$output_results, 
+                                    "Epithelial_overclustering_FlowSOM_clusters-",
+                                        params$markers, "-k7-", percent_luminal, ".csv"),
+          col.names = T, row.names = F, sep = ",")
+
+flowSOM_k8 <- sce %>% colData() %>% as.data.frame() %>% select(id, "FlowSOM.k8")
+rownames(flowSOM_k8) <- c()
+flowSOM_k8$method <- "FlowSOM"
+flowSOM_k8$params <- paste(params$markers, "k8", sep = "_")
+flowSOM_k8$percent_epithelial <- percent_luminal
+write.csv(flowSOM_k8, file = paste0(params$output_results, 
+                                    "Epithelial_overclustering_FlowSOM_clusters-",
+                                        params$markers, "-k8-", percent_luminal, ".csv"),
+          col.names = T, row.names = F, sep = ",")
+
+flowSOM_k12 <- sce %>% colData() %>% as.data.frame() %>% select(id, "FlowSOM.k12")
+rownames(flowSOM_k12) <- c()
+flowSOM_k12$method <- "FlowSOM"
+flowSOM_k12$params <- paste(params$markers, "k12", sep = "_")
+flowSOM_k12$percent_epithelial <- percent_luminal
+write.csv(flowSOM_k12, file = paste0(params$output_results, 
+                                    "Epithelial_overclustering_FlowSOM_clusters-",
+                                        params$markers, "-k12-", percent_luminal, ".csv"),
+          col.names = T, row.names = F, sep = ",")
+
+flowSOM_k15 <- sce %>% colData() %>% as.data.frame() %>% select(id, "FlowSOM.k15")
+rownames(flowSOM_k15) <- c()
+flowSOM_k15$method <- "FlowSOM"
+flowSOM_k15$params <- paste(params$markers, "k15", sep = "_")
+flowSOM_k15$percent_epithelial <- percent_luminal
+write.csv(flowSOM_k15, file = paste0(params$output_results, 
+                                    "Epithelial_overclustering_FlowSOM_clusters-",
+                                        params$markers, "-k15-", percent_luminal, ".csv"),
+          col.names = T, row.names = F, sep = ",")
+
+flowSOM_k20 <- sce %>% colData() %>% as.data.frame() %>% select(id, "FlowSOM.k20")
+rownames(flowSOM_k20) <- c()
+flowSOM_k20$method <- "FlowSOM"
+flowSOM_k20$params <- paste(params$markers, "k20", sep = "_")
+flowSOM_k20$percent_epithelial <- percent_luminal
+write.csv(flowSOM_k20, file = paste0(params$output_results, 
+                                    "Epithelial_overclustering_FlowSOM_clusters-",
+                                        params$markers, "-k20-", percent_luminal, ".csv"),
+          col.names = T, row.names = F, sep = ",")
+
+```
+
