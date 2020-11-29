@@ -25,6 +25,7 @@ wagner:
     fcs_dir: data-raw/wagner-2019/fcs_files
     sample_file: data-raw/wagner-2019/wagner-2019-samples.csv
     marker_file: markers/wagner-2019-markers-v4.yml
+    markers_imbalance: markers/wagner-2019-markers-imbalance.yml
 
 schapiro:
     sample_txt: data-raw/schapiro-2017/samples.txt
@@ -33,6 +34,10 @@ schapiro:
 
 lin_cycif:
     marker_file: markers/lin_cycif-markers.yml
+
+keren:
+    marker_file: markers/keren-2018-markers-v1.yml
+    samples_file: data-raw/keren-samples.txt
 
 
 ## Fake celltypes:

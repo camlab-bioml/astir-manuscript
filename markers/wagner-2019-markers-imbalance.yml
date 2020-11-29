@@ -1,0 +1,115 @@
+cell_types:
+  T cells: 
+    - "CD45"
+    - "CD3"
+#     - "Vimentin"
+  Macrophage:
+    - "CD45"
+    - "CD68"
+#     - "Vimentin"
+  # B cells:
+  #   - "CD24"
+  #   - "CD45"
+  #   - "Vimentin"
+  Endothelial:
+    - "CD31"
+    - "CD49f"
+    - "Vimentin"
+  Epithelial (luminal):
+    - "ECadherin"
+    - "EpCAM"
+    - "panK"
+    - "K7"
+    - "K8K18"
+  Stromal:
+    - "SMA"
+    - "Vimentin"
+
+cell_states:
+  HALLMARK_HYPOXIA:
+  - BCL2
+  - EGFR
+  HALLMARK_APOPTOSIS:
+  - CD44
+  - K8K18
+  - HER2
+  HALLMARK_ESTROGEN_RESPONSE_EARLY:
+  - CD44
+  - K8K18
+  - cMYC
+  - AR
+  - BCL2
+  HALLMARK_ESTROGEN_RESPONSE_LATE:
+  - CD44
+  - BCL2
+  - ECadherin
+  HALLMARK_ANDROGEN_RESPONSE:
+  - K8K18
+  - AKT
+  HALLMARK_PROTEIN_SECRETION:
+  - K8K18
+  - EGFR
+  HALLMARK_APICAL_JUNCTION:
+  - PTEN
+  - CD31
+  - ECadherin
+  - EGFR
+  - CD45
+  HALLMARK_PI3K_AKT_MTOR_SIGNALING:
+  - PTEN
+  - AKT
+  - EGFR
+  HALLMARK_E2F_TARGETS:
+  - cMYC
+  - p53
+  - Survivin
+  - EZH2
+  - Ki67
+  HALLMARK_EPITHELIAL_MESENCHYMAL_TRANSITION:
+  - CD44
+  - FAP
+  - SMA
+  - Vimentin
+  HALLMARK_GLYCOLYSIS:
+  - CD44
+  - cMET
+  - EGFR
+  HALLMARK_UV_RESPONSE_DN:
+  - PTEN
+  - cMYC
+  - HER2
+  - cMET
+  HALLMARK_IL2_STAT5_SIGNALING:
+  - CD44
+  - cMYC
+  - BCL2
+  - CD49f
+  HALLMARK_ALLOGRAFT_REJECTION:
+  - AKT
+  - EGFR
+  - HLADR
+  - CD3
+  - CD45
+
+    
+    
+#cell_states:
+#  Cell cycle (mitosos):
+#    - "CyclinB1"
+#  Proliferation:
+#    -  "Ki67" 
+#  Apoptosis inhibition:
+#    - "BCL2"
+#    - "Survivin"
+#  Hypoxia:
+#    - "CA9"
+    
+# Uncharacterized:
+# # "H3K27me3"                "PTEN"           "CD44"               
+# #             "cMYC"                                
+# #                   "AR"             
+# #           "p53"           
+# #                  "PRB"                            
+# # "EZH2"                  "cMET"           "AKT"            "ERa"           
+# #                            "EGFR"                      
+# #   "HLADR"          "clCASP3clPARP1" 
