@@ -95,7 +95,7 @@ if(max.clusters > 10){
 
 # Create colour palette
 gradient<- colorRampPalette(c("#FFEBEE", "#F50025"))
-pal <- c("#FFB60A", "#648FFF", 
+pal <- c("#FFDA1F", "#00D262", 
          gradient(max.clusters - 1))
 names(pal) <- c(0:(max.clusters - 1), "10+")
 

@@ -44,10 +44,10 @@ get_cell_names <- function(type, number){
 cell_types_wout_luminal <- c("Epithelial (other)", "Macrophage", "Stromal", 
                              "Endothelial", "T cells", "B cells", "Epithelial (basal)")
 
-create_sample <- function(percent_luminal){
+create_sample <- function(percentage_luminal){
   # Calculate number of cells for each type
-  luminal_no <- cell_number_per_sample * percent_luminal
-  other_no <- round((cell_number_per_sample - luminal_no) / 4)
+  luminal_no <- cell_number_per_sample * percentage_luminal
+  other_no <- round((cell_number_per_sample - luminal_no) / length(cell_types_wout_luminal))
   
   # Create subset of non luminal cells
   other_cells <- lapply(cell_types_wout_luminal, get_cell_names, number = other_no) %>% 
@@ -65,32 +65,5 @@ create_sample <- function(percent_luminal){
 }
 
 
-luminal_99 <- create_sample(percent_luminal)
-write_csv(luminal_99, file = paste0(output_dir, "luminal-", percentage_luminal, ".csv"))
-
-
-# luminal_80 <- create_sample(0.8)
-# write_csv(luminal_80, file = "output/chipmunk/results/epithelial_overclustering/luminal_80.csv")
-# 
-# luminal_70 <- create_sample(0.7)
-# write_csv(luminal_70, file = "output/chipmunk/results/epithelial_overclustering/luminal_70.csv")
-# 
-# luminal_60 <- create_sample(0.6)
-# write_csv(luminal_60, file = "output/chipmunk/results/epithelial_overclustering/luminal_60.csv")
-# 
-# luminal_50 <- create_sample(0.5)
-# write_csv(luminal_50, file = "output/chipmunk/results/epithelial_overclustering/luminal_50.csv")
-# 
-# luminal_40 <- create_sample(0.4)
-# write_csv(luminal_40, file = "output/chipmunk/results/epithelial_overclustering/luminal_40.csv")
-# 
-# luminal_30 <- create_sample(0.3)
-# write_csv(luminal_30, file = "output/chipmunk/results/epithelial_overclustering/luminal_30.csv")
-# 
-# luminal_20 <- create_sample(0.2)
-# write_csv(luminal_20, file = "output/chipmunk/results/epithelial_overclustering/luminal_20.csv")
-
-
-
-
-
+luminal_99 <- create_sample(percentage_luminal)
+write_csv(luminal_99, paste0(output_dir, "luminal-", percentage_luminal, ".csv")
