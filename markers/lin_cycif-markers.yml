@@ -6,9 +6,11 @@ cell_types:
     - Keratin
   Stromal:
     - Vimentin
-  # Treg:
-  #   - CD45
-  #   - CD4
-  # Other immune:
-  #   - CD45
+  Treg:
+    - CD45
+    - CD4
+    - Vimentin
+  Other immune:
+    - CD45
+    - Vimentin
 
