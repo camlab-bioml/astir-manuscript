@@ -1,17 +1,19 @@
 
 import os
 
+reports_datasets = datasets + ["keren"]
+
 reports_output = {
-    'expression_html': expand(output_path + "reports/expression_heatmap_{dataset}.html", dataset=datasets),
-    'expression_figs': expand(output_path + "figures/supplementary/expression_heatmap_{dataset}.pdf", dataset=datasets)
+    'expression_html': expand(output_path + "reports/expression_heatmap_{dataset}.html", dataset=reports_datasets),
+    'expression_figs': expand(output_path + "figures/supplementary/expression_heatmap_{dataset}.pdf", dataset=reports_datasets)
 }
 
-rule subset_expression_reports:
+rule expression_reports:
     params:
         curr_dir = os.getcwd(),
+        input_rds_dir=output_path + "{dataset}_processed/"
     input:
-        subset_exprs=output_path + "{dataset}_subset/{dataset}_subset_sce.rds",
-        subset_assignments=output_path + "{dataset}_subset/{dataset}_subset_assignments_type.csv",
+        assignments=output_path + "astir_assignments/{dataset}_astir_assignments.csv",
         marker_yml = lambda wildcards: config[wildcards.dataset]['marker_file'],
     output:
         html=output_path + "reports/expression_heatmap_{dataset}.html",
@@ -21,9 +23,9 @@ rule subset_expression_reports:
         "rmarkdown::render('pipeline/reports/subset-expression-figures.Rmd', "
         "output_file='{output.html}', "
         "params=list(marker_yml='{input.marker_yml}', "
-        "subset_exprs='{input.subset_exprs}', "
+        "input_rds_dir='{params.input_rds_dir}', "
         "expression_pdf='{output.figure}', "
-        "subset_assignments='{input.subset_assignments}'), "
+        "assignments='{input.assignments}'), "
         "knit_root_dir='{params.curr_dir}', "
         "output_dir='{params.curr_dir}/{output_path}/reports/'"
         ")\"  "

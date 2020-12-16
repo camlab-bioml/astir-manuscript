@@ -2,9 +2,9 @@
 title: "Subset expression figures"
 output: html_document
 params:
-  marker_yml: "../../markers/schapiro-markers.yml"
-  subset_exprs: "../../output/v6/schapiro_subset/schapiro_subset_sce.rds"
-  subset_assignments: "../../output/v6/schapiro_subset/schapiro_subset_assignments_type.csv"
+  marker_yml: "../../markers/lin_cycif-markers.yml"
+  input_rds_dir: "../../output/squirrel/lin-cycif_processed/"
+  assignments: "../../output/squirrel/astir_assignments/lin_cycif_astir_assignments.csv"
   expression_pdf: "expression.pdf"
 ---
 
@@ -21,23 +21,60 @@ suppressPackageStartupMessages({
 
 devtools::load_all("/home/ltri/campbell/share/projects/taproom")
 ```
+```{r}
+# dir("../../markers")
+```
 
 
-
+NO LONGER SUBSET
 
 ```{r}
 markers <- read_markers(params$marker_yml)
 ```
 
 ```{r}
-sce <- readRDS(params$subset_exprs)
-subset_assignments <- read_csv(params$subset_assignments)
+rds_files <- dir(params$input_rds_dir, pattern="rds", full.names = TRUE)
+
+sces <- lapply(rds_files, function(f) {
+  s <- readRDS(f)
+  for(i in names(rowData(s))) {
+    rowData(s)[[ i ]] <- NULL
+  }
+  s
+})
+
+non_null_names <- which(!sapply(sces, is.null))
+sces <- sces[non_null_names]
+
+sce <- do.call("cbind", sces)
+```
+
+```{r}
+subset_assignments <- read_csv(params$assignments)
 sce <- sce[, subset_assignments$X1]
 ```
 
 ```{r}
 subset_assignments$X1 <- NULL
 sce$cell_type <- get_celltypes(subset_assignments)
+```
+
+```{r fig.width=25, fig.height = 6}
+ct_markers <- unique(unlist(markers$cell_types))
+heatmap_markers <- createHeatmap(sce[ct_markers,])
+draw(heatmap_markers)
+```
+
+```{r}
+pdf(params$expression_pdf, width = 20, height = 4)
+draw(heatmap_markers)
+dev.off()
+```
+
+
+```{r fig.width=25, fig.height = 6}
+heatmap <- createHeatmap(sce)
+draw(heatmap)
 ```
 
 
@@ -55,22 +92,5 @@ sce <- calculateQCMetrics(sce, exprs_values = "logcounts")
 hist(sce$total_logcounts, breaks = 100)
 ```
 
-```{r}
-ct_markers <- unique(unlist(markers$cell_types))
-heatmap_markers <- createHeatmap(sce[ct_markers,])
-draw(heatmap_markers)
-```
-
-```{r}
-pdf(params$expression_pdf, width = 8, height = 4)
-draw(heatmap_markers)
-dev.off()
-```
-
-
-```{r fig.width=8, fig.height = 6}
-heatmap <- createHeatmap(sce)
-draw(heatmap)
-```
 
 
