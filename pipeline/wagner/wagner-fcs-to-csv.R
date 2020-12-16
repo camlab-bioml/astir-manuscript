@@ -42,7 +42,7 @@ sce <- SingleCellExperiment(
 # logcounts(sce) <- log( assay(sce, 'raw_mc') + 1)
 # sce <- winsorize(sce, w_limits = c(0.01, 0.99))
 logcounts(sce) <- asinh( assay(sce, 'raw_imc') / 5 )
-sce <- winsorize(sce, w_limits = c(0, 0.999))
+# sce <- winsorize(sce, w_limits = c(0, 0.999))
 
 ## Add in information
 
@@ -60,7 +60,7 @@ plate <- str_sub(guid, plate_pos, plate_pos + 5) # plate pos is 6 chars long
 colData(sce)$plate <- plate
 
 sce <- calculateQCMetrics(sce, exprs_values = "logcounts")
-sce <- sce[, sce$total_logcounts > 55]
+# sce <- sce[, sce$total_logcounts > 55]
 
 
 ## Write SingleCellExperiment as rds
