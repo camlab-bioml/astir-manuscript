@@ -36,18 +36,17 @@ include: "pipeline/segmentation/segmentation.smk"
 rule all:
     input:
         asts_type.values(),
-        robustness_output.values(),
         wagner_output.values(),
         basel_output.values(),
         zurich1_output.values(),
         schapiro_output.values(),
         keren_output.values(),
         reports_output.values(),
-        # spatial_output.values(),
+        spatial_output.values(),
         lin_cycif_output.values(),
         segmentation_output.values(),
         imbalance_output.values(),
-
+        robustness_output.values(),
 
 rule run_astir_type:
     params:
