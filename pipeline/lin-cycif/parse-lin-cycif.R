@@ -5,6 +5,7 @@ suppressPackageStartupMessages({
   library(SingleCellExperiment)
   library(argparser)
   library(devtools)
+  library(matrixStats)
 })
 
 select <- dplyr::select
@@ -33,9 +34,12 @@ cd <- select(df, Area:Y)
 df <- select(df, -(Area:Y))
 expr_mat_raw <- t(as.matrix(df))
 
-# expr_mat <- t(apply(expr_mat_raw, 1, winsorize_one, c(0.01, 0.99)))
+expr_mat_raw <- t(apply(expr_mat_raw, 1, winsorize_one, c(0.01, 0.99)))
 
-expr_mat <- log(expr_mat_raw + 1)
+rm <- rowMins(expr_mat_raw)
+expr_mat_raw <- expr_mat_raw - rm # make minimum as zero
+
+expr_mat <- asinh(expr_mat_raw / 100)
 
 # expr_mat <- t( scale( t (expr_mat ), center = FALSE))
 
