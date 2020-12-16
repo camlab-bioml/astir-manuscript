@@ -170,6 +170,6 @@ ggplot(df_rank_mean, aes(x = cell_type, y = mean_rank, colour = overall_method, 
   theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
   scale_x_discrete(expand = c(0.1,0.1))
 
-pdf(snakemake@output[['pdf']], width = 10, height = 4.5)
+pdf(snakemake@output[['pdf']], width = 7.5, height = 4.5)
 print(last_plot())
 dev.off()
