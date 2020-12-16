@@ -16,7 +16,7 @@ def remove_punc(s):
     s = s.replace(" ", "")
     return s.translate(str.maketrans('', '', string.punctuation))
 
-cohorts = ['basel', 'zurich1', 'wagner', 'schapiro']
+cohorts = ['basel', 'zurich1', 'wagner', 'schapiro', 'keren']
 
 celltypes_to_remove = {}
 
@@ -192,7 +192,7 @@ rule parse_added_output_to_df:
         input_dir = output_path + "robustness/added/{cohort}"
     input:
         markers=lambda wildcards: config[wildcards.cohort]['marker_file'],
-        ass=lambda wildcards: reduced_assignments[wildcards.cohort],
+        ass=lambda wildcards: added_assignments[wildcards.cohort],
     output:
         output_path + "robustness/added/df_{cohort}.tsv",
     shell:
@@ -209,8 +209,8 @@ rule make_figs:
         input_dir_removed = output_path + "robustness/removed",
         output_path = output_path,
     input:
-        robustness_output['added_assignments'],
-        robustness_output['reduced_assignments'],
+        robustness_output['added_dfs'],
+        robustness_output['removed_dfs'],
     output:
         html=output_path + "robustness/robustness-figs.html",
         output_fig_removed=robustness_output['figure_removed'],

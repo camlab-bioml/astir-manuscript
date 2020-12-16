@@ -17,7 +17,7 @@ suppressPackageStartupMessages({
 })
 
 
-parser <- ArgumentParser(description = "Spatial locations for core")
+parser <- ArgumentParser(description = "")
 
 parser$add_argument('--marker_yml', type = 'character',
                     help='Marker yaml')
@@ -100,9 +100,8 @@ get_mean_for_th <- function(th, df, condition) {
 }
 
 
-thresholds <- seq(0.5, 0.95, 0.05)
+thresholds <- c(0.5, 0.7, 0.9, 0.99, 0.999)
 
-# conditions <- c("Endothelial", "Macrophage", "Stromal")
 
 mean_accs <- lapply(setdiff(conditions, "None"), function(cond) {
   map_dfr(thresholds, get_mean_for_th, df, cond)

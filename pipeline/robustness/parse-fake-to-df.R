@@ -75,7 +75,7 @@ get_prop_assigned <- function(cond, threshold, dfs) {
 }
 
 
-thresholds <- seq(0.5, 0.95, 0.05)
+thresholds <- c(0.5, 0.7, 0.9, 0.99, 0.999)
 
 dft <- lapply(thresholds, function(th) {
   map_dfr(conditions, get_prop_assigned, th, dfs)
