@@ -2,10 +2,10 @@
 title: "spatial-figures.Rmd"
 output: html_document
 params:
-  basel_output: ../../output/chipmunk/spatial/rds_output_basel.rds
-  zurich1_output: ../../output/chipmunk/spatial/rds_output_zurich1.rds
-  basel_expression: ../../output/chipmunk/spatial/summarized-expression-basel.tsv
-  zurich1_expression: ../../output/chipmunk/spatial/summarized-expression-zurich1.tsv
+  basel_output: ../../output/squirrel/spatial/rds_output_basel.rds
+  zurich1_output: ../../output/squirrel/spatial/rds_output_zurich1.rds
+  basel_expression: ../../output/squirrel/spatial/summarized-expression-basel.tsv
+  zurich1_expression: ../../output/squirrel/spatial/summarized-expression-zurich1.tsv
   basel_metadata: ../../data-raw/jackson-2020/SingleCell_and_Metadata/BaselTMA/Basel_PatientMetadata.csv
   zurich1_metadata: ../../data-raw/jackson-2020/SingleCell_and_Metadata/ZurichTMA/Zuri_PatientMetadata.csv
   cells_counted_basel: cells_counted_basel.tsv
@@ -100,7 +100,7 @@ draw(ht, heatmap_legend_side = "bottom", annotation_legend_side = "bottom")
 
 
 ```{r}
-pdf(params$spatial_heatmap, width = 8, height = 6)
+pdf(params$spatial_heatmap, width = 11, height = 7)
 draw(ht, heatmap_legend_side = "bottom", annotation_legend_side = "bottom",
      padding = unit(c(2, 2, 2, 15), "mm"))
 dev.off()
@@ -279,7 +279,7 @@ df_surv2 <- mutate(df_surv2,
 
 ```{r}
 save.image(paste0(params$kaplan_meier, "-img.rds"))
-# load("../../output/chipmunk/figures/spatial/km.pdf-img.rds")
+# load("../../output/squirrel/figures/spatial/km.pdf-img.rds")
 ```
 
 ```{r}
