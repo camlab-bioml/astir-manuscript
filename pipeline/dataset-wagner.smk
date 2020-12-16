@@ -12,9 +12,9 @@ tmp_wagner_output = expand(output_path +
 
 wagner_output = {
     'rds_csv': tmp_wagner_output,
-    'loom': output_path + "looms/wagner.loom",
-    'subset': output_path + "wagner_subset/wagner_subset_expression.csv",
-    'subset_sce': output_path + "wagner_subset/wagner_subset_sce.rds"
+    'loom': output_path + "looms/wagner.loom"# ,
+    # 'subset': output_path + "wagner_subset/wagner_subset_expression.csv"# ,
+    # 'subset_sce': output_path + "wagner_subset/wagner_subset_sce.rds"
 }
 
 
@@ -42,37 +42,37 @@ rule wagner_to_loom:
 
 
 
-rule subset_wagner:
-    input:
-        csvs=expand(output_path + "wagner_processed/{core}.csv", core=wagner_samples),
-        assignments_type=output_path + "astir_assignments/wagner_astir_assignments.csv",
-        assignments_state=output_path + "astir_assignments/wagner_astir_assignments_state.csv",
-    output:
-        assignments_type=output_path + "wagner_subset/wagner_subset_assignments_type.csv",
-        assignments_state=output_path + "wagner_subset/wagner_subset_assignments_state.csv",
-        expression=output_path + "wagner_subset/wagner_subset_expression.csv"
-    run:
-        import pandas as pd
+# rule subset_wagner:
+#     input:
+#         csvs=expand(output_path + "wagner_processed/{core}.csv", core=wagner_samples),
+#         assignments_type=output_path + "astir_assignments/wagner_astir_assignments.csv",
+#         assignments_state=output_path + "astir_assignments/wagner_astir_assignments_state.csv",
+#     output:
+#         assignments_type=output_path + "wagner_subset/wagner_subset_assignments_type.csv",
+#         assignments_state=output_path + "wagner_subset/wagner_subset_assignments_state.csv",
+#         expression=output_path + "wagner_subset/wagner_subset_expression.csv"
+#     run:
+#         import pandas as pd
 
-        dfs = [pd.read_csv(f,index_col=0) for f in input.csvs]
-        df = pd.concat(dfs)
+#         dfs = [pd.read_csv(f,index_col=0) for f in input.csvs]
+#         df = pd.concat(dfs)
 
-        df = df.sample(n=config['n_subsample'],
-        replace=False,random_state=1234)
+#         df = df.sample(n=config['n_subsample'],
+#         replace=False,random_state=1234)
 
-        subset_cell_ids = list(df.index)
+#         subset_cell_ids = list(df.index)
 
-        df.to_csv(output.expression)
+#         df.to_csv(output.expression)
 
-        ## Subsample type assignments
-        assignments = pd.read_csv(input.assignments_type, index_col=0)
-        assignments_subset = assignments.loc[subset_cell_ids]
-        assignments_subset.to_csv(output.assignments_type)
+#         ## Subsample type assignments
+#         assignments = pd.read_csv(input.assignments_type, index_col=0)
+#         assignments_subset = assignments.loc[subset_cell_ids]
+#         assignments_subset.to_csv(output.assignments_type)
 
-        ## Subsample state assignments
-        assignments = pd.read_csv(input.assignments_state, index_col=0)
-        assignments_subset = assignments.loc[subset_cell_ids]
-        assignments_subset.to_csv(output.assignments_state)
+#         ## Subsample state assignments
+#         assignments = pd.read_csv(input.assignments_state, index_col=0)
+#         assignments_subset = assignments.loc[subset_cell_ids]
+#         assignments_subset.to_csv(output.assignments_state)
 
 rule subset_wagner_sce:
     params:

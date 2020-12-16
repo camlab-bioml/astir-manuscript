@@ -4,12 +4,16 @@ schapiro_samples = pd.read_csv(config['schapiro']['sample_txt'], header=None)
 schapiro_samples = list(schapiro_samples[schapiro_samples.columns[0]])
 
 
+## Alternative quantifications
+schapiro_alt_mask_samples = ['Cy1x5_32', 'Cy1x6_33', 'Cy1x8_35']
+schapiro_users = ['Catena', 'Jackson', 'Schulz']
+
 
 schapiro_output = {
     'csv_rds': expand(output_path + "schapiro_processed/{sample}.csv", sample = schapiro_samples),
     'loom': output_path + "looms/schapiro.loom",
-    'subset': output_path + "schapiro_subset/schapiro_subset_expression.csv",
-    'subset_sce': output_path + "schapiro_subset/schapiro_subset_sce.rds"
+    'alt_mask_csvs': expand(output_path + "schapiro_processed_alt_mask/{alt_s}_{user}.csv",
+    alt_s=schapiro_alt_mask_samples,user=schapiro_users)
 }
 
 
@@ -24,6 +28,18 @@ rule read_schapiro_2017:
         "--input_csv {input.csv} "
         "--output_sce {output.sce} "
         "--output_csv {output.csv} "
+
+rule read_schapiro_alt_masks:
+    input:
+        csv = config['schapiro']['data_dir'] + "alt-masks/{alt_s}_{user}.csv"
+    output:
+        sce=output_path + "schapiro_processed_alt_mask/{alt_s}_{user}.rds",
+        csv=output_path + "schapiro_processed_alt_mask/{alt_s}_{user}.csv",
+    shell:
+        "Rscript pipeline/schapiro-2017/schapiro-to-rds.R "
+        "--input_csv {input.csv} "
+        "--output_sce {output.sce} "
+        "--output_csv {output.csv} "      
 
 
 rule schapiro_to_loom:
