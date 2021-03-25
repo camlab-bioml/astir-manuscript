@@ -8,7 +8,7 @@ params:
   zurich1_expression: ../../output/squirrel/spatial/summarized-expression-zurich1.tsv
   basel_metadata: ../../data-raw/jackson-2020/SingleCell_and_Metadata/BaselTMA/Basel_PatientMetadata.csv
   zurich1_metadata: ../../data-raw/jackson-2020/SingleCell_and_Metadata/ZurichTMA/Zuri_PatientMetadata.csv
-  cells_counted_basel: cells_counted_basel.tsv
+  cells_counted_basel: ../../output/squirrel/spatial/cells-counted-basel.tsv
   kaplan_meier: km.pdf
   pathway_fig: pw.pdf
   spatial_heatmap: hm.pdf
@@ -389,7 +389,7 @@ ggplot(df_ast_path, aes(x = pct_stromal, y = 100 * astir_stromal)) +
     x = "% Stromal cells\n(pathologist estimate)",
     y = "% Stromal cells\n(astir estimate)",
     subtitle = paste("Correlation =", roundn(t1$estimate, 2), "\np = ", format(t1$p.value,digits=3))
-  )
+  ) 
 
 stromal_plot <- last_plot()
 ```
@@ -407,6 +407,7 @@ ggplot(df_ast_path, aes(x = pct_inflammatory, y = 100 * astir_inflammatory)) +
     y = "% T, B, and macrophage cells\n(astir estimate)",
     subtitle = paste("Correlation =", roundn(t2$estimate, 2), "\np = ", format(t2$p.value, digits=3))
   )
+
 inf_plot <- last_plot()
 ```
 
@@ -437,8 +438,82 @@ print(last_plot())
 dev.off()
 ```
 
+# Hmm
+
+```{r}
+spat_score <- basel_output$spatial_score
+```
+
+```{r}
+df <- enframe(spat_score, "core", "spatial_score") %>% 
+  inner_join(cells_counted_basel, by = "core")
+
+df
+```
+
+```{r}
+ggplot(df, aes(x = spatial_score, y = frac_cells)) +
+  geom_point() +
+  facet_wrap(~ cell_type, scales = "free_y")
+```
+```{r}
+df_t <- filter(df, cell_type == "T cells") %>% 
+  mutate(
+    core_type = case_when(
+      spatial_score > median(spatial_score) & frac_cells > median(frac_cells) ~ "Hot-mixed",
+      spatial_score < median(spatial_score) & frac_cells > median(frac_cells) ~ "Hot-compart",
+      TRUE ~ "cold"
+    )
+  )
+
+ggplot(df_t, aes(x = spatial_score, y = frac_cells, colour = core_type)) +
+  geom_point()
+```
 
 
+
+
+```{r}
+df_surv <- filter(mdata, diseasestatus == "tumor") %>% 
+  select(PID, core, Patientstatus, DFSmonth, OSmonth, grade, contains("status")) %>% 
+  mutate(vital_status = grepl("death", Patientstatus)) 
+```
+
+```{r}
+df_surv <- inner_join(df_surv, df_t, by = "core")
+```
+
+
+
+````{r}
+fit1 <- survfit(Surv(DFSmonth, vital_status) ~ core_type, data = filter(df_surv, grade == "1"))
+fit2 <- survfit(Surv(DFSmonth, vital_status) ~ core_type, data = filter(df_surv, grade == "2"))
+fit3 <- survfit(Surv(DFSmonth, vital_status) ~ core_type, data = filter(df_surv, grade == "3"))
+```
+
+```{r}
+plt1 <- ggsurvplot(fit1, 
+           pval = surv_pvalue(fit1)[1,4],
+           palette = "Set1",
+           legend.title = NA,
+           conf.int=TRUE)
+
+plt2 <- ggsurvplot(fit2, 
+           pval = surv_pvalue(fit2)[1,4],
+           palette = "Set1",
+           legend.title = NA,
+           conf.int=TRUE)
+
+plt3 <- ggsurvplot(fit3, 
+           pval = surv_pvalue(fit3)[1,4],
+           palette = "Set1",
+           legend.title = NA,
+           conf.int=TRUE)
+```
+
+```{r}
+cowplot::plot_grid(plt1$plot, plt2$plot, plt3$plot, nrow = 1)
+```
 
 
 

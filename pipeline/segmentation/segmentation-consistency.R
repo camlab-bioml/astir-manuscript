@@ -37,10 +37,30 @@ df <- map_dfr(schapiro_alt_mask_samples, get_df_for_sample)
 
 ggplot(df, aes(x = cell_type, fill = user)) +
   geom_bar(position="dodge") +
-  facet_wrap(~ sample)
+  facet_wrap(~ sample) + 
+  scale_fill_brewer(palette = "Dark2", name = "Segmenter") +
+  astir_paper_theme() +
+  coord_flip() +
+  labs(x = "Cell type", y = "Number of cells")
 
 # stop("Done")
 
+
+# Cy1x6_33 ----------------------------------------------------------------
+
+filter(df, sample == "Cy1x6_33") %>% 
+  ggplot(aes(x = cell_type, fill = user)) +
+  geom_bar(position="dodge") + 
+  scale_fill_brewer(palette = "Dark2", name = "Segmenter") +
+  astir_paper_theme() +
+  coord_flip() +
+  labs(x = "Cell type", y = "Number of cells",
+       title = "Cell types as inferred by Astir") +
+  theme(legend.position = "bottom")
+
+pdf(snakemake@output[['supp_pdf']], width=5,height=3)
+print(last_plot())
+dev.off()
 
 # Investigate Cy1x6_33 ----------------------------------------------------
 # 

@@ -5,7 +5,7 @@ params:
   output_fig_removed: "removed.pdf"
   output_fig_added: "added.pdf"
   markers: '../../markers/jackson-2020-markers-v3.yml'
-  input_dir: '../../output/zeropointone/robustness/'
+  input_dir: '../../output/zeropointone/robustness-no-subset/'
   thresh: 0.95
 ---
 
@@ -126,11 +126,11 @@ get_mean_for_th <- function(th, df) {
   stromal <- mean(stromal$cell_type %in% c("Other", "Unknown"))
   
   stromal_macrophage <- get_celltype_from_df("Stromal Macrophage", th, df) %>% 
-    filter(cell_id %in% c(initial_macrophage)) 
+    filter(cell_id %in% c(initial_stromal, initial_macrophage)) 
   stromal_macrophage <- mean(stromal_macrophage$cell_type %in% c("Other", "Unknown"))
   
   stromal_macrophage_endothelial <- get_celltype_from_df("Stromal Macrophage Endothelial", th, df) %>% 
-    filter(cell_id %in% c(initial_endothelial)) 
+    filter(cell_id %in% c(initial_stromal, initial_macrophage, initial_endothelial)) 
   stromal_macrophage_endothelial <- mean(stromal_macrophage_endothelial$cell_type %in% c("Other", "Unknown"))
   
   tcell1 <- get_celltype_from_df("Stromal only", th, df) %>% 

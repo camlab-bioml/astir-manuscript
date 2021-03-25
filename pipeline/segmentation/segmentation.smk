@@ -6,7 +6,8 @@ segmentation_output = {
         output_path + "schapiro_astir_assignments_alt_mask/assignments_{alt_s}_{user}.csv",
         alt_s=schapiro_alt_mask_samples,user=schapiro_users
     ),
-    'figure': output_path + "figures/segmentation/segmentation.pdf"
+    'figure': output_path + "figures/segmentation/segmentation.pdf",
+    'supplementary_figure': output_path + "figures/segmentation/segmentation-supplemenary.pdf"
 }
 
 
@@ -65,7 +66,8 @@ rule segmentation_figures:
     input: 
         segmentation_output['astir_assignments'],
     output:
-        pdf = segmentation_output['figure']
+        pdf = segmentation_output['figure'],
+        supp_pdf = segmentation_output['supplementary_figure']
     script:
         "segmentation-consistency.R"
 

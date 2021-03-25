@@ -4,8 +4,8 @@ output: html_document
 params:
   output_fig_removed: "removed.pdf"
   output_fig_added: "added.pdf"
-  markers: markers.yml
-  input_dir: '../../output/v5/robustness/'
+  markers: '../../markers/jackson-2020-markers-v3.yml'
+  input_dir: '../../output/zeropointone/robustness-no-subset/'
   thresh: 0.95
 ---
 
@@ -75,7 +75,7 @@ mat$X1 <- NULL
 read_to_mat <- function(f) {
   df <- read_csv(f)
   mat <- as.matrix(select(df, -X1))
-  celltypes <- get_celltypes(mat, thresh = params$thresh)
+  celltypes <- taproom::get_celltypes(mat, thresh = params$thresh)
 
   condition <- strsplit(f, "-")[[1]]
   condition <- condition[length(condition)]
@@ -160,7 +160,7 @@ print(table(ct))
 ```
 
 ```{r}
-print(mean(ct == "Unknown"))
+print(mean(ct %in% c("Unknown", "Other")))
 ```
 
 
@@ -174,7 +174,7 @@ print(table(ct))
 ```
 
 ```{r}
-print(mean(ct == "Unknown"))
+print(mean(ct %in% c("Unknown", "Other")))
 ```
 
 
@@ -189,7 +189,7 @@ print(table(ct))
 ```
 
 ```{r}
-print(mean(ct == "Unknown"))
+print(mean(ct %in% c("Unknown", "Other")))
 ```
 
 
@@ -205,7 +205,7 @@ added_csvs <- dir(params$input_dir, pattern = 'added*.*csv',
 read_to_mat <- function(f) {
   df <- read_csv(f)
   mat <- as.matrix(select(df, -X1))
-  celltypes <- get_celltypes(mat, thresh = params$thresh)
+  celltypes <- taproom::get_celltypes(mat, thresh = params$thresh)
 
   condition <- strsplit(f, "-")[[1]]
   condition <- condition[length(condition)]
@@ -272,4 +272,3 @@ pdf(params$output_fig_added, width = 5, height=3.5)
 print(last_plot())
 dev.off()
 ```
-
