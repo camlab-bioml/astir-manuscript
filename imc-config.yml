@@ -16,7 +16,6 @@ basel:
     marker_file: markers/jackson-2020-markers-v4.yml
     markers_imbalance: markers/jackson-2020-markers-imbalance.yml
 
-
 zurich1:
     base_dir: data-raw/jackson-2020/SingleCell_and_Metadata/ZurichTMA/
     metadata_file: Zuri_PatientMetadata.csv
@@ -79,5 +78,3 @@ fake_celltypes:
         'CD8+Keratin6+':
             - CD8
             - Keratin6
-
-                

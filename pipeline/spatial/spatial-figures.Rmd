@@ -389,7 +389,7 @@ ggplot(df_ast_path, aes(x = pct_stromal, y = 100 * astir_stromal)) +
     x = "% Stromal cells\n(pathologist estimate)",
     y = "% Stromal cells\n(astir estimate)",
     subtitle = paste("Correlation =", roundn(t1$estimate, 2), "\np = ", format(t1$p.value,digits=3))
-  ) 
+  )
 
 stromal_plot <- last_plot()
 ```

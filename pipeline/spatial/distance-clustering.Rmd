@@ -229,6 +229,7 @@ celltype_assignments <- read_csv(params$celltype_assignments)
 ```
 
 ```{r, eval=FALSE}
+
 cell_names <- celltype_assignments$X1
 celltype_assignments$X1 <- NULL
 cell_types <- get_celltypes(celltype_assignments)
@@ -271,10 +272,12 @@ df_state <- group_by(s, core, state) %>%
   ungroup()
 ```
 
+
 ```{r, eval=FALSE}
 df_state <- enframe(spatial_score, "core", "spatial_score") %>% 
   inner_join(df_state, by = "core")
 ```
+
 
 ```{r, eval=FALSE}
 df_test <- group_by(df_state, state) %>% 

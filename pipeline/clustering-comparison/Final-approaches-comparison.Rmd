@@ -1,0 +1,296 @@
+---
+title: "Final approaches comparison"
+author: "Michael Geuenich"
+date: "June 27, 2020"
+output: html_document
+params:
+  basel: "../output/v4/results/Assessment-heatmap-basel.csv"
+  schapiro: ""
+  wagner: "../output/v4/results/Assessment-heatmap-wagner.csv"
+  zurich1: "../output/v4/results/Assessment-heatmap-zurich1.csv"
+  lin: ""
+  keren: ""
+  basel_indiv: ""
+  schapiro_indiv: ""
+  wagner_indiv: ""
+  zurich1_indiv: ""
+  lin_indiv: ""
+  keren_indiv: ""
+  output_dir: ""
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = '~/imc-2020/')
+library(cowplot)
+library(ggpubr)
+library(ComplexHeatmap)
+library(tidyverse)
+devtools::load_all('~/taproom/')
+```
+
+Read in data
+```{r}
+basel <- read_csv(params$basel) %>% 
+  mutate_if(colnames(.) != "score", as.factor) %>% 
+  column_to_rownames("X1")
+
+schapiro <- read_csv(params$schapiro) %>% 
+  mutate_if(colnames(.) != "score", as.factor) %>% 
+  column_to_rownames("X1")
+
+wagner <- read_csv(params$wagner) %>% 
+  mutate_if(colnames(.) != "score", as.factor) %>% 
+  column_to_rownames("X1")
+
+zurich1 <- read_csv(params$zurich1) %>% 
+  mutate_if(colnames(.) != "score", as.factor) %>% 
+  column_to_rownames("X1")
+
+lin <- read_csv(params$lin) %>% 
+  mutate_if(colnames(.) != "score", as.factor) %>% 
+  column_to_rownames("X1")
+```
+
+```{r fig.width=12, fig.height = 5.5}
+# Find largest level
+basel.max <- lapply(basel[basel %>% 
+              select(-score) %>% 
+              colnames], FUN = levels) %>% 
+  unlist() %>% 
+  as.numeric() %>% 
+  max()
+
+schapiro.max <- lapply(schapiro[schapiro %>% 
+              select(-score) %>% 
+              colnames], FUN = levels) %>% 
+  unlist() %>% 
+  as.numeric() %>% 
+  max()
+
+zurich1.max <- lapply(zurich1[zurich1 %>% 
+              select(-score) %>% 
+              colnames], FUN = levels) %>% 
+  unlist() %>% 
+  as.numeric() %>% 
+  max()
+
+wagner.max <- lapply(wagner[wagner %>% 
+              select(-score) %>% 
+              colnames], FUN = levels) %>% 
+  unlist() %>% 
+  as.numeric() %>% 
+  max()
+
+lin.max <- lapply(lin[lin %>% 
+              select(-score) %>% 
+              colnames], FUN = levels) %>% 
+  unlist() %>% 
+  as.numeric() %>% 
+  max()
+
+
+max.clusters <- max(basel.max, schapiro.max, zurich1.max, wagner.max, lin.max)
+if(max.clusters > 10){
+  max.clusters <- 10
+}
+
+
+# Create colour palette
+gradient<- colorRampPalette(c("#FFEBEE", "#F50025"))
+pal <- c("#FFDA1F", "#00D262", 
+         gradient(max.clusters - 1))
+names(pal) <- c(0:(max.clusters - 1), "10+")
+
+tooHigh <- as.character(c(0:9))
+
+# Create matrices to plot
+basel.mat <- basel %>%
+  select(-score) %>% 
+  as.matrix()
+
+basel.mat[!(basel.mat %in% tooHigh) & !is.na(basel.mat)] <- "10+"
+
+schapiro.mat <- schapiro %>%
+  select(-score) %>%
+  as.matrix()
+
+schapiro.mat[!(schapiro.mat %in% tooHigh)] <- "10+"
+
+zurich1.mat <- zurich1 %>%
+  select(-score) %>% 
+  as.matrix()
+
+zurich1.mat[!(zurich1.mat %in% tooHigh)] <- "10+"
+
+wagner.mat <- wagner %>% 
+  select(-score) %>% 
+  as.matrix()
+
+wagner.mat[!(wagner.mat %in% tooHigh)] <- "10+"
+
+lin.mat <- lin %>% 
+  select(-score) %>% 
+  as.matrix()
+
+lin.mat[!(lin.mat %in% tooHigh)] <- "10+"
+
+
+# Create heatmap annotations
+# define plotting order
+scores <- data.frame(basel$score, schapiro$score, zurich1$score, wagner$score, lin$score) 
+scores$mean <- rowMeans(scores[, 1:5])
+rownames(scores) <- rownames(basel)
+
+plottingOrder = scores %>% 
+  arrange(desc(mean)) %>% 
+  rownames()
+  
+# Annotations
+basel.ha = rowAnnotation(Score = anno_barplot(basel$score, 
+                                              gp = gpar(fill = "lightgrey")),
+                   width = unit(2, "cm"))
+schapiro.ha = rowAnnotation(Score = anno_barplot(schapiro$score,
+                                              gp = gpar(fill = "lightgrey")),
+                    width = unit(2, "cm"))
+wagner.ha = rowAnnotation(Score = anno_barplot(wagner$score, 
+                                              gp = gpar(fill = "lightgrey")),
+                   width = unit(2, "cm"))
+zurich1.ha = rowAnnotation(Score = anno_barplot(zurich1$score, 
+                                              gp = gpar(fill = "lightgrey")),
+                   width = unit(2, "cm"))
+
+lin.ha = rowAnnotation(Score = anno_barplot(lin$score, 
+                                            gp = gpar(fill = "lightgrey")),
+                   width = unit(2, "cm"))
+
+
+basel.hm <- Heatmap(basel.mat, col = pal,
+                    row_order = plottingOrder,
+                    right_annotation = basel.ha,
+                    column_title = "Basel",
+                    row_names_side = "left",
+                    row_names_max_width = unit(7, "cm"),
+                    name = "# clusters \nassigned to \ncell type")
+schapiro.hm <- Heatmap(schapiro.mat, col = pal,
+                      row_order = plottingOrder,
+                      right_annotation = schapiro.ha,
+                      show_heatmap_legend = F,
+                      column_title = "Schapiro",
+                      show_row_names = F)
+wagner.hm <- Heatmap(wagner.mat, col = pal,
+                     row_order = plottingOrder,
+                     right_annotation = wagner.ha,
+                     show_heatmap_legend = F,
+                     column_title = "Wagner",
+                     show_row_names = F)
+zurich1.hm <- Heatmap(zurich1.mat, col = pal,
+                      row_order = plottingOrder,
+                      right_annotation = zurich1.ha,
+                      show_heatmap_legend = F,
+                      column_title = "Zurich",
+                      show_row_names = F)
+lin.hm <- Heatmap(lin.mat, col = pal,
+                  row_order = plottingOrder,
+                  right_annotation = lin.ha,
+                  show_heatmap_legend = F,
+                  column_title = "Lin",
+                  show_row_names = F)
+
+basel.hm + schapiro.hm + wagner.hm + zurich1.hm + lin.hm
+```
+
+```{r}
+pdf(file = paste0(params$output_dir, "Final_benchmarking_heatmap.pdf"), width = 14, height = 6)
+  hm_list = basel.hm + schapiro.hm + wagner.hm + zurich1.hm + lin.hm
+  draw(hm_list, ht_gap = unit(0.5, "cm"))
+dev.off()
+```
+
+
+
+Create individual heatmaps
+```{r fig.width=45, fig.height=13}
+basel <- read_csv(params$basel_indiv)
+basel <- basel %>% 
+  mutate(method = str_replace(method, "_", "\n")) %>% 
+  mutate(method = str_replace(method, "_", "-")) %>% 
+  mutate(method = str_replace(method, "astir", "Astir"))
+
+schapiro <- read_csv(params$schapiro_indiv)
+schapiro <- schapiro %>% 
+  mutate(method = str_replace(method, "_", "\n")) %>% 
+  mutate(method = str_replace(method, "_", "-")) %>% 
+  mutate(method = str_replace(method, "astir", "Astir"))
+
+wagner <- read_csv(params$wagner_indiv)
+wagner <- wagner %>% 
+  mutate(method = str_replace(method, "_", "\n")) %>% 
+  mutate(method = str_replace(method, "_", "-")) %>% 
+  mutate(method = str_replace(method, "astir", "Astir"))
+
+zurich1 <- read_csv(params$zurich1_indiv)
+zurich1 <- zurich1 %>% 
+  mutate(method = str_replace(method, "_", "\n")) %>% 
+  mutate(method = str_replace(method, "_", "-")) %>% 
+  mutate(method = str_replace(method, "astir", "Astir"))
+
+lin <- read_csv(params$lin_indiv)
+lin <- lin %>% 
+  mutate(method = str_replace(method, "_", "\n")) %>% 
+  mutate(method = str_replace(method, "_", "-")) %>% 
+  mutate(method = str_replace(method, "astir", "Astir"))
+
+
+summary.heatmap.theme <- function(){
+  astir_paper_theme() +
+  theme(axis.text.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank())
+  #scale_color_discrete("Corresponds to cellytpe")
+  #scale_colour_discrete("Continents")
+}
+
+basel.hm <- basel %>% 
+  filter(!grepl("Other|Unknown", cluster)) %>% 
+  ggplot(aes(x = cluster, y = pathway, fill = thresh_score)) +
+  geom_tile() +
+  scale_fill_viridis_d() +
+  facet_wrap(~ method, scales = "free_x", nrow = 1) +
+  summary.heatmap.theme()
+
+schapiro.hm <- basel %>% 
+  filter(!grepl("Other|Unknown", cluster)) %>% 
+  ggplot(aes(x = cluster, y = pathway, fill = thresh_score)) +
+  geom_tile() +
+  scale_fill_viridis_d() +
+  facet_wrap(~ method, scales = "free_x", nrow = 1) +
+  summary.heatmap.theme()
+
+wagner.hm <- wagner %>% 
+  filter(!grepl("Other|Unknown", cluster)) %>% 
+  ggplot(aes(x = cluster, y = pathway, fill = thresh_score)) +
+  geom_tile() +
+  scale_fill_viridis_d() +
+  facet_wrap(~ method, scales = "free_x", nrow = 1) +
+  summary.heatmap.theme()
+
+zurich1.hm <- zurich1 %>% 
+  filter(!grepl("Other|Unknown", cluster)) %>% 
+  ggplot(aes(x = cluster, y = pathway, fill = thresh_score)) +
+  geom_tile() +
+  scale_fill_viridis_d() +
+  facet_wrap(~ method, scales = "free_x", nrow = 1) +
+  summary.heatmap.theme()
+
+lin.hm <- lin %>% 
+  filter(!grepl("Other|Unknown", cluster)) %>% 
+  ggplot(aes(x = cluster, y = pathway, fill = thresh_score)) +
+  geom_tile() +
+  scale_fill_viridis_d() +
+  facet_wrap(~ method, scales = "free_x", nrow = 1) +
+  summary.heatmap.theme()
+
+ggarrange(basel.hm, schapiro.hm, wagner.hm, zurich1.hm, lin.hm,
+          nrow = 5)
+```
