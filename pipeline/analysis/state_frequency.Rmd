@@ -1,0 +1,199 @@
+---
+title: "State frequency correlations"
+author: "Michael Geuenich"
+date: "August 18, 2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(devtools)
+library(DelayedArray)
+library(corrplot)
+library(ggpubr)
+devtools::load_all("../../../taproom/")
+```
+
+Load data
+```{r}
+basel_types <- read_csv("../../output/v6/astir_assignments/basel_astir_assignments.csv") 
+basel_types$cell_type <- get_celltypes(select(basel_types, -X1))
+basel_states <- read_csv("../../output/v6/astir_assignments/basel_astir_assignments_state.csv")
+basel_metadata <- read_csv("../../output/v4/basel_subset/basel_PatientMetadata.csv")
+
+zurich_types <- read_csv("../../output/v6/astir_assignments/zurich1_astir_assignments.csv") 
+zurich_types$cell_type <- get_celltypes(select(zurich_types, -X1))
+zurich_states <- read_csv("../../output/v6/astir_assignments/zurich1_astir_assignments_state.csv")
+zurich_metadata <- read_csv("../../output/v4/zurich1_subset/zurich1_PatientMetadata.csv")
+
+```
+
+```{r}
+basel_type_states <- full_join(select(basel_types, X1, cell_type), 
+                         basel_states, by = "X1") %>% 
+  dplyr::rename(core = X1) %>% 
+  mutate(core = sub("_[^_]+$", "", core))
+
+basel_cells_per_core <- basel_type_states %>% 
+  group_by(core, cell_type) %>% 
+  tally() %>% 
+  ungroup(cell_type) %>% 
+  mutate(freq = n/sum(n))
+
+
+basel_activation_freq <- left_join(basel_type_states, select(basel_cells_per_core, -n), by = c("core", "cell_type"))
+
+basel_pre_corrs <- basel_activation_freq %>% 
+  select(core, cell_type, mTOR_signalling, freq) %>% 
+  group_by(core, cell_type) %>% 
+  mutate(mTOR_mean = mean(mTOR_signalling)) %>% 
+  select(-mTOR_signalling) %>% 
+  distinct() %>% 
+  pivot_wider(names_from = cell_type, values_from = c(mTOR_mean, freq)) %>% 
+  ungroup()
+
+basel_pre_corrs %>% 
+  ggplot(aes(x = `freq_T cells`, y = `mTOR_mean_B cells`)) +
+  geom_point() +
+  stat_cor() +
+  ggtitle("Basel")
+
+basel_corrs <- basel_pre_corrs %>% 
+  select(-core) %>% 
+  cor(use="pairwise.complete.obs")
+
+
+zurich_type_states <- full_join(select(zurich_types, X1, cell_type), 
+                         zurich_states, by = "X1") %>% 
+  dplyr::rename(core = X1) %>% 
+  mutate(core = sub("_[^_]+$", "", core))
+
+zurich_cells_per_core <- zurich_type_states %>% 
+  group_by(core, cell_type) %>% 
+  tally() %>% 
+  ungroup(cell_type) %>% 
+  mutate(freq = n/sum(n))
+
+zurich_activation_freq <- left_join(zurich_type_states, select(zurich_cells_per_core, -n), by = c("core", "cell_type"))
+
+zurich_pre_corrs <- zurich_activation_freq %>% 
+  select(core, cell_type, mTOR_signalling, freq) %>% 
+  group_by(core, cell_type) %>% 
+  mutate(mTOR_mean = mean(mTOR_signalling)) %>% 
+  select(-mTOR_signalling) %>% 
+  distinct() %>% 
+  pivot_wider(names_from = cell_type, values_from = c(mTOR_mean, freq)) %>% 
+  ungroup()
+  
+zurich_pre_corrs %>% 
+  ggplot(aes(x = `freq_T cells`, y = `mTOR_mean_B cells`)) +
+  geom_point() +
+  stat_cor() +
+  ggtitle("Zurich")
+
+zurich_corrs <- zurich_pre_corrs %>% 
+  select(-core) %>% 
+  cor(use="pairwise.complete.obs")
+
+corr_order <- corrMatOrder(zurich_corrs, order = "alphabet")
+basel_corrs <- basel_corrs[corr_order, corr_order]
+zurich_corrs <- zurich_corrs[corr_order, corr_order]
+```
+
+```{r}
+basel_corrs2 <- basel_corrs %>% as.data.frame() %>% 
+  select(starts_with("freq_")) %>% filter(grepl("mTOR", rownames(.))) %>% 
+  select(-ends_with(c("Other", "Unknown"))) %>% 
+  filter(!grepl("Other|Unknown", rownames(.)))
+
+corrplot(as.matrix(basel_corrs2), title = "basel", mar=c(0,0,2,0))
+  
+  
+zurich_corrs2 <- zurich_corrs %>% as.data.frame() %>% 
+  select(starts_with("freq_")) %>% filter(grepl("mTOR", rownames(.))) %>% 
+  select(-ends_with(c("Other", "Unknown"))) %>% 
+  filter(!grepl("Other|Unknown", rownames(.)))
+corrplot(as.matrix(zurich_corrs2), title = "zurich", mar=c(0,0,2,0))
+```
+
+
+### Incorporate distances
+```{r}
+basel_dist <- read_csv("../../output/v6/spatial-locations/Basel_SC_locations.csv") %>% 
+  left_join(select(basel_types, X1, cell_type), by = c("id" = "X1")) %>% 
+  select(-c(ImageNumber, ObjectNumber, ObjectNumber_renamed))
+
+calc_dist <- function(x){
+  dist_mat <- basel_dist %>% 
+    filter(core == x) %>% 
+    select(starts_with("Location")) %>% 
+    as.matrix() %>% 
+    dist() %>% 
+    as.matrix()
+  
+  colnames(dist_mat) <- basel_dist %>% 
+    filter(core == x) %>% 
+    pull(cell_type)
+  
+  rownames(dist_mat) <- basel_dist %>% 
+    filter(core == x) %>% 
+    pull(id)
+  
+  dist_mat
+}
+
+core_distances <- lapply(unique(basel_dist$core[1:100]), calc_dist)
+names(core_distances) <- unique(basel_dist$core[1:100])
+```
+
+```{r}
+basel_T <- basel_dist %>% 
+  filter(cell_type == "T cells")
+
+basel_B <- basel_dist %>% 
+  filter(cell_type == "B cells")
+
+B_T_dist <- do.call(cbind.data.frame,Map(expand.grid,B=basel_B,T=basel_T))
+B_T_dist$core.B <- as.character(B_T_dist$core.B)
+B_T_dist$core.T <- as.character(B_T_dist$core.T)
+
+B_T_dist <- B_T_dist %>% filter(core.B == core.T) %>% select(-core.T)
+
+
+B_T_dist$dist <- sqrt((B_T_dist$Location_Center_X.B - B_T_dist$Location_Center_X.T)^2 +
+                      (B_T_dist$Location_Center_Y.B + B_T_dist$Location_Center_Y.T)^2)
+
+closest_B <- B_T_dist %>% 
+  #sample_frac(0.1) %>% 
+  group_by(id.B) %>% 
+  arrange(dist, by_group = TRUE) %>% 
+  filter(row_number()==1)
+
+closest_B <- left_join(closest_B, select(basel_states, X1, mTOR_signalling), by = c("id.B" = "X1"))
+
+closest_B %>% 
+  ggplot(aes(x = dist, y = mTOR_signalling)) +
+  geom_point() +
+  stat_cor()
+
+closest_B %>% 
+  mutate(class = ifelse(dist < median(.$dist), "low", "high")) %>% 
+  ggplot(aes(x = class, y = mTOR_signalling)) +
+  geom_boxplot()
+
+dist <- left_join(dist, select(basel_states, X1, mTOR_signalling), by = c("id.B" = "X1"))
+
+dist <- dist %>% mutate(class = ifelse(dist < median(dist), "low", "high"))
+
+ggplot(dist, aes(x = dist, fill = class)) +
+  geom_histogram()
+```
+
+
+```{r}
+
+
+```
+
+

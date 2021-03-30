@@ -1,0 +1,195 @@
+---
+title: "Example pathology SP43_115_X4Y8"
+output: html_document
+---
+
+```{r}
+suppressPackageStartupMessages({
+  library(cytomapper)
+  library(SingleCellExperiment)
+  library(dplyr)
+  library(tidyverse)
+  library(scater)
+  library(ComplexHeatmap)
+  library(devtools)
+  library(ggpubr)
+})
+
+devtools::load_all("../../../taproom")
+```
+
+
+```{r}
+assignments <- read_csv("../../output/v6/astir_assignments/basel_astir_assignments.csv")
+states <- read_csv("../../output/v6/astir_assignments/basel_astir_assignments_state.csv")
+
+assignments$cell_type <- taproom::get_celltypes(select(assignments, - X1))
+
+expr <- full_join(select(assignments, X1, cell_type), states, by = "X1")
+
+# Normalization function
+range01 <- function(x){(x - min(x)) / (max(x) - min(x))}
+```
+
+```{r}
+plot_mTOR <- function(rds, tiff, image, col = "mTOR"){
+  #rds <- "../../output/v6/basel_processed/BaselTMA_SP43_115_X4Y8.rds"
+  #tiff <- "../../data-raw/jackson-2020/OMEnMasks/Basel_Zuri_masks/BaselTMA_SP43_25.8kx22ky_10500x6500_8_20170928_114_115_X4Y8_262_a0_full_maks.tiff"
+  #image <- "SP43_115_X4Y8"
+  
+  sce <- readRDS(rds)
+  
+  norm <- expr %>% 
+    filter(X1 %in% colnames(sce)) %>% 
+    group_by(cell_type) %>% 
+    mutate(rescaled_mTOR = range01(mTOR_signalling)) %>% 
+    column_to_rownames("X1")
+  
+  norm$rescaled_mTOR[is.na(norm$rescaled_mTOR)] <- 0
+  
+  colData(sce)[c("cell_type", "mTOR_signalling", "rescaled_mTOR")] <- 
+    norm[colnames(sce), c("cell_type", "mTOR_signalling", "rescaled_mTOR")]
+  
+  cl <- loadImages(tiff, type="tiff", as.is=TRUE)
+  
+  mcols(cl) <- data.frame(img_id = image)
+  sce$img_id <- image
+  
+  if(col == "mTOR"){
+    plotCells(cl, sce, img_id = "img_id", cell_id = "ObjectNumber", 
+            exprs_values = "logcounts", colour_by = "mTOR_signalling",
+            colour = list(`mTOR_signalling` = viridis(100)))
+  }else{
+    plotCells(cl, sce, img_id = "img_id", cell_id = "ObjectNumber", 
+          exprs_values = "logcounts", colour_by = "cell_type",
+          colour = list(`cell_type` = jackson_basel_colours()))
+  }
+}
+
+plot_mTOR("../../output/v6/basel_processed/BaselTMA_SP43_115_X4Y8.rds",
+          "../../data-raw/jackson-2020/OMEnMasks/Basel_Zuri_masks/BaselTMA_SP43_25.8kx22ky_10500x6500_8_20170928_114_115_X4Y8_262_a0_full_maks.tiff",
+          "SP43_115_X4Y8")
+
+plot_mTOR("../../output/v6/basel_processed/BaselTMA_SP43_115_X4Y8.rds",
+          "../../data-raw/jackson-2020/OMEnMasks/Basel_Zuri_masks/BaselTMA_SP43_25.8kx22ky_10500x6500_8_20170928_114_115_X4Y8_262_a0_full_maks.tiff",
+          "SP43_115_X4Y8", "cell_type")
+
+plot_mTOR("../../output/v6/basel_processed/BaselTMA_SP43_243_X13Y3.rds",
+          "../../data-raw/jackson-2020/OMEnMasks/Basel_Zuri_masks/BaselTMA_SP43_10.3kx13.7ky_6500x8000_6_20170928_43_243_X13Y3_42_a0_full_maks.tiff",
+          "SP43_243_X13Y3")
+plot_mTOR("../../output/v6/basel_processed/BaselTMA_SP43_243_X13Y3.rds",
+          "../../data-raw/jackson-2020/OMEnMasks/Basel_Zuri_masks/BaselTMA_SP43_10.3kx13.7ky_6500x8000_6_20170928_43_243_X13Y3_42_a0_full_maks.tiff",
+          "SP43_243_X13Y3", "cell_type")
+
+
+plot_mTOR("../../output/v6/basel_processed/BaselTMA_SP43_75_X2Y5.rds",
+          "../../data-raw/jackson-2020/OMEnMasks/Basel_Zuri_masks/BaselTMA_SP43_29.3kx15.5ky_7000x8000_3_20170928_64_75_X2Y5_165_a0_full_maks.tiff",
+          "SP43_75_X2Y5")
+
+plot_mTOR("../../output/v6/basel_processed/BaselTMA_SP43_75_X2Y5.rds",
+          "../../data-raw/jackson-2020/OMEnMasks/Basel_Zuri_masks/BaselTMA_SP43_29.3kx15.5ky_7000x8000_3_20170928_64_75_X2Y5_165_a0_full_maks.tiff",
+          "SP43_75_X2Y5", "cell_type")
+
+```
+
+
+Need to match cell ids after they were renamed:
+
+
+```{r}
+cl <- loadImages("../../data-raw/jackson-2020/OMEnMasks/Basel_Zuri_masks/BaselTMA_SP43_25.8kx22ky_10500x6500_8_20170928_114_115_X4Y8_262_a0_full_maks.tiff", 
+                 type="tiff",
+                 as.is=TRUE)
+```
+
+```{r}
+mcols(cl) <- data.frame(img_id = "SP43_115_X4Y8")
+sce$img_id <- "SP43_115_X4Y8"
+colData(sce)[[ 'Astir cell type' ]] <- sce$cell_type
+```
+
+
+```{r}
+# jackson_basel_colours()
+
+plotCells(cl, sce, img_id = "img_id", cell_id = "ObjectNumber", 
+          exprs_values = "logcounts", colour_by = "Astir cell type",
+          colour = list(`Astir cell type` = jackson_basel_colours()))
+
+plotCells(cl, sce, img_id = "img_id", cell_id = "ObjectNumber", 
+          exprs_values = "logcounts", colour_by = "mTOR_signalling",
+          colour = list(`mTOR_signalling` = viridis(100)))
+
+plotCells(cl, sce, img_id = "img_id", cell_id = "ObjectNumber", 
+          exprs_values = "logcounts", colour_by = "rescaled_mTOR",
+          colour = list(`rescaled_mTOR` = viridis(100)))
+            
+
+# exprs_values = "logcounts",
+#             outline_by = "core",
+#             colour_by = "Astir cell type",
+#             image_title = list(text=""),
+#             colour = list(`Astir cell type`=c(jackson_basel_colours(), "Endothelial"="red"),
+#                           core = c("BaselTMA_SP43_115_X4Y8"="black")),
+#             save_plot = list(filename="SP43_115_X4Y8_path.png"))
+
+sce %>% colData() %>% as.data.frame() %>% group_by(cell_type) %>% summarise(range(rescaled_mTOR))
+```
+
+# 
+
+# TSNE
+
+```{r}
+set.seed(123L)
+sce <- runPCA(sce, ncomponents = 10)
+sce <- runUMAP(sce, ncomponents = 2)
+```
+
+```{r}
+plotUMAP(sce, colour_by = "Astir cell type") +
+scale_fill_manual(values = jackson_basel_colours(),
+                  name = "Astir cell type")
+```
+
+```{r}
+ggsave("BaselTMA_SP43_115_X4Y8-tsne.png", width = 5, height = 4)
+```
+
+##
+
+```{r}
+heatmap <- taproom::createHeatmap(sce)
+draw(heatmap)
+```
+
+```{r}
+plot(
+  logcounts(sce)['vWF',],
+  logcounts(sce)['Vimentin',]
+)
+```
+
+```{r}
+plot(
+  logcounts(sce)['vWF',],
+  logcounts(sce)['SMA',]
+)
+```
+
+```{r}
+tibble(cellty)
+```
+
+```{r}
+plot(
+  assay(sce, 'raw_imc')['vWF',],
+  assay(sce, 'logcounts')['vWF',],
+)
+```
+```{r}
+plot(
+  assay(sce, 'raw_imc')['SMA',],
+  asinh( assay(sce, 'raw_imc')['SMA',] / 5 )
+)
+```
