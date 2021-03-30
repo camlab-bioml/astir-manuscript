@@ -1,6 +1,11 @@
 ---
 title: "Robustness figures"
 output: html_document
+params:
+  none: "../../output/v6/robustness/assignments-15k-removed-None.csv"
+  stromal: "../../output/v6/robustness/assignments-15k-removed-Stromal_only.csv"
+  macrophage: "../../output/v6/robustness/assignments-15k-removed-Stromal_Macrophage.csv"
+  endothelial: "../../output/v6/robustness/assignments-15k-removed-Stromal_Macrophage_Endothelial.csv"
 ---
 
 ```{r setup, include=FALSE}
@@ -30,7 +35,9 @@ celltype_colours <- c(celltype_colours, "Endothelial"="red")
 # Removing cell types
 
 ```{r}
-removed_csvs <- dir('../../output/v4/robustness/', pattern = 'removed*.*csv', 
+none <- read_csv(params$none) %>% 
+  mutate(cell_type = get_celltypes(select(., X1)))
+removed_csvs <- dir('../../output/v6/robustness/', pattern = 'removed*.*csv', 
                     full.names = TRUE)
 ```
 
@@ -43,7 +50,7 @@ mat$X1 <- NULL
 ```
 
 ```{r}
-mat_all <- read_csv("../../output/v4/basel_subset/basel_subset_assignments.csv")
+mat_all <- read_csv("../../output/v6/basel_subset/basel_subset_assignments_type.csv")
 mat_all <- arrange(mat_all, X1)
 mat_all$X1 <- NULL
 ```
@@ -99,18 +106,32 @@ cells_stromal_none <- filter(df,
 
 
 ```{r}
-filter(df, cell %in% cells_stromal_none) %>% 
+plot <- filter(df, cell %in% cells_stromal_none) %>% 
+  mutate(condition = str_replace_all(condition, " ", "\n")) %>% 
   ggplot(aes(x = condition, stratum = cell_type, alluvium = cell,
                fill = cell_type, label = cell_type)) +
-  geom_stratum(alpha = .5) +
-  geom_label(stat = "stratum", size = 3) +
-  cowplot::theme_cowplot(font_size = 12) +
+  geom_stratum(fill = "grey", color = "black") +
   stat_flow() +
+  labs(y = "Cells", x = "Cell type(s) for which markers were removed",
+       fill = "Assigned Cell type") +
   scale_x_discrete(expand = c(0,0)) +
   scale_y_discrete(expand = c(0,0)) +
   scale_fill_manual(values = celltype_colours, name = "Cell type\nassigned") +
-  theme(axis.text.x = element_text(angle = -45, hjust = 0, vjust = 0.5)) +
-  labs(x = "Cell type removed")
+  astir_paper_theme() +
+  theme(axis.ticks.x = element_blank(),
+        #axis.ticks.y = element_blank(),
+        #axis.text.y = element_blank(),
+        axis.title = element_text(size = 20),
+        axis.text.x = element_text(size = 15),
+        legend.text = element_text(size = 20),
+        legend.title = element_text(size = 20),
+        panel.background = element_blank())
+
+plot
+
+pdf(file = "", height = 3, width = 6.75)
+  plot
+dev.off()
 ```
 
 ```{r}
@@ -128,19 +149,19 @@ ggplot(df, aes(x = condition, stratum = cell_type, alluvium = cell,
 ```
 
 ```{r}
-ggsave("robustness-removed.png", width = 12, height = 10)
+#ggsave("robustness-removed.png", width = 12, height = 10)
 ```
 
 
 # Adding celltypes
 
 
-```{r}
+```{r eval = F}
 added_csvs <- dir('../../output/v4/robustness/', pattern = 'added*.*csv', 
                     full.names = TRUE)
 ```
 
-```{r}
+```{r eval = F}
 read_to_mat <- function(f) {
   df <- read_csv(f)
   mat <- as.matrix(select(df, -X1))
@@ -158,7 +179,7 @@ read_to_mat <- function(f) {
 }
 ```
 
-```{r}
+```{r eval = F}
 df <- map_dfr(added_csvs, read_to_mat)
 
 df$condition <- gsub("_", " ", df$condition)
@@ -172,11 +193,11 @@ df$condition <- factor(df$condition,
 ```
 
 
-```{r}
+```{r eval = F}
 dplyr::count(df, condition, cell_type)
 ```
 
-```{r}
+```{r eval=F}
 ggplot(df, aes(x = condition, stratum = cell_type, alluvium = cell,
                fill = cell_type, label = cell_type)) +
   geom_stratum(alpha = .5) +

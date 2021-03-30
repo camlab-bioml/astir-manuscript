@@ -248,7 +248,7 @@ if(params$cohort == "basel"){
     geom_hline(yintercept = -4.5, color = "lightgrey")
 }
 
-plot <- plot + geom_boxplot(outlier.colour = "lightgrey") +
+plot <- plot + geom_boxplot(outlier.colour = "lightgrey", outlier.size = 0.4) +
     guides(color = FALSE) +
     scale_color_manual(values = c("#E4790A", "#8B5B42")) +
     scale_fill_manual(values = c("#E4790A", "#8B5B42")) +
@@ -259,8 +259,8 @@ plot <- plot + geom_boxplot(outlier.colour = "lightgrey") +
 
 plot
 
-pdf(paste0(params$output_dir, "Unknown-other-differential-expression-", params$cohort, ".pdf"), width = 7, height = 8)
-  plot
-dev.off()
+#pdf(paste0(params$output_dir, "Unknown-other-differential-expression-", params$cohort, ".pdf"), width = 7, height = 8)
+#  plot
+#dev.off()
 ```
 
