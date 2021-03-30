@@ -10,15 +10,14 @@ astir_assignments <- args[1]
 percentage_luminal <- as.numeric(args[2])
 output_dir <- args[3]
 
-astir_assignments <- "output/chipmunk/astir_assignments/basel_astir_assignments.csv"
-
 # Read in data & remove other, Unknown & basal cells
 assignments <- read_csv(astir_assignments) %>% 
   column_to_rownames("X1")
 
-assignments$cell_type <- get_celltypes(assignments)
+assignments$cell_type <- get_celltypes(assignments, 0.95)
 assignments <- filter(assignments, 
-                      !cell_type %in% c("Unknown", "Other"))
+                      !cell_type %in% c("Unknown", "Other", "Epithelial (basal)",
+                             "B cells", "Epithelial (other)", "Endothelial"))
 
 # which cell type has the lowest number of cells? (this will be the max # of
 # cells for any group if I want to retain equal proportions)
@@ -41,8 +40,7 @@ get_cell_names <- function(type, number){
 
 
 ### CREATE ANY SAMPLE FUNCTION #########
-cell_types_wout_luminal <- c("Epithelial (other)", "Macrophage", "Stromal", 
-                             "Endothelial", "T cells", "B cells", "Epithelial (basal)")
+cell_types_wout_luminal <- c("Macrophage", "Stromal", "T cells")
 
 create_sample <- function(percentage_luminal){
   # Calculate number of cells for each type
@@ -66,4 +64,4 @@ create_sample <- function(percentage_luminal){
 
 
 luminal_99 <- create_sample(percentage_luminal)
-write_csv(luminal_99, paste0(output_dir, "luminal-", percentage_luminal, ".csv")
+write_csv(luminal_99, paste0(output_dir, "luminal-", percentage_luminal, ".csv"))
