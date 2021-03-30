@@ -9,9 +9,8 @@ devtools::load_all("~/taproom/")
 args <- commandArgs(trailingOnly = TRUE)
 
 type <- args[1] %>% read_csv()
-state <- args[2] %>% read_csv()
-cohort <- args[3]
-output_dir <- args[4]
+cohort <- args[2]
+output_dir <- args[3]
 
 ### [PROCESS DATA] #####
 cells <- type %>% 

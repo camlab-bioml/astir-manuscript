@@ -241,21 +241,37 @@ plot <- box %>%
 
 if(params$cohort == "basel"){
   plot <- plot +
-    geom_hline(yintercept = -2, color = "lightgrey") + 
-    geom_hline(yintercept = -2.5, color = "lightgrey")
-
-}else if(params$cohort == "schapiro"){
-  plot <- plot +
-    geom_hline(yintercept = -2, color = "lightgrey")
-
-}else if(params$cohort == "zurich1"){
-  plot <- plot +
+    geom_hline(yintercept = 3, color = "lightgrey") +
+    geom_hline(yintercept = 2.5, color = "lightgrey") +
+    geom_hline(yintercept = 2, color = "lightgrey") +
     geom_hline(yintercept = 1.5, color = "lightgrey") +
     geom_hline(yintercept = 1, color = "lightgrey") +
     geom_hline(yintercept = -2, color = "lightgrey")
 
-}else if(params$cohort == "wagner" | params$cohort == "lin_cycif"){
+}else if(params$cohort == "schapiro"){
   plot <- plot +
+    geom_hline(yintercept = 3, color = "lightgrey") +
+    geom_hline(yintercept = 2.5, color = "lightgrey") +
+    geom_hline(yintercept = 2, color = "lightgrey") +
+    geom_hline(yintercept = 1.5, color = "lightgrey") +
+    geom_hline(yintercept = 1, color = "lightgrey") +
+    geom_hline(yintercept = -2, color = "lightgrey")
+
+}else if(params$cohort == "zurich1"){
+  plot <- plot +
+    geom_hline(yintercept = 3, color = "lightgrey") +
+    geom_hline(yintercept = 2.5, color = "lightgrey") +
+    geom_hline(yintercept = 2, color = "lightgrey") +
+    geom_hline(yintercept = 1.5, color = "lightgrey") +
+    geom_hline(yintercept = 1, color = "lightgrey") +
+    geom_hline(yintercept = -2, color = "lightgrey")
+
+}else if(params$cohort == "wagner"){
+  plot <- plot +
+    geom_hline(yintercept = 4.5, color = "lightgrey") +
+    geom_hline(yintercept = 4, color = "lightgrey") +
+    geom_hline(yintercept = 3.5, color = "lightgrey") +
+    geom_hline(yintercept = 3, color = "lightgrey") +
     geom_hline(yintercept = 2.5, color = "lightgrey") +
     geom_hline(yintercept = 2, color = "lightgrey") +
     geom_hline(yintercept = 1.5, color = "lightgrey") +
@@ -264,7 +280,19 @@ if(params$cohort == "basel"){
     geom_hline(yintercept = -2.5, color = "lightgrey") +
     geom_hline(yintercept = -3, color = "lightgrey") +
     geom_hline(yintercept = -3.5, color = "lightgrey") +
-    geom_hline(yintercept = -4, color = "lightgrey")
+    geom_hline(yintercept = -4, color = "lightgrey") +
+    geom_hline(yintercept = -4.5, color = "lightgrey")
+} else if(params$cohort == "lin_cycif"){
+  plot <- plot +
+    geom_hline(yintercept = 3, color = "lightgrey") +
+    geom_hline(yintercept = 2.5, color = "lightgrey") +
+    geom_hline(yintercept = 2, color = "lightgrey") +
+    geom_hline(yintercept = 1.5, color = "lightgrey") +
+    geom_hline(yintercept = 1, color = "lightgrey") +
+    geom_hline(yintercept = -2, color = "lightgrey") +
+    geom_hline(yintercept = -2.5, color = "lightgrey") +
+    geom_hline(yintercept = -3, color = "lightgrey") +
+    geom_hline(yintercept = -3.5, color = "lightgrey")
 }
 
 plot <- plot + geom_boxplot(outlier.colour = "lightgrey", outlier.size = 0.4) +
