@@ -37,7 +37,7 @@ rem %>% filter(id %in% keep_cells) %>%
   mutate(condition = str_replace_all(condition, "-", "\n")) %>%
   ggplot(aes(x = condition, stratum = cell_type, alluvium = id, 
              fill = cell_type)) +
-  geom_stratum(fill = "grey", color = "black") +
+  geom_stratum(color = "black", alpha = 0.5) +
   stat_flow() + 
   labs(y = "Cells", x = "Cell type(s) for which markers were removed",
        fill = "Assigned Cell type") +
