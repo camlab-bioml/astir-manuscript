@@ -1,0 +1,16 @@
+
+
+cell_types:
+  Epithelial:
+    - E_Cadherin
+    - Keratin
+  Stromal:
+    - Vimentin
+  Treg:
+    - CD45
+    - CD4
+    - Vimentin
+  Other immune:
+    - CD45
+    - Vimentin
+

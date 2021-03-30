@@ -30,7 +30,7 @@ cell_names <- assignments$X1
 assignments$X1 <- NULL
 df_cell_types <- tibble(
   id = cell_names,
-  cell_type = get_celltypes(assignments)
+  cell_type = get_celltypes(assignments, thresh=0.5)
 )
 
 markers <- read_yaml(args$marker_yaml)

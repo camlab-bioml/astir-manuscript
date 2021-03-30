@@ -60,7 +60,7 @@ schapiro <- process_celltypes(schapiro_type) %>%
 wagner <- process_celltypes(wagner_type) %>% 
   mutate(Cohort = "Wagner")
 zurich1 <- process_celltypes(zurich1_type) %>% 
-  mutate(Cohort = "Zurich1")
+  mutate(Cohort = "Zurich")
 
 
 cores <- rbind(basel, schapiro, wagner, zurich1)

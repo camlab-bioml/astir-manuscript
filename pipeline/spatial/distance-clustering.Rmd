@@ -2,14 +2,14 @@
 title: "Distance clustering"
 output: html_document
 params:
-  input_dir: "../../output/v5/spatial/basel/"
+  input_dir: "../../output/chipmunk/spatial/basel/"
   metadata: "../..//data-raw/jackson-2020/SingleCell_and_Metadata/BaselTMA/Basel_PatientMetadata.csv"
   dataset: "basel"
-  celltype_assignments: "../../output/v5/astir_assignments/basel_astir_assignments.csv"
-  state_assignments: "../../output/v5/astir_assignments/basel_astir_assignments_state.csv"
+  celltype_assignments: "../../output/chipmunk/astir_assignments/basel_astir_assignments.csv"
+  state_assignments: "../../output/chipmunk/astir_assignments/basel_astir_assignments_state.csv"
   df_test: "test.csv"
   scree_plot: "../../figures/supplementary/scree-plot-spatial-basel.png"
-  output_rds: "../../output/v5/spatial/basel/basel_output.rds"
+  output_rds: "../../output/chipmunk/spatial/basel/basel_output.rds"
 ---
 
 ```{r setup, include=FALSE}
@@ -19,7 +19,6 @@ library(viridis)
 library(broom)
 library(survival)
 library(glue)
-library(DelayedArray)
 # library(survminer)
 
 devtools::load_all("../taproom")
@@ -98,11 +97,14 @@ df <- map_dfr(csv_files, read_csv, col_types = ct)
 ```
 
 ```{r}
-df <- filter(df, 
-       grepl("Stromal|Epithelial|T|Macrophage", Celltype_1),
-       grepl("Stromal|Epithelial|T|Macrophage", Celltype_2),
-       !grepl("basal|other", Celltype_1),
-       !grepl("basal|other", Celltype_2),
+df <- filter(df,
+        # Celltype_1 != Celltype_2,
+        # grepl("luminal|T|Stromal|Macrophage", Celltype_1),
+        # grepl("luminal|T|Stromal|Macrophage", Celltype_2),
+       # grepl("luminal|T|Macrophage|Stromal", Celltype_1),
+       # grepl("luminal|T|Macrophage|Stromal", Celltype_2),
+       # !grepl("basal|other", Celltype_1),
+       # !grepl("basal|other", Celltype_2),
        core %in% cores_to_keep)
 
 ```
@@ -126,8 +128,8 @@ mat <- mat[rowMeans(is.na(mat)) < 0.8, ]
 mat <- mat[, colMeans(is.na(mat)) < 0.8]
 
 mat <- scale(mat)
-mat[mat > 2] <- 2
-mat[mat < -2] <- -2
+# mat[mat > 2] <- 2
+# mat[mat < -2] <- -2
 ```
 
 ```{r}
@@ -149,6 +151,7 @@ mat <- mat[names(cell_num_vec),]
 ```{r}
 mdata <- read_csv(params$metadata)
 ```
+
 ```{r}
 status <- mdata$diseasestatus
 names(status) <- mdata$core
@@ -164,10 +167,18 @@ mat2 <- apply(mat, 1, function(x) {
 
 
 ```{r}
-
-
 pca <- prcomp(mat2)
+spatial_score <- pca$x[,1]
 ```
+
+```{r}
+correlations <- apply(mat2, 2, cor, spatial_score)
+if(mean(correlations) < 0) {
+  spatial_score <- -spatial_score
+}
+```
+```
+
 
 ```{r}
 tibble(
@@ -184,7 +195,6 @@ ggsave(params$scree_plot, width = 4, height = 3)
 
 
 ```{r}
-spatial_score <- pca$x[,1]
 ```
 
 

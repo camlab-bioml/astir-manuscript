@@ -5,7 +5,6 @@ date: "May 29, 2020"
 output: html_document
 params:
   markers: "specified_markers"
-  create_csv: FALSE
   cells: "../../output/v4/zurich1_subset/zurich1_subset_sce.rds"
   celltypes: "../../output/v4/zurich1_subset/zurich1_subset_assignments_type.csv"
   cellstates: "../../output/v4/zurich1_subset/zurich1_subset_assignments_state.csv" 
@@ -16,59 +15,33 @@ params:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = '~/imc-2020/')
+knitr::opts_knit$set(root.dir = '../../')
 library(SingleCellExperiment)
 library(tidyverse)
 library(devtools)
 library(factoextra)
-library(ComplexHeatmap)
 library(scater)
 library(dichromat)
-library(viridis)
 library(cytofkit)
-library(ggalluvial)
-devtools::load_all('~/taproom/')
-source("~/imc-2020/scripts/functions.R")
+library(taproom)
 ```
-
 
 First read in all sc data and assign cell type
 ```{r message=F, warning=F}
-if(params$cohort == "lin_cycif"){
-  thresh <- 0.5
-}else{
-  thresh <- 0.7
-}
-
-# read in data 
+# read in data
 sce <- readRDS(params$cells)
-type <- read_csv(params$celltypes)
-
-type$cell_type <- get_celltypes(select(type, -X1), thresh) 
-type <- select(type, X1, cell_type) %>%
-  column_to_rownames("X1")
-colData(sce)["cell_type"] <- type[colnames(sce),]
-
-# Just for the time being until we switch everything over to remove s' at the end
-sce$cell_type[which(sce$cell_type == "B cell")] <- "B cells"
-sce$cell_type[which(sce$cell_type == "T cell")] <- "T cells"
 ```
 
 ```{r include=F}
 if(params$markers == "all_markers"){
   imc.data <- t(logcounts(sce))
-  
-  # I will use this variable in the future to evaluate whether sections of code
-  # should be executed
-  evalStatement <- F
 }else if(params$markers == "specified_markers"){
   markers <- read_markers(params$markers_list)
 
   imc.data <- t(logcounts(sce[unique(unlist(markers$cell_types)),]))
-  evalStatement <- T
 }
 
-if(params$cohort == "schapiro" | params$cohort == "lin_cycif"){
+if(params$cohort != "basel" & params$cohort != "zurich1"){
   # add a cell ID for schapiro
   sce$id <- colnames(sce)
 }
@@ -76,6 +49,8 @@ if(params$cohort == "schapiro" | params$cohort == "lin_cycif"){
 
 ```{r}
 # Find clusters using different methods
+imc.pheno.cluster.k10 <- cytof_cluster(xdata = imc.data, method = "Rphenograph",
+                                   Rphenograph_k = 10)
 imc.pheno.cluster.k20 <- cytof_cluster(xdata = imc.data, method = "Rphenograph",
                                    Rphenograph_k = 20)
 imc.pheno.cluster.k30 <- cytof_cluster(xdata = imc.data, method = "Rphenograph",
@@ -86,6 +61,7 @@ imc.pheno.cluster.k50 <- cytof_cluster(xdata = imc.data, method = "Rphenograph",
                                    Rphenograph_k = 50)
 
 # Add newly defined clusters to sc data
+sce$phenograph.k10 <- imc.pheno.cluster.k10
 sce$phenograph.k20 <- imc.pheno.cluster.k20
 sce$phenograph.k30 <- imc.pheno.cluster.k30
 sce$phenograph.k40 <- imc.pheno.cluster.k40
@@ -94,14 +70,22 @@ sce$phenograph.k50 <- imc.pheno.cluster.k50
 
 Write out the results to csv files.
 
-```{r eval = params$create_csv, include=F}
+```{r}
+phenograph.k10 <- sce %>% colData() %>% as.data.frame() %>% select(id, "phenograph.k10")
+rownames(phenograph.k10) <- c()
+phenograph.k10$method <- "Phenograph"
+phenograph.k10$params <- paste(params$markers, "k10", sep = "_")
+write.csv(phenograph.k10, file = paste0(params$output_results, "Phenograph_clusters_", 
+                                        params$cohort, "_", params$markers, "_k10.csv"),
+          col.names = T, row.names = F, sep = ",", quote = FALSE)
+
 phenograph.k20 <- sce %>% colData() %>% as.data.frame() %>% select(id, "phenograph.k20")
 rownames(phenograph.k20) <- c()
 phenograph.k20$method <- "Phenograph"
 phenograph.k20$params <- paste(params$markers, "k20", sep = "_")
 write.csv(phenograph.k20, file = paste0(params$output_results, "Phenograph_clusters_", 
                                         params$cohort, "_", params$markers, "_k20.csv"),
-          col.names = T, row.names = F, sep = ",")
+          col.names = T, row.names = F, sep = ",", quote = FALSE)
 
 phenograph.k30 <- sce %>% colData() %>% as.data.frame() %>% select(id, "phenograph.k30")
 rownames(phenograph.k30) <- c()
@@ -109,7 +93,7 @@ phenograph.k30$method <- "Phenograph"
 phenograph.k30$params <- paste(params$markers, "k30", sep = "_")
 write.csv(phenograph.k30, file = paste0(params$output_results, "Phenograph_clusters_", 
                                         params$cohort, "_", params$markers, "_k30.csv"),
-          col.names = T, row.names = F, sep = ",")
+          col.names = T, row.names = F, sep = ",", quote = FALSE)
 
 phenograph.k40 <- sce %>% colData() %>% as.data.frame() %>% select(id, "phenograph.k40")
 rownames(phenograph.k40) <- c()
@@ -117,7 +101,7 @@ phenograph.k40$method <- "Phenograph"
 phenograph.k40$params <- paste(params$markers, "k40", sep = "_")
 write.csv(phenograph.k40, file = paste0(params$output_results, "Phenograph_clusters_",
                                         params$cohort, "_", params$markers, "_k40.csv"),
-          col.names = T, row.names = F, sep = ",")
+          col.names = T, row.names = F, sep = ",", quote = FALSE)
 
 phenograph.k50 <- sce %>% colData() %>% as.data.frame() %>% select(id, "phenograph.k50")
 rownames(phenograph.k50) <- c()
@@ -125,6 +109,6 @@ phenograph.k50$method <- "Phenograph"
 phenograph.k50$params <- paste(params$markers, "k50", sep = "_")
 write.csv(phenograph.k50, file = paste0(params$output_results, "Phenograph_clusters_",
                                         params$cohort, "_", params$markers, "_k50.csv"),
-          col.names = T, row.names = F, sep = ",")
+          col.names = T, row.names = F, sep = ",", quote = FALSE)
 
 ```

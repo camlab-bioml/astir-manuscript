@@ -27,6 +27,7 @@ library(dichromat)
 library(viridis)
 library(circlize)
 library(broom)
+library(DT)
 ```
 
 ```{r}
@@ -260,7 +261,7 @@ plotClusteringHeatmapCore <- function(freqPerCore, cl = NA){
   
     # Create dendrogram
   col_dend <- freqPerCore %>% 
-    select(`B cells`:Unknown) %>%  
+    select(`B cells`:Unknown) %>% 
     dist() %>% 
     hclust(method = "ward.D2") %>% 
     as.dendrogram() %>% 
@@ -373,7 +374,8 @@ covariates_summary <- core.pca$x %>%
 covariates_summary %>% 
   filter(PCs %in% c("PC1", "PC2", "PC3")) %>% 
   group_by(PCs, covariate) %>% 
-  do(tidy(lm(loadings ~ category, data = .)))
+  do(tidy(lm(loadings ~ category, data = .))) %>%
+  datatable()
 ```
 
 ```{r fig.height=4, fig.width=12, eval=params$cohort == "basel"}
@@ -394,7 +396,7 @@ core_cluster_int %>%
 ```
 
 Anova on the above results
-```{r}
+```{r eval= params$cohort == "basel"}
 anovas <- core_cluster_int %>% 
   group_by(covariate) %>% 
   do(Model = aov(value ~ cluster, data = .))
@@ -409,7 +411,7 @@ lapply(anovas$Model, function(x){broom::tidy(x)}) %>%
 ```
 
 
-```{r fig.width = 11}
+```{r fig.width = 11, eval = params$cohort == "basel"}
 patient_cores <- freqPerCoreNorm %>% 
   mutate(cluster = as.factor(cutree(coreNormPlot$dend,k=10))) %>% 
   select(core, cluster) %>% 

@@ -35,7 +35,14 @@ markers <- read_markers(params$markers_list)
 sce <- readRDS(params$cells)
 
 # Get cell types
-astir_types <- read_csv(params$celltypes)
+if(params$cohort == "Jackson" | params$cohort == "Catena" | params$cohort == "Schulz"){
+  celltype_csvs <- str_split(params$celltypes, " ")[[1]]
+  astir_types <- lapply(celltype_csvs, read_csv) %>% 
+    bind_rows()
+}else{
+  astir_types <- read_csv(params$celltypes)
+}
+
 cell_names <- astir_types$X1
 astir_types$X1 <- NULL
 astir_types <- get_celltypes(astir_types)
@@ -109,7 +116,7 @@ filter(methods, method == "astir") %>%
 methods.summary <- group_by(methods, pathway, method, cluster) %>% 
   summarize(mean_score = mean(score)) %>% 
   ungroup() %>% 
-  filter(!grepl("Other|Unknown", cluster)) %>% 
+  filter(!cluster %in% c("Other", "Unknown")) %>% 
   group_by(pathway, method) %>% 
   mutate(mean_score = (mean_score - mean(mean_score)) / sd(mean_score)) %>% 
   ungroup() %>% 

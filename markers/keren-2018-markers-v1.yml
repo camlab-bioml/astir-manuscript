@@ -1,0 +1,52 @@
+
+# ['Au', 'Background', 'Beta catenin', 'Ca', 
+# 'CD11b', 'CD11c', 
+# 'CD138', 
+# 'CD16', 'CD20', 'CD209', 'CD3', 'CD31', 'CD4', 'CD45', 'CD45RO', 'CD56',
+#  'CD63', 'CD68', 'CD8', 'dsDNA', 'EGFR', 'Fe', 'FoxP3', 'H3K27me3', 'H3K9ac', 
+#  'HLA-DR', 'HLA_Class_1', 'IDO', 'Keratin17', 'Keratin6', 'Ki67', 'Lag3', 'MPO', 
+#  'Na', 'P', 'p53', 'Pan-Keratin', 'PD-L1', 'PD1', 'phospho-S6', 'Si', 'SMA', 'Ta', 'Vimentin']
+
+cell_states:
+  proliferation:
+    - Ki67
+
+cell_types:
+  Stromal:
+    - Vimentin
+    - SMA
+  B cells:
+    - CD45
+    - CD20
+  T cells cytotoxic:
+    - CD45
+    - CD3
+    - CD8
+  T cells CD4:
+    - CD45
+    - CD3
+    - CD4
+  Monocyte:
+    - CD45
+    - CD11b
+    - CD11c
+  Macrophage:
+    - CD45
+    - CD68
+  # NK cells:
+  #   - CD45
+  #   - CD56
+  Epithelial:
+    - Pan-Keratin
+    - Keratin6
+    - Beta catenin
+  Epithelial (basal):
+    - Pan-Keratin
+    - Keratin6
+    - Keratin17
+    - Beta catenin
+  Endothelial:
+    - CD31
+    - Vimentin
+    
+

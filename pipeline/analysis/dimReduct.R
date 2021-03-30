@@ -13,41 +13,63 @@ args <- commandArgs(trailingOnly = TRUE)
 
 basel_cells <- args[1]
 basel_types <- args[2]
-basel_states <- args[3]
+#basel_states <- args[3]
 
-zurich1_cells <- args[4]
-zurich1_types <- args[5]
-zurich1_states <- args[6]
+zurich1_cells <- args[3]
+zurich1_types <- args[4]
+#zurich1_states <- args[6]
 
-wagner_cells <- args[7]
-wagner_types <- args[8]
-wagner_states <- args[9]
+wagner_cells <- args[5]
+wagner_types <- args[6]
+#wagner_states <- args[9]
 
-output_dir_res <- args[10]
+output_dir_res <- args[7]
 
 
 ### [GET SCE OBJECTS] #####
-basel <- assignIdentity(basel_cells, basel_types, basel_states)$sce
+#basel <- assignIdentity(basel_cells, basel_types, basel_states)$sce
+basel <- readRDS(basel_cells)
 
-basel.cellType <- basel$cell_type
+basel_type <- read_csv(basel_types)
+
+basel_type$cell_type <- get_celltypes(select(basel_type, -X1)) 
+basel_type <- select(basel_type, X1, cell_type) %>%
+  column_to_rownames("X1")
+
+# basel.cellType <- basel$cell_type
 colData(basel) <- NULL
-basel$cell_type <- basel.cellType
+# basel$cell_type <- basel.cellType
 basel$cohort <- "Basel"
+colData(basel)["cell_type"] <- basel_type[colnames(basel),]
 
 
-zurich1 <- assignIdentity(zurich1_cells, zurich1_types, zurich1_states)$sce
+#zurich1 <- assignIdentity(zurich1_cells, zurich1_types, zurich1_states)$sce
+zurich1 <- readRDS(zurich1_cells)
 
-zurich1.cellType <- zurich1$cell_type
+zurich1_type <- read_csv(zurich1_types)
+zurich1_type$cell_type <- get_celltypes(select(zurich1_type, -X1)) 
+zurich1_type <- select(zurich1_type, X1, cell_type) %>%
+  column_to_rownames("X1")
+
+# zurich1.cellType <- zurich1$cell_type
 colData(zurich1) <- NULL
-zurich1$cell_type <- zurich1.cellType
+# zurich1$cell_type <- zurich1.cellType
 zurich1$cohort <- "Zurich1"
+colData(zurich1)["cell_type"] <- zurich1_type[colnames(zurich1),]
 
-wagner <- assignIdentity(wagner_cells, wagner_types, wagner_states)$sce
+#wagner <- assignIdentity(wagner_cells, wagner_types, wagner_states)$sce
+wagner <- readRDS(wagner_cells)
 
-wagner.cellType <- wagner$cell_type
+wagner_type <- read_csv(wagner_types)
+wagner_type$cell_type <- get_celltypes(select(wagner_type, -X1)) 
+wagner_type <- select(wagner_type, X1, cell_type) %>%
+  column_to_rownames("X1")
+
+# wagner.cellType <- wagner$cell_type
 colData(wagner) <- NULL
-wagner$cell_type <- wagner.cellType
+# wagner$cell_type <- wagner.cellType
 wagner$cohort <- "Wagner"
+colData(wagner)["cell_type"] <- wagner_type[colnames(wagner),]
 
 ### [RENAME MARKERS] #####
 wagner.names <- wagner %>% rownames()

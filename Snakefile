@@ -20,6 +20,7 @@ asts_state = {d: output_path + f"astir_assignments/{d}_astir_assignments_state.c
 #include: "pipeline/dataset-basel.smk"
 #include: "pipeline/dataset-zurich1.smk"
 include: "pipeline/dataset-lin-cycif.smk"
+include: "pipeline/dataset-keren.smk"
 include: "analysis/analysis.smk"
 
 # include: "pipeline/benchmarking/benchmarking.smk"
@@ -28,7 +29,9 @@ include: "analysis/analysis.smk"
 #include: "pipeline/benchmarking/benchmarking.smk"
 include: "pipeline/Alternate-clustering.smk"
 include: "pipeline/analysis.smk"
-include: "pipeline/spatial/spatial.smk"
+#include: "pipeline/spatial/spatial.smk"
+include: "pipeline/epithelial-overclustering.smk"
+include: "pipeline/alt-masks-clustering.smk"
 #include: "pipeline/test.smk"
 
 
@@ -45,7 +48,9 @@ rule all:
         # reports_output.values(),
         alternate_approaches_output.values(),
         analysis_output.values(),
-        spatial_output.values(),
+        #spatial_output.values(), 
+        epithelial_overclustering.values(),
+        #alt_masks.values()
         #testOut.values()
 
 

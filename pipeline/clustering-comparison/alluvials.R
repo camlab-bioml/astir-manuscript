@@ -21,15 +21,11 @@ clustering_params <- args[6]
 output_dir <- args[7]
 
 ### [READ IN DATA] #####
-if(cohort == "lin_cycif"){
-  thresh <- 0.5
-}else{
-  thresh <- 0.7
-}
+thresh <- 0.5
 
 # read in data 
 sce <- readRDS(cells)
-if(cohort == "lin_cycif"){
+if(cohort == "lin_cycif" | cohort == "wagner" | cohort == "schapiro" | cohort == "keren"){
   # add a cell ID
   sce$id <- colnames(sce)
 }

@@ -9,11 +9,13 @@ params:
   wagner: "../output/v4/results/Assessment-heatmap-wagner.csv"
   zurich1: "../output/v4/results/Assessment-heatmap-zurich1.csv"
   lin: ""
+  keren: ""
   basel_indiv: ""
   schapiro_indiv: ""
   wagner_indiv: ""
   zurich1_indiv: ""
   lin_indiv: ""
+  keren_indiv: ""
   output_dir: ""
 ---
 
@@ -87,6 +89,7 @@ lin.max <- lapply(lin[lin %>%
   as.numeric() %>% 
   max()
 
+
 max.clusters <- max(basel.max, schapiro.max, zurich1.max, wagner.max, lin.max)
 if(max.clusters > 10){
   max.clusters <- 10
@@ -95,7 +98,7 @@ if(max.clusters > 10){
 
 # Create colour palette
 gradient<- colorRampPalette(c("#FFEBEE", "#F50025"))
-pal <- c("#FFB60A", "#648FFF", 
+pal <- c("#FFDA1F", "#00D262", 
          gradient(max.clusters - 1))
 names(pal) <- c(0:(max.clusters - 1), "10+")
 
@@ -132,6 +135,7 @@ lin.mat <- lin %>%
 
 lin.mat[!(lin.mat %in% tooHigh)] <- "10+"
 
+
 # Create heatmap annotations
 # define plotting order
 scores <- data.frame(basel$score, schapiro$score, zurich1$score, wagner$score, lin$score) 
@@ -167,14 +171,13 @@ basel.hm <- Heatmap(basel.mat, col = pal,
                     column_title = "Basel",
                     row_names_side = "left",
                     row_names_max_width = unit(7, "cm"),
-                    name = "# of clusters")
+                    name = "# clusters \nassigned to \ncell type")
 schapiro.hm <- Heatmap(schapiro.mat, col = pal,
                       row_order = plottingOrder,
                       right_annotation = schapiro.ha,
+                      show_heatmap_legend = F,
                       column_title = "Schapiro",
-                      row_names_side = "left",
-                      row_names_max_width = unit(7, "cm"),
-                      name = "# of clusters")
+                      show_row_names = F)
 wagner.hm <- Heatmap(wagner.mat, col = pal,
                      row_order = plottingOrder,
                      right_annotation = wagner.ha,
@@ -185,7 +188,7 @@ zurich1.hm <- Heatmap(zurich1.mat, col = pal,
                       row_order = plottingOrder,
                       right_annotation = zurich1.ha,
                       show_heatmap_legend = F,
-                      column_title = "Zurich1",
+                      column_title = "Zurich",
                       show_row_names = F)
 lin.hm <- Heatmap(lin.mat, col = pal,
                   row_order = plottingOrder,
@@ -199,7 +202,8 @@ basel.hm + schapiro.hm + wagner.hm + zurich1.hm + lin.hm
 
 ```{r}
 pdf(file = paste0(params$output_dir, "Final_benchmarking_heatmap.pdf"), width = 14, height = 6)
-  basel.hm + schapiro.hm + wagner.hm + zurich1.hm + lin.hm
+  hm_list = basel.hm + schapiro.hm + wagner.hm + zurich1.hm + lin.hm
+  draw(hm_list, ht_gap = unit(0.5, "cm"))
 dev.off()
 ```
 
@@ -236,6 +240,7 @@ lin <- lin %>%
   mutate(method = str_replace(method, "_", "\n")) %>% 
   mutate(method = str_replace(method, "_", "-")) %>% 
   mutate(method = str_replace(method, "astir", "Astir"))
+
 
 summary.heatmap.theme <- function(){
   astir_paper_theme() +
@@ -285,7 +290,6 @@ lin.hm <- lin %>%
   scale_fill_viridis_d() +
   facet_wrap(~ method, scales = "free_x", nrow = 1) +
   summary.heatmap.theme()
-
 
 ggarrange(basel.hm, schapiro.hm, wagner.hm, zurich1.hm, lin.hm,
           nrow = 5)
