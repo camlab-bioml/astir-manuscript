@@ -14,6 +14,7 @@ basel:
     base_dir: data-raw/jackson-2020/SingleCell_and_Metadata/BaselTMA/
     metadata_file: Basel_PatientMetadata.csv
     marker_file: markers/jackson-2020-markers-v4.yml
+    markers_imbalance: markers/jackson-2020-markers-imbalance.yml
 
 zurich1:
     base_dir: data-raw/jackson-2020/SingleCell_and_Metadata/ZurichTMA/
@@ -49,9 +50,6 @@ fake_celltypes:
         'CD20+CDH1+':
             - CD20
             - E-Cadherin
-        'CK5+VIM+':
-            - Cytokeratin 5
-            - Vimentin
     zurich1:
         'CD3+Keratin+':
             - pan Cytokeratin
@@ -73,5 +71,10 @@ fake_celltypes:
         'CD68+CDH1+':
             - CD68
             - E-cadherin
-
-                    
+    keren:
+        'CD20+Keratin17+':
+            - CD20
+            - Keratin17
+        'CD8+Keratin6+':
+            - CD8
+            - Keratin6

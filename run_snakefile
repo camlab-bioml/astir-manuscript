@@ -1,3 +1,4 @@
 rm slurm-*
 # pip install -e ../astir
-snakemake -k --profile slurm --cluster-config cluster-config.yml --jobs 100 
+snakemake -k --profile slurm --cluster-config cluster-config.yml --jobs 100 --rerun-incomplete 
+# output/squirrel/reports/expression_heatmap_wagner.html

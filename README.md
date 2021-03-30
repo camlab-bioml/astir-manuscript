@@ -1,5 +1,5 @@
 
-# Summer 2020 automated mass cytometry project
+# Astir Manuscript
 
 ## Setup
 

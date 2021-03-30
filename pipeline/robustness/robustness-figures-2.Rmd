@@ -1,0 +1,297 @@
+---
+title: "Robustness figures"
+output: html_document
+params:
+  output_fig_removed: "removed.pdf"
+  output_fig_added: "added.pdf"
+  markers: '../../markers/jackson-2020-markers-v3.yml'
+  input_dir: '../../output/zeropointone/robustness-no-subset/'
+  thresh: 0.95
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(devtools)
+  library(glue)
+  library(ggalluvial)
+  library(cowplot)
+  library(matrixStats) 
+  library(pheatmap)
+  library(glue)
+  library(taproom)
+  library(yaml)
+})
+
+```
+
+```{r}
+markers <- read_yaml(params$markers)
+```
+
+
+# Define palette
+
+```{r}
+celltype_colours <- taproom::jackson_basel_colours()
+celltype_colours <- c(celltype_colours, "Endothelial"="red")
+```
+
+
+# Removing cell types
+
+```{r}
+removed_csvs <- dir(params$input_dir, pattern = 'removed*.*csv', 
+                    full.names = TRUE)
+```
+
+
+Have a look at the full assigned celltypes
+```{r}
+mat <- read_csv(removed_csvs[1])
+mat <- arrange(mat, X1)
+mat$X1 <- NULL
+```
+
+
+
+# Subsets
+
+```{r}
+read_to_mat <- function(f) {
+  df <- read_csv(f)
+  df <- rename(df, cell_id = X1)
+
+  condition <- strsplit(f, "-")[[1]]
+  condition <- condition[length(condition)]
+  condition <- gsub(".csv", "", condition, fixed=TRUE)
+ 
+  df <- mutate(df, condition = condition) %>% 
+    select(cell_id, condition, everything())
+  
+  return(df)
+}
+```
+
+```{r}
+df <- map_dfr(removed_csvs, read_to_mat)
+
+df$condition <- gsub("_", " ", df$condition)
+
+df$condition <- factor(df$condition,
+                       levels = c(
+                         "None",
+                         "Stromal only",
+                         "Stromal Macrophage",
+                         "Stromal Macrophage Endothelial"
+                       ))
+```
+
+```{r}
+get_celltype_from_df <- function(cond, threshold, df) {
+  df2 <- filter(df, condition == cond) 
+  
+  
+  mat <- df2 %>% 
+    select(-cell_id, -condition) %>% 
+    as.matrix()
+  
+  mat <- mat[, !is.na(colSums(mat))]
+  
+  tibble(
+    cell_id = df2$cell_id,
+    cell_type = taproom::get_celltypes(mat, threshold)
+  )
+}
+```
+
+
+```{r}
+th <- 0.95
+
+get_mean_for_th <- function(th, df) {
+  initial_cells <- get_celltype_from_df("None", th, df)
+  
+  initial_stromal <- filter(initial_cells, cell_type == "Stromal")$cell_id
+  initial_macrophage <- filter(initial_cells, cell_type == "Macrophage")$cell_id
+  initial_endothelial <- filter(initial_cells, cell_type == "Endothelial")$cell_id
+  
+  initial_tcell <- filter(initial_cells, cell_type == "T cells")$cell_id
+  
+  ## Stromal cells
+  stromal <- get_celltype_from_df("Stromal only", th, df) %>% 
+    filter(cell_id %in% initial_stromal) 
+  stromal <- mean(stromal$cell_type %in% c("Other", "Unknown"))
+  
+  stromal_macrophage <- get_celltype_from_df("Stromal Macrophage", th, df) %>% 
+    filter(cell_id %in% c(initial_stromal, initial_macrophage)) 
+  stromal_macrophage <- mean(stromal_macrophage$cell_type %in% c("Other", "Unknown"))
+  
+  stromal_macrophage_endothelial <- get_celltype_from_df("Stromal Macrophage Endothelial", th, df) %>% 
+    filter(cell_id %in% c(initial_stromal, initial_macrophage, initial_endothelial)) 
+  stromal_macrophage_endothelial <- mean(stromal_macrophage_endothelial$cell_type %in% c("Other", "Unknown"))
+  
+  tcell1 <- get_celltype_from_df("Stromal only", th, df) %>% 
+    filter(cell_id %in% initial_tcell)
+  tcell1 <- mean(tcell1$cell_type %in% c("Other", "Unknown"))
+  
+  tcell2 <- get_celltype_from_df("Stromal Macrophage", th, df) %>% 
+    filter(cell_id %in% initial_tcell)
+  tcell2 <- mean(tcell2$cell_type %in% c("Other", "Unknown"))
+
+  tcell3 <- get_celltype_from_df("Stromal Macrophage Endothelial", th, df) %>% 
+    filter(cell_id %in% initial_tcell)
+  tcell3 <- mean(tcell3$cell_type %in% c("Other", "Unknown"))
+  
+  tribble(
+    ~ threshold, ~ condition, ~ mean_unknown,
+    th, "Stromal cells, stromal markers removed", stromal,
+    th, "Macrophages, stromal macrophage markers removed", stromal_macrophage,
+    th, "Endothelial cells, stromal macrophage endothelial markers removed", stromal_macrophage_endothelial,
+    th, "T cells, stromal markers removed", tcell1,
+    th, "T cells, stromal macrophage markers removed", tcell2,
+    th, "T cells, stromal macrophage endothelial markers removed", tcell3
+  )
+}
+
+```
+
+```{r}
+thresholds <- seq(0.5, 0.95, 0.05)
+
+mean_accs <- map_dfr(thresholds, get_mean_for_th, df)
+```
+
+```{r}
+custom_cols <- c(
+  "Stromal cells, stromal markers removed"="#D46A6A",
+  "Macrophages, stromal macrophage markers removed"="#AA3939",
+  "Endothelial cells, stromal macrophage endothelial markers removed"="#801515",
+  "T cells, stromal markers removed"="#407F7F",
+  "T cells, stromal macrophage markers removed"="#226666",
+  "T cells, stromal macrophage endothelial markers removed"="#0D4D4D"
+)
+```
+
+
+```{r}
+ggplot(mean_accs, aes(x = threshold, y = mean_unknown, colour = condition)) +
+  geom_line(size=1.5) +
+  ggpubr::theme_pubclean() +
+  labs(y = "Proportion cells assigned\nto Other/Unknown",
+       x = "Probability threshold for assigning cells") +
+  scale_colour_manual(
+    values=custom_cols
+  ) +
+  guides(color = guide_legend(ncol = 1)) +
+  theme(legend.position = "bottom",
+        legend.title = element_blank())
+  
+```
+
+```{r}
+pdf(params$output_fig_removed, width=6,height=5.5)
+print(last_plot())
+dev.off()
+```
+
+
+
+
+
+# Adding celltypes
+
+
+```{r}
+added_csvs <- dir(params$input_dir, pattern = 'added*.*csv', 
+                    full.names = TRUE)
+```
+
+```{r}
+# read_to_mat <- function(f) {
+#   df <- read_csv(f)
+#   mat <- as.matrix(select(df, -X1))
+#   celltypes <- get_celltypes(mat, thresh = params$thresh)
+# 
+#   condition <- strsplit(f, "-")[[1]]
+#   condition <- condition[length(condition)]
+#   condition <- gsub(".csv", "", condition, fixed=TRUE)
+#  
+#   tibble(
+#     cell = df$X1,
+#     cell_type = celltypes,
+#     condition = condition
+#   ) 
+# }
+```
+
+```{r}
+df <- map_dfr(added_csvs, read_to_mat)
+
+df$condition <- gsub("_", " ", df$condition)
+
+df$condition <- factor(df$condition,
+                       levels = c(
+                         "One additional",
+                         "Two additional",
+                         "Three additional"
+                       ))
+```
+
+```{r}
+declared_celltypes <- c(
+  names(markers$cell_types),
+  "Unknown",
+  "Other"
+)
+
+conditions_add <- c(
+  "One additional"="#7B9F35",
+  "Two additional"="#567714",
+  "Three additional"="#354F00"
+)
+```
+
+```{r}
+get_mean_for_add <- function(th, df) {
+  p_one <- mean(! (get_celltype_from_df("One additional", th, df)$cell_type %in% declared_celltypes) )
+  p_two <- mean(! (get_celltype_from_df("Two additional", th, df)$cell_type %in% declared_celltypes) )
+  p_three <- mean(! (get_celltype_from_df("Three additional", th, df)$cell_type %in% declared_celltypes) )
+
+  
+    
+  tribble(
+    ~ threshold, ~ condition, ~ mean_not_declared,
+    th, "One additional", p_one,
+    th, "Two additional", p_two,
+    th, "Three additional", p_three
+  )
+}
+```
+
+```{r}
+df_add <- map_dfr(thresholds, get_mean_for_add, df)
+df_add$condition <- factor(df_add$condition, levels = names(conditions_add))
+```
+
+```{r}
+ggplot(df_add, aes(x = threshold, y = mean_not_declared, colour = condition)) +
+  geom_line(size=1.5) +
+  ggpubr::theme_pubclean() +
+  labs(y = "Proportion cells assigned\nto fictional cell type",
+       x = "Probability threshold for assigning cells") +
+  scale_colour_manual(
+    values=conditions_add
+  ) +
+  guides(color = guide_legend(nrow = 1)) +
+  theme(legend.position = "bottom",
+        legend.title = element_blank())
+  
+```
+```{r}
+pdf(params$output_fig_added, width=5,height=4)
+print(last_plot())
+dev.off()
+```

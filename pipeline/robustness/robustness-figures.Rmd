@@ -2,10 +2,11 @@
 title: "Robustness figures"
 output: html_document
 params:
-  none: "../../output/v6/robustness/assignments-15k-removed-None.csv"
-  stromal: "../../output/v6/robustness/assignments-15k-removed-Stromal_only.csv"
-  macrophage: "../../output/v6/robustness/assignments-15k-removed-Stromal_Macrophage.csv"
-  endothelial: "../../output/v6/robustness/assignments-15k-removed-Stromal_Macrophage_Endothelial.csv"
+  output_fig_removed: "removed.pdf"
+  output_fig_added: "added.pdf"
+  markers: '../../markers/jackson-2020-markers-v3.yml'
+  input_dir: '../../output/zeropointone/robustness-no-subset/'
+  thresh: 0.95
 ---
 
 ```{r setup, include=FALSE}
@@ -19,10 +20,17 @@ suppressPackageStartupMessages({
   library(cowplot)
   library(matrixStats) 
   library(pheatmap)
+  library(glue)
+  library(taproom)
+  library(yaml)
 })
 
-devtools::load_all('../../../taproom')
 ```
+
+```{r}
+markers <- read_yaml(params$markers)
+```
+
 
 # Define palette
 
@@ -35,9 +43,7 @@ celltype_colours <- c(celltype_colours, "Endothelial"="red")
 # Removing cell types
 
 ```{r}
-none <- read_csv(params$none) %>% 
-  mutate(cell_type = get_celltypes(select(., X1)))
-removed_csvs <- dir('../../output/v6/robustness/', pattern = 'removed*.*csv', 
+removed_csvs <- dir(params$input_dir, pattern = 'removed*.*csv', 
                     full.names = TRUE)
 ```
 
@@ -50,16 +56,16 @@ mat$X1 <- NULL
 ```
 
 ```{r}
-mat_all <- read_csv("../../output/v6/basel_subset/basel_subset_assignments_type.csv")
-mat_all <- arrange(mat_all, X1)
-mat_all$X1 <- NULL
+# mat_all <- read_csv("../../output/v4/basel_subset/basel_subset_assignments.csv")
+# mat_all <- arrange(mat_all, X1)
+# mat_all$X1 <- NULL
 ```
 
 ```{r}
-table(
-  get_celltypes(mat, thresh = 0.95),
-  get_celltypes(mat_all, thresh = 0.95)
-)
+# table(
+#   get_celltypes(mat, thresh = 0.95),
+#   get_celltypes(mat_all, thresh = 0.95)
+# )
 ```
 
 
@@ -69,7 +75,7 @@ table(
 read_to_mat <- function(f) {
   df <- read_csv(f)
   mat <- as.matrix(select(df, -X1))
-  celltypes <- get_celltypes(mat, thresh = 0.95)
+  celltypes <- taproom::get_celltypes(mat, thresh = params$thresh)
 
   condition <- strsplit(f, "-")[[1]]
   condition <- condition[length(condition)]
@@ -109,55 +115,92 @@ cells_stromal_none <- filter(df,
 plot <- filter(df, cell %in% cells_stromal_none) %>% 
   mutate(condition = str_replace_all(condition, " ", "\n")) %>% 
   ggplot(aes(x = condition, stratum = cell_type, alluvium = cell,
-               fill = cell_type, label = cell_type)) +
-  geom_stratum(fill = "grey", color = "black") +
+               fill = cell_type)) +
+  geom_stratum(alpha = .5) +
+  #geom_label(stat = "stratum", size = 3) +
+  cowplot::theme_cowplot(font_size = 12) +
   stat_flow() +
   labs(y = "Cells", x = "Cell type(s) for which markers were removed",
        fill = "Assigned Cell type") +
   scale_x_discrete(expand = c(0,0)) +
   scale_y_discrete(expand = c(0,0)) +
-  scale_fill_manual(values = celltype_colours, name = "Cell type\nassigned") +
-  astir_paper_theme() +
-  theme(axis.ticks.x = element_blank(),
-        #axis.ticks.y = element_blank(),
-        #axis.text.y = element_blank(),
-        axis.title = element_text(size = 20),
-        axis.text.x = element_text(size = 15),
-        legend.text = element_text(size = 20),
-        legend.title = element_text(size = 20),
-        panel.background = element_blank())
+  scale_fill_manual(values = celltype_colours, name = "Cell type assigned") +
+  theme(axis.text.x = element_text(angle = -45, hjust = 0, vjust = 0.5)) +
+  labs(x = "Cell type removed")
+```
 
-plot
-
-pdf(file = "", height = 3, width = 6.75)
-  plot
+```{r}
+pdf(params$output_fig_removed, width = 5, height=3.5)
+print(last_plot())
 dev.off()
 ```
 
+
 ```{r}
-ggplot(df, aes(x = condition, stratum = cell_type, alluvium = cell,
-               fill = cell_type, label = cell_type)) +
-  geom_stratum(alpha = .5) +
-  geom_label(stat = "stratum", size = 3) +
-  cowplot::theme_cowplot(font_size = 12) +
-  stat_flow() +
-  scale_x_discrete(expand = c(0,0)) +
-  scale_y_discrete(expand = c(0,0)) +
-  scale_fill_manual(values = celltype_colours, name = "Cell type\nassigned") +
-  theme(axis.text.x = element_text(angle = -45, hjust = 0, vjust = 0.5)) +
-  labs(x = "Celltype removed")
+# ggplot(df, aes(x = condition, stratum = cell_type, alluvium = cell,
+#                fill = cell_type, label = cell_type)) +
+#   geom_stratum(alpha = .5) +
+#   geom_label(stat = "stratum", size = 3) +
+#   cowplot::theme_cowplot(font_size = 12) +
+#   stat_flow() +
+#   scale_x_discrete(expand = c(0,0)) +
+#   scale_y_discrete(expand = c(0,0)) +
+#   scale_fill_manual(values = celltype_colours, name = "Cell type\nassigned") +
+#   theme(axis.text.x = element_text(angle = -45, hjust = 0, vjust = 0.5)) +
+#   labs(x = "Celltype removed")
+```
+
+Generate some statistics:
+
+```{r}
+stromal_first_cells <- filter(df, condition == "None", cell_type == "Stromal") %>% 
+  .$cell
+
+ct <- filter(df, cell %in% stromal_first_cells, condition == "Stromal only") %>% 
+  .$cell_type
+
+print(table(ct))
 ```
 
 ```{r}
-#ggsave("robustness-removed.png", width = 12, height = 10)
+print(mean(ct %in% c("Unknown", "Other")))
+```
+
+
+```{r}
+macrophage_second_cells <- filter(df, condition == "Stromal only", cell_type == "Macrophage") %>% 
+  .$cell
+
+ct <- filter(df, cell %in% macrophage_second_cells, condition == "Stromal Macrophage") %>% 
+  .$cell_type
+print(table(ct))
+```
+
+```{r}
+print(mean(ct %in% c("Unknown", "Other")))
+```
+
+
+```{r}
+endo_third_cells <- filter(df, condition == "Stromal Macrophage", cell_type == "Endothelial") %>% 
+  .$cell
+
+ct <- filter(df, cell %in% endo_third_cells, condition == "Stromal Macrophage Endothelial") %>% 
+  .$cell_type
+
+print(table(ct))
+```
+
+```{r}
+print(mean(ct %in% c("Unknown", "Other")))
 ```
 
 
 # Adding celltypes
 
 
-```{r eval = F}
-added_csvs <- dir('../../output/v4/robustness/', pattern = 'added*.*csv', 
+```{r}
+added_csvs <- dir(params$input_dir, pattern = 'added*.*csv', 
                     full.names = TRUE)
 ```
 
@@ -165,7 +208,7 @@ added_csvs <- dir('../../output/v4/robustness/', pattern = 'added*.*csv',
 read_to_mat <- function(f) {
   df <- read_csv(f)
   mat <- as.matrix(select(df, -X1))
-  celltypes <- get_celltypes(mat, thresh = 0.95)
+  celltypes <- taproom::get_celltypes(mat, thresh = params$thresh)
 
   condition <- strsplit(f, "-")[[1]]
   condition <- condition[length(condition)]
@@ -192,21 +235,43 @@ df$condition <- factor(df$condition,
                        ))
 ```
 
-
-```{r eval = F}
-dplyr::count(df, condition, cell_type)
+```{r}
+declared_celltypes <- c(
+  names(markers$cell_types),
+  "Unknown",
+  "Other"
+)
 ```
 
-```{r eval=F}
+
+```{r}
+dplyr::count(df, condition, cell_type) 
+```
+
+```{r}
+df %>% 
+  group_by(condition) %>% 
+  summarize(
+    wrong_mean = mean(!(cell_type %in% declared_celltypes))
+  )
+```
+
+
+```{r}
 ggplot(df, aes(x = condition, stratum = cell_type, alluvium = cell,
-               fill = cell_type, label = cell_type)) +
+               fill = cell_type)) +
   geom_stratum(alpha = .5) +
-  geom_label(stat = "stratum", size = 3) +
   cowplot::theme_cowplot(font_size = 12) +
   stat_flow() +
   scale_x_discrete(expand = c(0,0)) +
   scale_y_discrete(expand = c(0,0)) +
-  scale_fill_manual(values = celltype_colours, name = "Cell type\nassigned") +
+  scale_fill_manual(values = celltype_colours, name = "Cell type assigned") +
   theme(axis.text.x = element_text(angle = -45, hjust = 0, vjust = 0.5)) +
   labs(x = "Cell type added")
+```
+
+```{r}
+pdf(params$output_fig_added, width = 5, height=3.5)
+print(last_plot())
+dev.off()
 ```

@@ -54,7 +54,6 @@ rule dist_report:
         expand(output_path + "spatial/zurich1/{core}.csv", core=zurich1_cores),
         metadata = lambda wildcards: config[wildcards.dataset]['base_dir']+ config[wildcards.dataset]['metadata_file'],
         celltype_assignments = output_path + "astir_assignments/{dataset}_astir_assignments.csv",
-        state_assignments = output_path + "astir_assignments/{dataset}_astir_assignments_state.csv",
     output:
         html=output_path + "spatial/spatial_report_{dataset}.html",
         rds=output_path + "spatial/rds_output_{dataset}.rds",
@@ -65,7 +64,6 @@ rule dist_report:
         "output_file='{output.html}', "
         "params=list(input_dir='{params.output_path}/spatial/{wildcards.dataset}/', "
         "celltype_assignments='{input.celltype_assignments}', "
-        "state_assignments='{input.state_assignments}', "  
         "output_rds='{output.rds}', "
         "scree_plot='{output.scree_plot}', "
         "dataset='{wildcards.dataset}', "      

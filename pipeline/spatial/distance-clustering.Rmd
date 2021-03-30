@@ -6,7 +6,6 @@ params:
   metadata: "../..//data-raw/jackson-2020/SingleCell_and_Metadata/BaselTMA/Basel_PatientMetadata.csv"
   dataset: "basel"
   celltype_assignments: "../../output/chipmunk/astir_assignments/basel_astir_assignments.csv"
-  state_assignments: "../../output/chipmunk/astir_assignments/basel_astir_assignments_state.csv"
   df_test: "test.csv"
   scree_plot: "../../figures/supplementary/scree-plot-spatial-basel.png"
   output_rds: "../../output/chipmunk/spatial/basel/basel_output.rds"
@@ -124,8 +123,8 @@ mat <- select(df_wide, -(core:n_cells)) %>%
   as.matrix()
 rownames(mat) <- df_wide$core
 
-mat <- mat[rowMeans(is.na(mat)) < 0.8, ]
-mat <- mat[, colMeans(is.na(mat)) < 0.8]
+# mat <- mat[rowMeans(is.na(mat)) < 0.5, ]
+# mat <- mat[, colMeans(is.na(mat)) < 0.5]
 
 mat <- scale(mat)
 # mat[mat > 2] <- 2
@@ -141,7 +140,7 @@ cell_num_vec <- cell_num_vec[rownames(mat)]
 ```
 
 ```{r}
-cell_num_vec <- cell_num_vec[cell_num_vec > 1000]
+cell_num_vec <- cell_num_vec[cell_num_vec > 1500]
 mat <- mat[names(cell_num_vec),]
 ```
 
@@ -221,28 +220,29 @@ spatial_level <- pca$x[,1] > median(pca$x[,1])
 # Associate with states
 
 
-```{r}
+```{r, eval=FALSE}
 state_assignments <- read_csv(params$state_assignments)
 ```
 
-```{r}
+```{r, eval=FALSE}
 celltype_assignments <- read_csv(params$celltype_assignments)
 ```
 
-```{r}
+```{r, eval=FALSE}
+
 cell_names <- celltype_assignments$X1
 celltype_assignments$X1 <- NULL
 cell_types <- get_celltypes(celltype_assignments)
 cell_types <- tibble(X1 = cell_names, cell_type = cell_types)
 ```
 
-```{r}
+```{r, eval=FALSE}
 s <- inner_join(state_assignments, cell_types, by = "X1") %>% 
   filter(cell_type != "Unknown", cell_type != "Other")
 ```
 
 
-```{r}
+```{r, eval=FALSE}
 cores <- s$X1
 cores <- strsplit(cores, "_", fixed=TRUE)
 cores <- lapply(cores, `[`, 1:4)
@@ -250,7 +250,7 @@ cores <- sapply(cores, paste0, collapse="_")
 s$core <- cores
 ```
 
-```{r}
+```{r, eval=FALSE}
 s <- gather(s, state, activation, -X1, -core, -cell_type) %>% 
   group_by(cell_type, state) %>% 
   mutate(activation = activation - mean(activation)) %>% 
@@ -258,7 +258,7 @@ s <- gather(s, state, activation, -X1, -core, -cell_type) %>%
 ```
 
 
-```{r}
+```{r, eval=FALSE}
 ggplot(s, aes(x = cell_type, y = activation)) +
   facet_wrap(~ state) +
   geom_boxplot()
@@ -266,30 +266,32 @@ ggplot(s, aes(x = cell_type, y = activation)) +
 
 
 
-```{r}
+```{r, eval=FALSE}
 df_state <- group_by(s, core, state) %>% 
   summarize(activation = mean(activation)) %>% 
   ungroup()
 ```
 
-```{r}
+
+```{r, eval=FALSE}
 df_state <- enframe(spatial_score, "core", "spatial_score") %>% 
   inner_join(df_state, by = "core")
 ```
 
-```{r}
+
+```{r, eval=FALSE}
 df_test <- group_by(df_state, state) %>% 
   do(tidy(lm(activation ~ spatial_score, data = .))) %>% 
   filter(term == "spatial_score") %>% 
   mutate(dataset = params$dataset)
 ```
 
-```{r}
+```{r, eval=FALSE}
 DT::datatable(df_test)
 ```
 
 
-```{r}
+```{r, eval=FALSE}
 ggplot(df_state, aes(x = spatial_score, y = activation)) +
   geom_point() +
   facet_wrap(~ state, scales = "free_y") +
@@ -303,8 +305,8 @@ save_rds <- list(
   cell_num_vec = cell_num_vec,
   spatial_score = spatial_score, 
   mat = mat2,
-  df_state = df_state,
-  df_test = df_test,
+  # df_state = df_state,
+  # df_test = df_test,
   entropy_weights = entropy_weights
 )
 

@@ -6,16 +6,15 @@ cell_types:
   Macrophage:
     - "CD45"
     - "CD68"
+#     - "Vimentin"
+  # B cells:
+  #   - "CD24"
+  #   - "CD45"
+  #   - "Vimentin"
   Endothelial:
     - "CD31"
     - "CD49f"
     - "Vimentin"
-  Epithelial (basal):
-    - "ECadherin"
-    - "EpCAM"
-    - "panK"
-    - "K14"
-    - "K5"
   Epithelial (luminal):
     - "ECadherin"
     - "EpCAM"
@@ -25,8 +24,6 @@ cell_types:
   Stromal:
     - "SMA"
     - "Vimentin"
-  # Stromal:
-  #   - "Vimentin"
 
 cell_states:
   HALLMARK_HYPOXIA:

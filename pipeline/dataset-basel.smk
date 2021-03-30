@@ -2,7 +2,7 @@
 
 basel_metadata = pd.read_csv(os.path.join(config['basel']['base_dir'], config['basel']['metadata_file']))
 basel_cores = list(basel_metadata.core)
-tmp_basel_output = expand(output_path + "basel_processed/{core}.rds", core=basel_cores)
+basel_csvs = expand(output_path + "basel_processed/{core}.rds", core=basel_cores)
 
 
 # Basel 15k reduced set for benchmarking
@@ -11,11 +11,11 @@ cores_15k = list(set(list(basel_15k_cells.core)))
 basel_15k_csvs = expand(output_path + "basel_15k_subset/{core}.csv", core=cores_15k)
 
 basel_output = {
-    'csv_rds': tmp_basel_output,
-    'loom': output_path + "looms/basel.loom",
-    'subset': output_path + "basel_subset/basel_subset_expression.csv",
-    'subset_csvs': expand(output_path + "basel_subset_separate_csvs/{core}.csv", core=basel_cores[0:30]),
-    'subset_sce': output_path + "basel_subset/basel_subset_sce.rds"
+    'csvs': basel_csvs,
+    'loom': output_path + "looms/basel.loom"# ,
+    # 'subset': output_path + "basel_subset/basel_subset_expression.csv",
+    # 'subset_csvs': expand(output_path + "basel_subset_separate_csvs/{core}.csv", core=basel_cores[0:30]),
+    # 'subset_sce': output_path + "basel_subset/basel_subset_sce.rds"
 }
 
 
@@ -44,61 +44,61 @@ rule basel_to_loom:
         "{output} "
 
 
-rule basel_subset_cells:
-    input:
-        csvs=expand(output_path + "basel_processed/{core}.csv", core=basel_cores[0:30]),
-        assignments_type=output_path + "astir_assignments/basel_astir_assignments.csv",
-        assignments_state=output_path + "astir_assignments/basel_astir_assignments_state.csv",
-    output:
-        assignments_type=output_path + "basel_subset/basel_subset_assignments_type.csv",
-        assignments_state=output_path + "basel_subset/basel_subset_assignments_state.csv",
-        expression=output_path + "basel_subset/basel_subset_expression.csv",
-        csvs=basel_output['subset_csvs'],
-    run:
-        import pandas as pd
+# rule basel_subset_cells:
+#     input:
+#         csvs=expand(output_path + "basel_processed/{core}.csv", core=basel_cores[0:30]),
+#         assignments_type=output_path + "astir_assignments/basel_astir_assignments.csv",
+#         assignments_state=output_path + "astir_assignments/basel_astir_assignments_state.csv",
+#     output:
+#         assignments_type=output_path + "basel_subset/basel_subset_assignments_type.csv",
+#         assignments_state=output_path + "basel_subset/basel_subset_assignments_state.csv",
+#         expression=output_path + "basel_subset/basel_subset_expression.csv",
+#         csvs=basel_output['subset_csvs'],
+#     run:
+#         import pandas as pd
 
-        core_dict = dict(zip(basel_cores, input.csvs))
+#         core_dict = dict(zip(basel_cores, input.csvs))
 
-        dfs = {c: pd.read_csv(f,index_col=0) for (c,f) in core_dict.items()}
+#         dfs = {c: pd.read_csv(f,index_col=0) for (c,f) in core_dict.items()}
 
-        df = pd.concat(dfs.values())
+#         df = pd.concat(dfs.values())
 
-        # df = df.sample(n=config['n_subsample'],
-        # replace=False,random_state=1234)
+#         # df = df.sample(n=config['n_subsample'],
+#         # replace=False,random_state=1234)
 
-        subset_cell_ids = list(df.index)
+#         subset_cell_ids = list(df.index)
 
-        df.to_csv(output.expression)
+#         df.to_csv(output.expression)
 
-        ## Output each to csv
-        for c in dfs.keys():
-            df_core = dfs[c]
-            cells_select = [ x for x in list(df.index) if x in list(df_core.index)]
-            df_core = df_core.loc[ cells_select ]
-            output_csv = output_path + f"basel_subset_separate_csvs/{c}.csv"
-            df_core.to_csv(output_csv)
+#         ## Output each to csv
+#         for c in dfs.keys():
+#             df_core = dfs[c]
+#             cells_select = [ x for x in list(df.index) if x in list(df_core.index)]
+#             df_core = df_core.loc[ cells_select ]
+#             output_csv = output_path + f"basel_subset_separate_csvs/{c}.csv"
+#             df_core.to_csv(output_csv)
 
-        ## Subsample type assignments
-        assignments = pd.read_csv(input.assignments_type, index_col=0)
-        assignments_subset = assignments.loc[subset_cell_ids]
-        assignments_subset.to_csv(output.assignments_type)
+#         ## Subsample type assignments
+#         assignments = pd.read_csv(input.assignments_type, index_col=0)
+#         assignments_subset = assignments.loc[subset_cell_ids]
+#         assignments_subset.to_csv(output.assignments_type)
         
-        ## Subsample state assignments
-        assignments = pd.read_csv(input.assignments_state, index_col=0)
-        assignments_subset = assignments.loc[subset_cell_ids]
-        assignments_subset.to_csv(output.assignments_state)
+#         ## Subsample state assignments
+#         assignments = pd.read_csv(input.assignments_state, index_col=0)
+#         assignments_subset = assignments.loc[subset_cell_ids]
+#         assignments_subset.to_csv(output.assignments_state)
 
-rule subset_basel_sce:
-    params:
-        input_dir = output_path + "basel_processed"
-    input:
-        expand(output_path + "basel_processed/{core}.rds", core=basel_cores),
-        csv=output_path + "basel_subset/basel_subset_expression.csv",
-    output:
-        output_path + "basel_subset/basel_subset_sce.rds"
-    shell:
-        "Rscript pipeline/subset-sces.R "
-        "--input_dir {params.input_dir} "
-        "--input_csv {input.csv} "
-        "--output_rds {output} "
+# rule subset_basel_sce:
+#     params:
+#         input_dir = output_path + "basel_processed"
+#     input:
+#         expand(output_path + "basel_processed/{core}.rds", core=basel_cores),
+#         csv=output_path + "basel_subset/basel_subset_expression.csv",
+#     output:
+#         output_path + "basel_subset/basel_subset_sce.rds"
+#     shell:
+#         "Rscript pipeline/subset-sces.R "
+#         "--input_dir {params.input_dir} "
+#         "--input_csv {input.csv} "
+#         "--output_rds {output} "
 

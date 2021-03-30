@@ -51,7 +51,7 @@ lin_cycif_output = {
 
 rule read_lin_cycif:
     input:
-        scdata="data-raw/lin-2020/raw-data/TMApanels/{sample_id}.csv"
+        scdata="data-raw/lin-2019/TMApanels/{sample_id}.csv"
     output:
         csv = output_path + "lin-cycif_processed/{sample_id}.csv",
         rds = output_path + "lin-cycif_processed/{sample_id}.rds",
