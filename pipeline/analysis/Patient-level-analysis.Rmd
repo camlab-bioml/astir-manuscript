@@ -260,7 +260,7 @@ plotClusteringHeatmapCore <- function(freqPerCore, cl = NA){
   
     # Create dendrogram
   col_dend <- freqPerCore %>% 
-    select_if(is.numeric) %>% 
+    select(`B cells`:Unknown) %>%  
     dist() %>% 
     hclust(method = "ward.D2") %>% 
     as.dendrogram() %>% 
@@ -298,7 +298,7 @@ plotClusteringHeatmapCore <- function(freqPerCore, cl = NA){
   }
 
   hm <- Heatmap(t(as.matrix(freqPerCore %>% 
-                              select_if(is.numeric))),
+                              select(`B cells`:Unknown))),
                 column_dend_height = unit(5, "cm"),
                 column_title = "Cores", row_title = "Cell types",
                 cluster_columns = col_dend, border = T,
