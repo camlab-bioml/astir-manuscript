@@ -22,7 +22,7 @@ library(tidyverse)
 library(GSVA)
 library(ggalluvial)
 source("~/imc-2020/scripts/functions.R")
-devtools::load_all("~/taproom/")
+devtools::load_all("../taproom/")
 ```
 
 Read in data

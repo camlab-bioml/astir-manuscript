@@ -22,6 +22,8 @@ clusters <- args[7]
 markers <- args[8]
 output_dir <- args[9]
 
+rem <- bind_rows(rem_none, rem_stromal, rem_macrophages, rem_endothelial)
+
 methodOutputs <- lapply(files, function(f) {
   cluster_df <- read_csv(f)
   names(cluster_df)[2] <- "cluster"
@@ -34,40 +36,7 @@ methodOutputs <- lapply(files, function(f) {
 
 
 ### [ANALYSIS] #####
-get_enrichment <- function(cells, markers_list, condition){
-  gsva <- gsva(logcounts(cells),
-               markers_list,
-               method="gsva")
-  
-  df_gsva <- t(gsva) %>% 
-    as.data.frame() %>% 
-    rownames_to_column("id") %>% 
-    gather(pathway, score, -id) %>% 
-    as_tibble()
-  
-  methods <- inner_join(methodOutputs, df_gsva, by = "id")
-  
-  methods.summary <- group_by(methods, pathway, method, cluster) %>% 
-    dplyr::summarize(mean_score = mean(score)) %>% 
-    ungroup() %>% 
-    group_by(pathway, method) %>% 
-    mutate(mean_score = (mean_score - mean(mean_score)) / sd(mean_score)) %>% 
-    ungroup() %>% 
-    group_by(cluster, method) %>% 
-    mutate(thresh_score = mean_score == max(mean_score)) %>% 
-    filter(thresh_score == TRUE)
-  
-  cell_assigned <- left_join(select(methods, -score), 
-                             select(methods.summary, -mean_score), 
-                             by = c("method", "pathway", "cluster")) %>% 
-    filter(thresh_score == TRUE) %>% 
-    select(-thresh_score)
 
-  colnames(cell_assigned) <- c("id", "cluster", "method", "cell_type")
-  cell_assigned$condition <- condition
-  
-  cell_assigned
-}
 
 # Define markers 
 final_markers <- markers[!names(markers) %in% markers_remove]
