@@ -25,7 +25,7 @@ thresh <- 0.5
 
 # read in data 
 sce <- readRDS(cells)
-if(cohort == "lin_cycif" | cohort == "wagner" | cohort == "schapiro"){
+if(cohort == "lin_cycif" | cohort == "wagner" | cohort == "schapiro" | cohort == "keren"){
   # add a cell ID
   sce$id <- colnames(sce)
 }
