@@ -31,6 +31,8 @@ include: "pipeline/spatial/spatial.smk"
 include: "pipeline/imbalance/imbalance.smk"
 include: "pipeline/segmentation/segmentation.smk"
 
+include: "pipeline/cla/cla.smk"
+
 
 ## Beginning of rules ----- 
 rule all:
@@ -47,6 +49,7 @@ rule all:
         segmentation_output.values(),
         imbalance_output.values(),
         robustness_output.values(),
+        cla_outputs.values(),
 
 rule run_astir_type:
     params:
