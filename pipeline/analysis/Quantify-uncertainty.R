@@ -52,8 +52,8 @@ assign_margin_cells <- function(df){
   df %>% 
     group_by(core) %>% 
     mutate(core_area = Height_FullStack * Width_FullStack) %>% 
-    mutate(inner_height = sqrt((9 * core_area * Height_FullStack) / (10 * Width_FullStack))) %>% 
-    mutate(inner_width = sqrt((9 * core_area * Width_FullStack) / (10 * Height_FullStack))) %>% 
+    mutate(inner_height = sqrt((core_area * Height_FullStack) / (2 * Width_FullStack))) %>% 
+    mutate(inner_width = sqrt((core_area * Width_FullStack) / (2 * Height_FullStack))) %>% 
     mutate(x_margin = (Width_FullStack - inner_width) / 2) %>% 
     mutate(y_margin = (Height_FullStack - inner_height) / 2) %>% 
     mutate(location = ifelse(Location_Center_X > x_margin & 
@@ -140,3 +140,49 @@ ratio %>%
   geom_point() +
   #labs(y = "Mean probability assigned to each core") +
   astir_paper_theme()
+
+
+
+
+### TRY BAD CORES
+bad_staining_cores <- c(all_cells$core[grepl("Ay14", all_cells$core)], 
+                        all_cells$core[grepl("Ay15", all_cells$core)]) %>% 
+  unique()
+
+
+Ay16 <- zurich[,grepl("Ay16", colnames(zurich))]
+Ay16x1 <- zurich[,grepl("Ay16x1", colnames(Ay16))]
+assays(Ay16x1)$raw_imc [1:3,1:3]
+
+Ay16_prob <- max_prob_df[grepl("Ay16", max_prob_df$cell),]
+names <-  Ay16_prob %>% 
+  pull(cell)
+
+Ay16_prob$core <- sapply(strsplit(names, "_"), function(x) x[4])
+
+Ay16_prob %>% 
+  ggplot(aes(x = core, y = max_prob)) +
+  geom_violin() +
+  astir_paper_theme() 
+
+
+
+raw_imc <- assays(Ay16)$raw_imc %>% 
+  t() %>% 
+  as.data.frame() %>% 
+  rownames_to_column("cell")
+
+raw_imc$total_raw_signal <- select(raw_imc, -cell) %>% rowSums()
+
+raw_imc$core <- sapply(strsplit(raw_imc$cell, "_"), function(x) x[4])
+
+raw_imc %>% 
+  ggplot(aes(x = core, y = `pan Cytokeratin`)) +
+  geom_violin() +
+  astir_paper_theme()
+
+raw_imc %>% 
+  ggplot(aes(x = core, y = total_raw_signal)) +
+  geom_violin() +
+  astir_paper_theme()
+
