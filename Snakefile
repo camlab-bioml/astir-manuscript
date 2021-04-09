@@ -24,6 +24,10 @@ include: "pipeline/dataset-lin-cycif.smk"
 include: "pipeline/dataset-keren.smk"
 
 include: "analysis/analysis.smk"
+include: "pipeline/benchmarking/benchmarking.smk"
+include: "pipeline/Alternate-clustering.smk"
+include: "pipeline/epithelial-overclustering.smk"    
+include: "pipeline/alt-masks-clustering.smk" 
 
 include: "pipeline/robustness/robustness.smk"
 include: "pipeline/reports/reports.smk"
@@ -36,7 +40,7 @@ include: "pipeline/cla/cla.smk"
 
 ## Beginning of rules ----- 
 rule all:
-    input:
+    input:        
         asts_type.values(),
         wagner_output.values(),
         basel_output.values(),
@@ -50,6 +54,11 @@ rule all:
         imbalance_output.values(),
         robustness_output.values(),
         cla_outputs.values(),
+        # benchmarking_output.values(),
+        # alternate_approaches_output.values(),
+        # analysis_output.values(),
+        # epithelial_overclustering.values(),
+        # alt_masks.values(),
 
 rule run_astir_type:
     params:
@@ -135,6 +144,7 @@ rule run_astir_type:
 #         plt.xlabel("Epoch")
 #         plt.tight_layout()
 #         plt.savefig(output.fig, dpi=300)
+
 
 
 

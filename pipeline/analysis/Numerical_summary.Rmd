@@ -1,0 +1,189 @@
+---
+title: "Numerical Summary"
+author: "Michael Geuenich"
+date: "July 28, 2020"
+output: html_document
+params:
+  basel_type: "../../output/squirrel/astir_assignments/basel_astir_assignments.csv"
+  basel_state: "../../output/v6/astir_assignments/basel_astir_assignments_state.csv"
+  basel_metadata: "../../data-raw/metadata/basel_PatientMetadata.csv"
+
+  zurich_type: "../../output/squirrel/astir_assignments/zurich1_astir_assignments.csv"
+  zurich_state: "../../output/v6/astir_assignments/zurich1_astir_assignments_state.csv"
+  zurich_metadata: "../../data-raw/metadata/zurich1_PatientMetadata.csv"
+
+  schapiro_type: "../../output/squirrel/astir_assignments/schapiro_astir_assignments.csv"
+  schapiro_state: "../../output/v6/astir_assignments/schapiro_astir_assignments_state.csv"
+  
+  wagner_type: "../../output/squirrel/astir_assignments/wagner_astir_assignments.csv"
+  wagner_state: "../../output/v6/astir_assignments/wagner_astir_assignments_state.csv"
+  wagner_metadata: "../../data-raw/metadata/wagner-clinical-characteristics.csv"
+  
+  lin_type: "../../output/squirrel/astir_assignments/lin_cycif_astir_assignments.csv"
+---
+
+```{r setup, include=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(SingleCellExperiment)
+library(scater)
+library(knitr)
+library(DT)
+library(devtools)
+library(tidyverse)
+devtools::load_all("../../../taproom/")
+source("../../scripts/functions.R")
+```
+
+
+```{r include=FALSE,message=F}
+basel_types <- read_csv(params$basel_type) %>% 
+  mutate(cell_type = get_celltypes(select(., -X1))) %>% 
+  select(X1, cell_type) %>% 
+  mutate(cohort = "basel")
+
+#basel_states <- read_csv(params$basel_state) %>% select(-X1)
+basel_metadata <- read_csv(params$basel_metadata)
+
+schapiro_types <- read_csv(params$schapiro_type) %>% 
+  mutate(cell_type = get_celltypes(select(., -X1))) %>% 
+  select(X1, cell_type) %>% 
+  mutate(cohort = "schapiro")
+
+#schapiro_states <- read_csv(params$schapiro_state) %>% select(-X1)
+
+wagner_types <- read_csv(params$wagner_type) %>% 
+  mutate(cell_type = get_celltypes(select(., -X1))) %>% 
+  select(X1, cell_type) %>% 
+  mutate(cohort = "wagner")
+
+#wagner_states <- read_csv(params$wagner_state) %>% select(-X1)
+wagner_metadata <- read_csv(params$wagner_metadata)
+
+zurich_types <- read_csv(params$zurich_type) %>% 
+  mutate(cell_type = get_celltypes(select(., -X1))) %>% 
+  select(X1, cell_type) %>% 
+  mutate(cohort = "zurich")
+
+#zurich_states <- read_csv(params$zurich_state) %>% select(-X1)
+zurich_metadata <- read_csv(params$zurich_metadata)
+
+lin_types <- read_csv(params$lin_type) %>%
+  mutate(cell_type = taproom::get_celltypes(select(., -X1), thresh = 0.5)) %>% 
+  select(X1, cell_type) %>% 
+  mutate(cohort = "lin")
+
+cell_types <- rbind(basel_types, schapiro_types, wagner_types, zurich_types, lin_types)
+
+type_summary <- cell_types %>% 
+  group_by(cohort, cell_type) %>% 
+  tally() %>% 
+  ungroup() %>% group_by(cohort) %>% 
+  mutate(total = sum(n)) %>% 
+  mutate(Freq = n/total) %>% 
+  dplyr::rename(cells_per_type = n, total_per_cohort = total, Frequency = Freq)
+```
+
+Total number of cells for: 
+
+- Basel: `r type_summary %>% filter(cohort == "basel") %>% pull(total_per_cohort) %>% unique()`
+- Schapiro: `r type_summary %>% filter(cohort == "schapiro") %>% pull(total_per_cohort) %>% unique()`
+- Wagner: `r type_summary %>% filter(cohort == "wagner") %>% pull(total_per_cohort) %>% unique()`
+- Zurich: `r type_summary %>% filter(cohort == "zurich") %>% pull(total_per_cohort) %>% unique()`
+- Lin: `r type_summary %>% filter(cohort == "lin") %>% pull(total_per_cohort) %>% unique()`
+
+Assignment summary
+```{r}
+datatable(type_summary)
+```
+
+
+
+
+### Metadata
+Number of basel patients `r length(unique(basel_metadata$PID))`.
+Number of basel cores `r length(unique(basel_metadata$core))`.
+
+Number of zurich1 patients `r length(unique(zurich_metadata$PID))`
+Number of zurich1 cores `r length(unique(zurich_metadata$core))`
+
+Number of wagner patients `r length(unique(wagner_metadata[["Patient ID"]]))`
+
+Number of schapiro patients `r length(unique(sub("_[^_]+$", "", schapiro_types$X1)))`
+
+
+### Tumour vs no tumor
+```{r}
+datatable(as.data.frame(table(basel_metadata$diseasestatus)))
+datatable(as.data.frame(table(zurich_metadata$location)))
+```
+
+### Patient subtypes
+```{r}
+datatable(as.data.frame(table(zurich_metadata$Subtype)))
+datatable(as.data.frame(table(basel_metadata$clinical_type)))
+```
+
+
+Get number of cell types by tumour vs non-tumour, ER & PR status
+```{r warning=F, message=F}
+basel_types <- basel_types %>% 
+  mutate(core = sub("_[^_]+$", "", X1))
+
+zurich_types <- zurich_types %>% 
+  mutate(core = sub("_[^_]+$", "", X1))
+
+basel_covariates <- c("diseasestatus", "ERStatus", "PRStatus", "HER2Status", "clinical_type")
+zurich_covariates <- c("location", "ERStatus", "PRStatus", "clinical_type")
+
+basel_freq <- left_join(basel_types, 
+                        select(basel_metadata, core, basel_covariates), by = "core")
+
+zurich_freq <- left_join(zurich_types,
+                         select(zurich_metadata, core, zurich_covariates), by = "core")
+
+
+## def function
+summarise_covariates <- function(df, grouping){
+  cell_type_sum <- df %>% 
+    group_by(.data[[grouping]]) %>% 
+    count(cell_type)
+  
+  overall_sum <- cell_type_sum %>% 
+    group_by(.data[[grouping]]) %>% 
+    summarise(total = sum(n))
+  
+  cell_type_sum <- dplyr::rename(cell_type_sum, "Number of cells" = n)
+  overall_sum <- dplyr::rename(overall_sum, "Number of cells" = total)
+  
+  list(cell_type_sum, overall_sum)
+}
+### end 
+
+basel <- lapply(basel_covariates, function(x){summarise_covariates(basel_freq, x)})
+zurich <- lapply(zurich_covariates, function(x){summarise_covariates(zurich_freq, x)})
+```
+
+### Basel
+```{r}
+datatable(basel[[1]][[1]])
+datatable(basel[[1]][[2]])
+datatable(basel[[2]][[1]])
+datatable(basel[[2]][[2]])
+datatable(basel[[3]][[1]])
+datatable(basel[[3]][[2]])
+datatable(basel[[4]][[1]])
+datatable(basel[[4]][[2]])
+```
+
+### Zurich
+```{r}
+datatable(zurich[[1]][[1]])
+datatable(zurich[[1]][[2]])
+datatable(zurich[[2]][[1]])
+datatable(zurich[[2]][[2]])
+datatable(zurich[[3]][[1]])
+datatable(zurich[[3]][[2]])
+datatable(zurich[[4]][[1]])
+datatable(zurich[[4]][[2]])
+
+```

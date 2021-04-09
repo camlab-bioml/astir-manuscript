@@ -16,7 +16,6 @@ basel:
     marker_file: markers/jackson-2020-markers-v4.yml
     markers_imbalance: markers/jackson-2020-markers-imbalance.yml
 
-
 zurich1:
     base_dir: data-raw/jackson-2020/SingleCell_and_Metadata/ZurichTMA/
     metadata_file: Zuri_PatientMetadata.csv
@@ -80,4 +79,23 @@ fake_celltypes:
             - CD8
             - Keratin6
 
-                
+wagner_clusterings:
+    'Epithelial': 'data-raw/wagner-2019-all/wagner-2019-cell/Figure 3/'
+    'CD45': 'data-raw/wagner-2019-all/wagner-2019-cell/Figure 2/CD45_cell_fcs'
+    'Myeloid': 'data-raw/wagner-2019-all/wagner-2019-cell/Figure 2/Myeloid_cell_fcs'
+    'T cell': 'data-raw/wagner-2019-all/wagner-2019-cell/Figure 2/T_cell_fcs'
+
+
+
+# Config for cell level accuracy
+
+cytofLDA_path: utils/CyTOF-Linear-Classifier
+
+cla:
+    basel:
+        annotators:
+            "Annotator-1": data-raw/annotations/basel/assignments-basel_subset_for_annotation.csv_kieran.tsv
+            "Annotator-2": data-raw/annotations/basel/assignments-basel_subset_for_annotation.csv-MG.tsv
+        train_test: data-raw/annotations/basel/basel_train_test_split.tsv
+
+

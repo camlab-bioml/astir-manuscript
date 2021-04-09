@@ -1,0 +1,80 @@
+---
+title: "astir-robustness"
+author: "Michael Geuenich"
+date: "September 5, 2020"
+output: html_document
+params:
+  none: "output/v6/robustness/assignments-15k-removed-None.csv"
+  stromal: "output/v6/robustness/assignments-15k-removed-Stromal_only.csv"
+  macrophage: "output/v6/robustness/assignments-15k-removed-Stromal_Macrophage.csv"
+  endothelial: "output/v6/robustness/assignments-15k-removed-Stromal_Macrophage_Endothelial.csv"
+  output_dir: ""
+  cohort: ""
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = '../../')
+library(tidyverse)
+library(devtools)
+library(cowplot)
+library(ggalluvial)
+library(DelayedArray)
+getwd()
+devtools::load_all("../../../taproom")
+```
+
+```{r}
+threshold <- 0.95
+none <- read_csv(params$none) %>% 
+  mutate(cell_type = get_celltypes(select(., -X1), thresh = threshold)) %>% 
+  select(X1, cell_type) %>% 
+  mutate(condition = "None")
+
+stromal <- read_csv(params$stromal) %>% 
+  mutate(cell_type = get_celltypes(select(., -X1), thresh = threshold)) %>% 
+  select(X1, cell_type) %>% 
+  mutate(condition = "Stromal")
+
+macrophage <- read_csv(params$macrophage) %>% 
+  mutate(cell_type = get_celltypes(select(., -X1), thresh = threshold)) %>% 
+  select(X1, cell_type) %>% 
+  mutate(condition = "Stromal\nMacrophage")
+
+endothelial <- read_csv(params$endothelial) %>% 
+  mutate(cell_type = get_celltypes(select(., -X1), thresh = threshold)) %>% 
+  select(X1, cell_type) %>% 
+  mutate(condition = "Stromal\nMacrophage\nEndothelial")
+
+rem <- rbind(none, stromal, macrophage, endothelial)
+```
+
+
+```{r}
+keep_cells <- rem %>% filter(condition == "None") %>% 
+  filter(cell_type == "Stromal" | 
+           cell_type == "Endothelial" |
+           cell_type == "Macrophage") %>% pull(X1)
+
+pdf(file = paste0(params$output_dir, "Astir-robustness-", params$cohort, ".pdf"), height = 3, width = 6.75)
+  rem %>% filter(X1 %in% keep_cells) %>% 
+    ggplot(aes(x = condition, stratum = cell_type, alluvium = X1, 
+                     fill = cell_type)) +
+    geom_stratum(fill = "grey", color = "black") +
+    stat_flow() + 
+    labs(y = "Cells", x = "Cell type(s) for which markers were removed",
+         fill = "Assigned Cell type") +
+    scale_x_discrete(expand = c(0,0)) +
+    scale_y_discrete(expand = c(0,0)) +
+    scale_fill_manual(values = jackson_basel_colours()) +
+    astir_paper_theme() +
+    theme(axis.ticks.x = element_blank(),
+          #axis.ticks.y = element_blank(),
+          #axis.text.y = element_blank(),
+          axis.title = element_text(size = 20),
+          axis.text.x = element_text(size = 15),
+          legend.text = element_text(size = 20),
+          legend.title = element_text(size = 20),
+          panel.background = element_blank())
+dev.off()
+```

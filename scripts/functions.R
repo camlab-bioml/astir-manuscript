@@ -6,12 +6,12 @@ combineRDS <- function(metadata, path){
     pull(core)
   
   # List all RDS files
-  RDSfiles <- dir(path, pattern = ".rds")
+  RDSfiles <- dir(path, pattern = ".rds", full.names = T)
   
   RDSfiles <- RDSfiles[-grep("Liver", RDSfiles)] # remove liver samples
   
   # Remove non tumour cores
-  RDSfiles <- RDSfiles[-which(str_remove_all(RDSfiles, ".rds") %in% nonTumourCores)]
+  RDSfiles <- RDSfiles[-grep(paste(nonTumourCores, collapse="|"), RDSfiles)]
   
   listSCE <- lapply(RDSfiles, readRDS)
   sce <- do.call('cbind', listSCE)
@@ -19,7 +19,16 @@ combineRDS <- function(metadata, path){
   sce
 }
 
-assignIdentity <- function(raw.sce, types, states){
+createSCE <- function(path){
+  RDSfiles <- dir(path, pattern = ".rds", full.names = T)
+  
+  listSCE <- lapply(RDSfiles, readRDS)
+  sce <- do.call('cbind', listSCE)
+  
+  sce
+}
+
+assignIdentity <- function(raw.sce, types, states, dimReduct = F, thresh = 0.5){
   #### REad in data
   # raw.sce <- "output/v4/zurich1_subset/zurich1_subset_sce.rds"
   # types <- "output/v4/zurich1_subset/zurich1_subset_assignments_type.csv"
@@ -29,7 +38,7 @@ assignIdentity <- function(raw.sce, types, states){
     sce <- readRDS(raw.sce)
     
     ### Make sure wagner has id field
-    if(any(colnames(colData(sce)) == "id") == F & grepl("wagner", raw.sce)){
+    if(any(colnames(colData(sce)) == "id") == F){
       id <- sce %>% colData() %>% as.data.frame() %>% rownames()
       sce$id <- id
     }
@@ -44,7 +53,7 @@ assignIdentity <- function(raw.sce, types, states){
     as.data.frame()
   rownames(types_mat) <- types$X1
   
-  assignments <- taproom::get_celltypes(types_mat) %>% as.data.frame()
+  assignments <- taproom::get_celltypes(types_mat, thresh) %>% as.data.frame()
   colnames(assignments) <- "cell_type"
   assignments$id <- rownames(assignments)
   
@@ -69,7 +78,7 @@ assignIdentity <- function(raw.sce, types, states){
   states_df$id <- rownames(states_df)
   
   
-  typeState <- left_join(assignments, states_df) %>% 
+  typeState <- inner_join(assignments, states_df) %>% 
     pivot_longer(is.numeric, names_to = "state", values_to = "activation") %>% 
     group_by(cell_type, state) %>% 
     dplyr::mutate(activation.med = median(activation)) %>% 
@@ -105,38 +114,40 @@ assignIdentity <- function(raw.sce, types, states){
   colData(sce)[newColNames] <- typeState[colnames(sce), ]
   
   ### [PCA & UMAP PROJECTIONS] #####
-  sce <- runPCA(sce, ncomponents = 10)
-  sce <- runUMAP(sce)
+  if(dimReduct == T){
+    sce <- runPCA(sce, ncomponents = 10)
+    sce <- runUMAP(sce)
+  }
   
   return(list(sce = sce, pathways = paste0(stateNames, ".activation")))
 }
 
 
-create.alluvial <- function(df, title) {
+create.alluvial <- function(df, method) {
   # Ceate alluvial plotting function
   # Define baseline plot
   plot <- ggplot(df, aes(y = df[, 3], axis = df[, 1], axis2 = df[, 2])) +
     geom_alluvium(aes(fill = df[, 1])) +
     geom_stratum(width = 1/20, fill = "grey", color = "black") +
-    ggtitle(title)
-  
+    ylab("Cells") +
+    labs(fill = "Cell Types") +
+    scale_x_discrete(limits = c("Astir cell type", paste(method, "cluster")), 
+                     expand = c(0, 0)) +
+    scale_y_continuous(expand = c(0, 0)) + 
+    astir_paper_theme() +
+    theme(axis.ticks.x = element_blank(),
+          axis.ticks.y = element_blank(),
+          axis.text.y = element_blank(),
+          panel.background = element_blank())
   
   if (length(unique(df[, 1])) < 13) {
     # For few starting states
     plot <- plot + scale_fill_brewer(type = "qual", palette = "Set1") +
-      scale_fill_manual(values = jackson_basel_colours()) +
-      theme(axis.ticks.x = element_blank(),
-            axis.text.x = element_blank(),
-            panel.background = element_blank(),
-            axis.title.y = element_blank())
+      scale_fill_manual(values = jackson_basel_colours())
   }else {
     # There are too many categories in the starting column
     plot <- plot +
-      theme(axis.ticks.x = element_blank(),
-            axis.text.x = element_blank(),
-            panel.background = element_blank(),
-            legend.position = "none",
-            axis.title.y = element_blank())
+      theme(legend.position = "none")
   }
   
   plot

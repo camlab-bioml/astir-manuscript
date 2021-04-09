@@ -112,13 +112,16 @@ cells_stromal_none <- filter(df,
 
 
 ```{r}
-filter(df, cell %in% cells_stromal_none) %>% 
+plot <- filter(df, cell %in% cells_stromal_none) %>% 
+  mutate(condition = str_replace_all(condition, " ", "\n")) %>% 
   ggplot(aes(x = condition, stratum = cell_type, alluvium = cell,
                fill = cell_type)) +
   geom_stratum(alpha = .5) +
   #geom_label(stat = "stratum", size = 3) +
   cowplot::theme_cowplot(font_size = 12) +
   stat_flow() +
+  labs(y = "Cells", x = "Cell type(s) for which markers were removed",
+       fill = "Assigned Cell type") +
   scale_x_discrete(expand = c(0,0)) +
   scale_y_discrete(expand = c(0,0)) +
   scale_fill_manual(values = celltype_colours, name = "Cell type assigned") +
@@ -201,7 +204,7 @@ added_csvs <- dir(params$input_dir, pattern = 'added*.*csv',
                     full.names = TRUE)
 ```
 
-```{r}
+```{r eval = F}
 read_to_mat <- function(f) {
   df <- read_csv(f)
   mat <- as.matrix(select(df, -X1))
@@ -219,7 +222,7 @@ read_to_mat <- function(f) {
 }
 ```
 
-```{r}
+```{r eval = F}
 df <- map_dfr(added_csvs, read_to_mat)
 
 df$condition <- gsub("_", " ", df$condition)

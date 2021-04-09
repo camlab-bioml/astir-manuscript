@@ -1,0 +1,613 @@
+---
+title: "Patient-level-clustering"
+author: "Michael Geuenich"
+date: "May 19, 2020"
+output: html_document
+params:
+  cells: "output/v6/basel_subset/basel_subset_sce.rds"
+  celltypes: "output/v6/basel_subset/basel_subset_assignments_type.csv"
+  cellstates: "output/v6/basel_subset/basel_subset_assignments_state.csv" 
+  metadata: "output/v6/basel_subset/basel_PatientMetadata.csv"
+  cohort: "basel"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = '../../')
+library(SingleCellExperiment)
+library(tidyverse)
+library(devtools)
+library(dendextend)
+library(corrplot)
+library(factoextra)
+library(ComplexHeatmap)
+library(scater)
+library(ape)
+library(dichromat)
+library(viridis)
+library(circlize)
+library(broom)
+library(DT)
+```
+
+```{r}
+library(tidytext)
+library(ggpubr)
+devtools::load_all('../taproom/')
+source("scripts/functions.R")
+```
+
+```{r message = F, warning = F}
+# read in data
+sce <- assignIdentity(params$cells, params$celltypes, params$cellstates, thresh = 0.5)
+pathways <- sce$pathways
+sce <- sce$sce
+
+if(params$cohort != "schapiro"){
+  metadata <- read_csv(params$metadata)
+}
+
+evalStatement <- T
+
+if(params$cohort == "wagner"){
+  metadata <- metadata %>% rename(PID = "Patient ID")
+  metadata$`Clinical Subtype`[which(metadata$`Clinical Subtype` == "na")] <- NA
+  evalStatement <- F
+}
+
+if(params$cohort == "schapiro"){
+  evalStatement <- F
+}
+
+# Just for the time being until we switch everything over to remove s' at the end
+sce$cell_type[which(sce$cell_type == "B cell")] <- "B cells"
+sce$cell_type[which(sce$cell_type == "T cell")] <- "T cells"
+```
+
+Create a dataframe that contains frequencies of cell type per patient.
+```{r}
+if(params$cohort == "basel" | params$cohort == "zurich1"){
+  sce.df <- sce %>% 
+    colData() %>% 
+    as.data.frame()
+  
+  # Create new df from patient metadata
+  patients <- select(metadata, PID, core)
+  
+  # Join patient df with cell type information from sce
+  scePatient <- inner_join(patients, sce.df, by = "core")
+  
+  # Group data by patient and count number of cells of each type
+  typesPerPatient <- scePatient %>% 
+    group_by(PID) %>% 
+    dplyr::count(cell_type)
+  
+} else if(params$cohort == "wagner"){
+  PID <- sce %>% colData() %>% as.data.frame() %>% pull(patient_id)
+  sce$PID <- as.factor(PID)
+  
+  typesPerPatient <- sce %>% 
+    colData() %>% 
+    as.data.frame() %>% 
+    group_by(PID) %>% 
+    dplyr::count(cell_type)
+}
+
+if(params$cohort == "schapiro"){
+  sce$PID <- sub("_[^_]+$", "", sce$id)
+  
+  typesPerPatient <- sce %>% 
+    colData() %>% 
+    as.data.frame() %>% 
+    group_by(PID) %>% 
+    dplyr::count(cell_type)
+}
+
+# Add the number of total cells as a column for each patient 
+freqPerPatient <- typesPerPatient %>% 
+  mutate(sum = sum(n)) %>% 
+  mutate(freq = n/sum) %>% 
+  select(PID, cell_type, freq) %>% 
+  group_by(PID) %>% 
+  spread(cell_type, freq) %>% 
+  ungroup()
+
+freqPerPatient[is.na(freqPerPatient)] <- 0
+
+
+if(params$cohort == "basel"){
+  freqPerPatient <- left_join(freqPerPatient, 
+                             (select(metadata, PID, clinical_type, OSmonth,
+                                     response) 
+                              %>% unique()), 
+                             by = "PID")
+} else if(params$cohort == "zurich1"){
+  freqPerPatient <- left_join(freqPerPatient, 
+                             (select(metadata, PID, clinical_type) 
+                              %>% unique()), 
+                             by = "PID")
+} else if(params$cohort == "wagner"){
+  freqPerPatient <- left_join(freqPerPatient,
+                              (select(metadata, PID, "Clinical Subtype", Grade) %>% 
+                                 unique()),
+                              by = "PID")
+}
+
+freqPerPatient$PID <- as.factor(freqPerPatient$PID)
+freqPerPatient
+```
+
+Start the clustering
+```{r fig.width=14}
+freqPerPatient <- as.data.frame(freqPerPatient)
+rownames(freqPerPatient) <- freqPerPatient$PID
+
+plotClusteringHeatmapPatient <- function(freqPerPatient){
+  freqPerPatientClean <- freqPerPatient %>% 
+    as.data.frame() %>% 
+    select_if(is.numeric)
+
+  if(params$cohort == "basel"){
+    freqPerPatientClean <- freqPerPatientClean %>% 
+      select(-OSmonth)
+  }
+
+  ## Create dendrogram
+  col_dend <- freqPerPatientClean %>% 
+      dist() %>% 
+      hclust(method = "ward.D2") %>% 
+      as.dendrogram() %>% 
+      set("branches_k_color", k = 5) %>% 
+      set("branches_lwd", 3)
+
+
+
+  if (params$cohort == "basel"){
+    col_fun <- colorRamp2(c(min(freqPerPatient$OSmonth),
+                          max(freqPerPatient$OSmonth)/2,
+                          max(freqPerPatient$OSmonth)), viridis(3))
+    
+    patient_annotation <- HeatmapAnnotation(OSmonth = freqPerPatient$OSmonth,
+                          Subtype = freqPerPatient$clinical_type,
+                          response = freqPerPatient$response,
+                          which = "column",
+                          col = list(OSmonth = col_fun,
+                                    Subtype = patient_clinSubtype_colours(),
+                                    response = patient_response_colours()),
+                          na_col = "lightgrey",
+                          border = T)
+    
+  }else if(params$cohort == "zurich1"){
+    patient_annotation <- HeatmapAnnotation(Subtype = freqPerPatient$clinical_type,
+                            which = "column",
+                            col = list(Subtype = patient_clinSubtype_colours()),
+                            na_col = "lightgrey",
+                            border = T)
+    
+  } else if(params$cohort == "wagner"){
+    patient_annotation <- HeatmapAnnotation(
+      Subtype = freqPerPatient$`Clinical Subtype`,
+      Grade = freqPerPatient$Grade,
+      which = "column",
+      col = list(Subtype = patient_clinSubtype_colours_wagner()),
+      na_col =  "lightgrey",
+      border = T)
+  }
+
+  if(params$cohort != "schapiro"){
+    Heatmap(t(as.matrix(freqPerPatientClean)),
+            column_dend_height = unit(5, "cm"),
+            column_title = "Patients", row_title = "Cell types",
+            cluster_columns = col_dend, border = T,
+            top_annotation = patient_annotation)
+  }else{
+    Heatmap(t(as.matrix(freqPerPatientClean)),
+          column_dend_height = unit(5, "cm"),
+          column_title = "Patients", row_title = "Cell types",
+          cluster_columns = col_dend, border = T)
+  }
+}
+
+plotClusteringHeatmapPatient(freqPerPatient)
+
+if(params$cohort == "schapiro"){
+  freqPerPatient_normalized <- freqPerPatient %>% 
+    mutate(across(`Epithelial (luminal)`:Unknown, function(x){scale(x, center = TRUE, scale = TRUE)}))
+  rownames(freqPerPatient_normalized) <- freqPerPatient$PID
+}else{
+  freqPerPatient_normalized <- freqPerPatient %>% 
+    mutate(across(`B cells`:Unknown, function(x){scale(x, center = TRUE, scale = TRUE)}))
+  rownames(freqPerPatient_normalized) <- freqPerPatient$PID
+}
+
+plotClusteringHeatmapPatient(freqPerPatient_normalized)
+```
+
+```{r eval = evalStatement}
+# Count number of cells by core
+freqPerCore <- scePatient %>% 
+  group_by(core) %>% 
+  dplyr::count(cell_type) %>% 
+  mutate(sum = sum(n)) %>% 
+  mutate(freq = n/sum) %>% 
+  as.data.frame() %>% 
+  select(core, cell_type, freq) %>% 
+  group_by(core) %>% 
+  spread(cell_type, freq) %>% 
+  as.data.frame()
+
+freqPerCore[is.na(freqPerCore)] <- 0
+
+plotClusteringHeatmapCore <- function(freqPerCore, cl = NA){
+  if(params$cohort == "basel"){
+    col_fun <- colorRamp2(c(min(freqPerPatient$OSmonth),
+                          max(freqPerPatient$OSmonth)/2,
+                          max(freqPerPatient$OSmonth)), viridis(3))
+
+    freqPerCore <- left_join(freqPerCore, 
+                              (select(metadata, core, PID, clinical_type, OSmonth,
+                                      response) 
+                                %>% unique()), 
+                              by = "core")
+  } else if(params$cohort == "zurich1"){
+    freqPerCore <- left_join(freqPerCore, 
+                              (select(metadata, core, PID, clinical_type) 
+                                %>% unique()), 
+                              by = "core")
+  }
+
+  #rownames(freqPerCore) <- freqPerCore$core
+  freqPerCore$PID <- as.factor(freqPerCore$PID)
+  
+    # Create dendrogram
+  col_dend <- freqPerCore %>% 
+    select(`B cells`:Unknown) %>% 
+    dist() %>% 
+    hclust(method = "ward.D2") %>% 
+    as.dendrogram() %>% 
+    set("branches_k_color", k = 10) %>% 
+    set("branches_lwd", 3)
+
+  if(params$cohort == "basel"){
+    cluster_annotation <- as.factor(cutree(col_dend,k=10))
+
+    # Create heatmap annotation
+    core_annotation <- HeatmapAnnotation(OSmonth = freqPerCore$OSmonth,
+                          Subtype = freqPerCore$clinical_type,
+                          response = freqPerCore$response,
+                          #PID = freqPerCore$PID,
+                          cluster = cluster_annotation,
+                          which = "column",
+                          col = list(OSmonth = col_fun,
+                                    Subtype = patient_clinSubtype_colours(),
+                                    response = patient_response_colours()),
+                          na_col = "lightgrey",
+                          border = T,
+                          show_legend = TRUE)
+  } else if(params$cohort == "zurich1"){
+    core_annotation <- HeatmapAnnotation(Subtype = freqPerCore$clinical_type,
+                          which = "column",
+                          col = list(Subtype = patient_clinSubtype_colours()),
+                          na_col = "lightgrey",
+                          border = T,
+                          show_legend = FALSE)
+  }
+
+  if(params$cohort == "basel"){
+    freqPerCore <- freqPerCore %>% 
+      select(-OSmonth)
+  }
+
+  hm <- Heatmap(t(as.matrix(freqPerCore %>% 
+                              select(`B cells`:Unknown))),
+                column_dend_height = unit(5, "cm"),
+                column_title = "Cores", row_title = "Cell types",
+                cluster_columns = col_dend, border = T,
+                top_annotation = core_annotation)
+  
+  list(hm = hm, dend = col_dend)
+}
+
+plotClusteringHeatmapCore(freqPerCore)$hm
+
+freqPerCoreNorm <- freqPerCore %>% 
+  mutate(across(`B cells`:Unknown, function(x){scale(x, center = TRUE, scale = TRUE)}))
+
+coreNormPlot <- plotClusteringHeatmapCore(freqPerCoreNorm)
+coreNormPlot$hm
+```
+
+```{r fig.height=12, fig.width=5, eval=params$cohort == "basel"}
+metadata <- metadata %>% 
+  dplyr::rename(perc_tumorcells = `%tumorcells`, 
+                perc_normalepithelialcells = `%normalepithelialcells`,
+                perc_stroma = `%stroma`, perc_inflammatory = `%inflammatorycells`)
+
+# removed tumor size, %inflamatory because these are numeric
+core_cluster_chr <- freqPerCoreNorm %>% 
+  mutate(cluster = cutree(coreNormPlot$dend,k=10)) %>% 
+  select(core, cluster) %>% 
+  left_join(select(metadata, core, grade, diseasestatus, 
+                   ERStatus, PRStatus, HER2Status, clinical_type, response), by = "core") %>% 
+  column_to_rownames("core") %>% 
+  mutate(grade = as.factor(grade)) %>% 
+  pivot_longer(cols = -cluster, values_to = "value", names_to = "covariate")
+
+core_cluster_chr %>% 
+  mutate(cluster = as.factor(cluster)) %>% 
+  group_by(covariate, cluster, value) %>% 
+  tally() %>% 
+  ggplot(aes(x = cluster, y = n, fill = value)) +
+  geom_bar(stat = "identity", position = "fill") +
+  labs(x = "Cluster", y = "Number of cores") +
+  facet_wrap(~covariate, ncol = 1, scale = "free") +
+  astir_paper_theme()
+```
+
+
+
+Test for statistical significance by doing a PCA regression
+```{r eval= params$cohort == "basel"}
+core_freq_pca <- freqPerCoreNorm %>% 
+  column_to_rownames("core")
+
+core.pca <- prcomp(core_freq_pca, scale. = T, center = T)
+
+fviz_eig(core.pca)
+fviz_pca_ind(core.pca, repel = TRUE)
+
+fviz_pca_var(core.pca,
+             col.var = "contrib", # Color by contributions to the PC
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE, title = "Correlation plot for patient summary")
+
+covariates_summary <- core.pca$x %>% 
+  as.data.frame() %>% 
+  rownames_to_column("core") %>% 
+  pivot_longer(-core, values_to = "loadings", names_to = "PCs") %>% 
+  left_join(select(metadata, core, grade, diseasestatus, 
+                   ERStatus, PRStatus, HER2Status, clinical_type, response), by = "core") %>% 
+  mutate(grade = as.character(grade)) %>% 
+  pivot_longer(cols = c(grade, diseasestatus, ERStatus, PRStatus, HER2Status, clinical_type, response), 
+               names_to = "covariate", values_to = "category")
+
+covariates_summary %>% 
+  filter(PCs %in% c("PC1", "PC2", "PC3")) %>% 
+  group_by(PCs, covariate) %>% 
+  do(tidy(lm(loadings ~ category, data = .))) %>%
+  datatable()
+```
+
+```{r fig.height=4, fig.width=12, eval=params$cohort == "basel"}
+core_cluster_int <- freqPerCoreNorm %>% 
+  mutate(cluster = cutree(coreNormPlot$dend,k=11)) %>% 
+  select(core, cluster) %>% 
+  left_join(select(metadata, core, tumor_size, perc_tumorcells, perc_normalepithelialcells, 
+                   perc_stroma, perc_inflammatory, DFSmonth, OSmonth), by = "core") %>% 
+  column_to_rownames("core") %>% 
+  pivot_longer(cols = -cluster, values_to = "value", names_to = "covariate")
+
+core_cluster_int %>% 
+  mutate(cluster = as.factor(cluster)) %>% 
+  ggplot(aes(x = cluster, y = value)) +
+  geom_boxplot() +
+  facet_wrap(~covariate, scales = "free_y", ncol = 7) +
+  astir_paper_theme()
+```
+
+Anova on the above results
+```{r eval= params$cohort == "basel"}
+anovas <- core_cluster_int %>% 
+  group_by(covariate) %>% 
+  do(Model = aov(value ~ cluster, data = .))
+
+lapply(anovas$Model, function(x){broom::tidy(x)}) %>% 
+  bind_rows() %>% 
+  filter(term == "cluster") %>% 
+  mutate(pathway = sort(anovas$covariate)) %>% 
+  column_to_rownames("pathway")
+
+# Will follow up with tukeys test if any of them are significant
+```
+
+
+```{r fig.width = 11, eval = params$cohort == "basel"}
+patient_cores <- freqPerCoreNorm %>% 
+  mutate(cluster = as.factor(cutree(coreNormPlot$dend,k=10))) %>% 
+  select(core, cluster) %>% 
+  left_join(select(metadata, core, PID), by = "core")
+
+patient_cores_summary <- patient_cores %>% 
+  group_by(PID, cluster) %>% 
+  tally() %>% 
+  mutate(PID = as.factor(PID))
+
+patient_cores_summary
+
+patient_cores_summary %>% 
+  ggplot(aes(x = PID, y = n, fill = cluster)) +
+    geom_bar(stat = "identity")
+```
+
+```{r fig.height=8, eval= F}
+freqPerCellType <- freqPerCore %>% ungroup()
+basal <- freqPerCellType[["Epithelial (basal)"]]
+if(is.null(basal)){basal <- 0}
+
+luminal <- freqPerCellType[["Epithelial (luminal)"]]
+if(is.null(luminal)){luminal <- 0}
+
+other <- freqPerCellType[["Epithelial (other)"]]
+if(is.null(other)){other <- 0}
+
+freqPerCellType$Epithelial <- freqPerCellType$`Epithelial (basal)` +
+                              freqPerCellType$`Epithelial (luminal)` +
+                              freqPerCellType$`Epithelial (other)`
+
+remove <- c("Epithelial (basal)", "Epithelial (luminal)", "Epithelial (other)",
+            "clinical_type", "OSmonth", "response")
+cols <- freqPerCellType %>% colnames %>% setdiff(remove)
+
+freqPerCellType <- freqPerCellType %>% select(all_of(cols))
+
+freqPerCellType <- freqPerCellType %>% 
+  gather(cell_type, freq, -c(core, PID)) %>% 
+  mutate(PID=fct_reorder(PID, freq))
+
+ggplot(freqPerCellType, aes(reorder_within(PID, freq, cell_type), y = freq)) +
+  geom_point() +
+  scale_x_reordered() +
+  facet_wrap("cell_type", scales = "free", ncol= 2) + 
+  astir_paper_theme() +
+  xlab("PID")
+```
+
+
+```{r eval = F, fig.height=9}
+combinations <- matrix(ncol = 2, nrow = 0)
+
+for (i in levels(freqPerCellType$PID)){
+  combinations <- rbind(combinations, 
+                        expand.grid(freqPerCellType %>% 
+                                      filter(PID == i) %>% 
+                                      pull(core) %>% unique(),
+                                    
+                                    freqPerCellType %>% 
+                                      filter(PID == i) %>% 
+                                      pull(core) %>% unique()))
+}
+
+combinations$Var1 <- as.character(combinations$Var1)
+combinations$Var2 <- as.character(combinations$Var2)
+
+combinationFreq <- combinations %>% filter(Var1 > Var2) %>% 
+  left_join((freqPerCellType %>% 
+               select(-PID)), by = c("Var1" = "core")) %>% 
+  dplyr::rename("freq.Var1" = freq) %>% 
+  left_join((freqPerCellType %>% 
+              select(-PID)), by = c("Var2" = "core", "cell_type" = "cell_type")) %>% 
+  dplyr::rename("freq.Var2" = freq)
+
+
+ggplot(combinationFreq, aes(x = freq.Var1, y = freq.Var2)) +
+  geom_point() +
+  #stat_cor(method = "pearson", label.x = 0.2, label.y = 0.7) +
+  facet_wrap("cell_type", ncol = 2, scales = "free") +
+  astir_paper_theme()
+```
+
+Correlation plot
+```{r}
+if(params$cohort == "basel"){
+  patientPlotData <- freqPerPatient[, 2:11]
+  corePlotData <- freqPerCore[, 2:11]
+}else if(params$cohort == "zurich1"){
+  patientPlotData <- freqPerPatient[, 2:9]
+  corePlotData <- freqPerCore[, 2:9]
+}else if(params$cohort == "wagner"){
+  patientPlotData <- freqPerPatient[, 2:8]
+}else if(params$cohort == "schapiro"){
+  patientPlotData <- freqPerPatient[, 2:6]
+}
+
+if(params$cohort != "wagner" & params$cohort != "schapiro"){
+  par(mfrow=c(1,2))
+  corrplot(cor(patientPlotData), title = "Correlation plot for patient summary")
+  corrplot(cor(corePlotData), title = "Correlation plot for core summary")
+}else{
+  corrplot(cor(patientPlotData), title = "Correlation plot for patient summary")
+}
+
+```
+
+Run a pca analysis on the output and look at the loadings
+```{r}
+# Select additional patient metadata to see how it correlates with the existing
+# variables
+
+if(params$cohort == "basel"){
+  # first for frequencies summarized across patients
+  metadata.pca <- metadata %>% select(PID, tumor_size, grade, OSmonth) %>% 
+    mutate(PID = as.factor(PID))
+  freqPerPatient.pca <- left_join(freqPerPatient[, 1:9], metadata.pca, by = "PID") %>% 
+    as.data.frame() %>% unique()
+  
+  # Next for frequencies summarized across cores
+  metadata.pca <- metadata %>% select(core, tumor_size, grade, OSmonth)
+  freqPerCore.pca <- left_join(freqPerCore[, 1:9], metadata.pca, by = "core") %>% 
+    as.data.frame() %>% unique()
+  
+} else if(params$cohort == "zurich1"){
+  freqPerPatient.pca <- freqPerPatient[, 1:9]
+  freqPerCore.pca <- freqPerCore[, 1:9]
+  
+} else if(params$cohort == "wagner"){
+  freqPerPatient.pca <- freqPerPatient[, 1:7]
+} else if(params$cohort == "schapiro"){
+  freqPerPatient.pca <- freqPerPatient
+}
+
+rownames(freqPerPatient.pca) <- freqPerPatient.pca$PID
+
+patient.pca <- prcomp(freqPerPatient.pca[,2:ncol(freqPerPatient.pca)], 
+                      scale. = T, center = T)
+
+
+fviz_eig(patient.pca)
+fviz_pca_ind(patient.pca, repel = TRUE)
+
+fviz_pca_var(patient.pca,
+             col.var = "contrib", # Color by contributions to the PC
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE, title = "Correlation plot for patient summary")
+
+fviz_pca_var(patient.pca,
+             axes = c(1, 3),
+             col.var = "contrib", # Color by contributions to the PC
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE, title = "Correlation plot for patient summary")
+
+fviz_pca_var(patient.pca,
+             axes = c(2, 3),
+             col.var = "contrib", # Color by contributions to the PC
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE, title = "Correlation plot for patient summary")
+
+fviz_pca_var(patient.pca,
+             axes = c(3, 4),
+             col.var = "contrib", # Color by contributions to the PC
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE, title = "Correlation plot for patient summary")
+
+```
+
+Now PCA's for data summarized by core
+```{r eval = evalStatement}
+core.pca <- prcomp(freqPerCore.pca[, 2:ncol(freqPerCore.pca)], scale. = T, 
+                   center = T)
+fviz_eig(core.pca)
+
+fviz_pca_var(core.pca,
+             col.var = "contrib", # Color by contributions to the PC
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE, title = "Correlation plot for core summary")
+
+fviz_pca_var(core.pca,
+             axes = c(1, 3),
+             col.var = "contrib", # Color by contributions to the PC
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE, title = "Correlation plot for core summary")
+
+fviz_pca_var(core.pca,
+             axes = c(2, 3),
+             col.var = "contrib", # Color by contributions to the PC
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE, title = "Correlation plot for core summary") 
+
+fviz_pca_var(core.pca,
+             axes = c(3, 4),
+             col.var = "contrib", # Color by contributions to the PC
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE, title = "Correlation plot for core summary")
+```
+

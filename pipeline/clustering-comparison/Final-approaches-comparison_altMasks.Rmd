@@ -1,152 +1,186 @@
 ---
-title: "Quantitative approaches assesment"
+title: "Final approaches comparison"
 author: "Michael Geuenich"
 date: "June 27, 2020"
 output: html_document
+params:
+  Jackson: "../output/v4/results/Assessment-heatmap-Jackson.csv"
+  Catena: ""
+  Schulz: "../output/v4/results/Assessment-heatmap-Schulz.csv"
+  Jackson_indiv: ""
+  Catena_indiv: ""
+  Schulz_indiv: ""
+  output_dir: ""
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = '../')
-library(tidyverse)
+knitr::opts_knit$set(root.dir = '~/imc-2020/')
 library(cowplot)
 library(ggpubr)
 library(ComplexHeatmap)
-devtools::load_all('../../../taproom/')
+library(tidyverse)
+devtools::load_all('~/taproom/')
 ```
 
 Read in data
 ```{r}
-basel <- read_csv("../output/v4/results/Assessment-heatmap-basel.csv") %>% 
+Jackson <- read_csv(params$Jackson) %>% 
   mutate_if(colnames(.) != "score", as.factor) %>% 
   column_to_rownames("X1")
 
-wagner <- read_csv("../output/v4/results/Assessment-heatmap-wagner.csv") %>% 
+Catena <- read_csv(params$Catena) %>% 
   mutate_if(colnames(.) != "score", as.factor) %>% 
   column_to_rownames("X1")
 
-zurich1 <- read_csv("../output/v4/results/Assessment-heatmap-zurich1.csv") %>% 
+Schulz <- read_csv(params$Schulz) %>% 
   mutate_if(colnames(.) != "score", as.factor) %>% 
   column_to_rownames("X1")
-
 ```
 
-```{r fig.width=11}
+```{r fig.width=12, fig.height = 5.5}
 # Find largest level
-basel.max <- lapply(basel[basel %>% 
+Jackson.max <- lapply(Jackson[Jackson %>% 
               select(-score) %>% 
               colnames], FUN = levels) %>% 
   unlist() %>% 
   as.numeric() %>% 
   max()
 
-zurich1.max <- lapply(zurich1[zurich1 %>% 
+Catena.max <- lapply(Catena[Catena %>% 
               select(-score) %>% 
               colnames], FUN = levels) %>% 
   unlist() %>% 
   as.numeric() %>% 
   max()
 
-wagner.max <- lapply(wagner[wagner %>% 
+Schulz.max <- lapply(Schulz[Schulz %>% 
               select(-score) %>% 
               colnames], FUN = levels) %>% 
   unlist() %>% 
   as.numeric() %>% 
   max()
 
-max.clusters <- max(basel.max, zurich1.max, wagner.max)
+max.clusters <- max(Jackson.max, Catena.max, Schulz.max)
+if(max.clusters > 10){
+  max.clusters <- 10
+}
 
 
 # Create colour palette
 gradient<- colorRampPalette(c("#FFEBEE", "#F50025"))
-pal <- c("#FFB60A", "#648FFF", 
+pal <- c("#FFDA1F", "#00D262", 
          gradient(max.clusters - 1))
-names(pal) <- c(0:max(max.clusters))
+names(pal) <- c(0:(max.clusters - 1), "10+")
+
+tooHigh <- as.character(c(0:9))
 
 # Create matrices to plot
-basel.mat <- basel %>%
+Jackson.mat <- Jackson %>%
   select(-score) %>% 
   as.matrix()
-zurich1.mat <- zurich1 %>%
+
+Jackson.mat[!(Jackson.mat %in% tooHigh) & !is.na(Jackson.mat)] <- "10+"
+
+Catena.mat <- Catena %>%
+  select(-score) %>%
+  as.matrix()
+
+Catena.mat[!(Catena.mat %in% tooHigh)] <- "10+"
+
+Schulz.mat <- Schulz %>% 
   select(-score) %>% 
   as.matrix()
-wagner.mat <- wagner %>% 
-  select(-score) %>% 
-  as.matrix()
+
+Schulz.mat[!(Schulz.mat %in% tooHigh)] <- "10+"
+
 
 # Create heatmap annotations
 # define plotting order
-plottingOrder = basel %>% 
-  arrange(desc(score)) %>% 
+scores <- data.frame(Jackson$score, Catena$score, Schulz$score) 
+scores$mean <- rowMeans(scores[, 1:3])
+rownames(scores) <- rownames(Jackson)
+
+plottingOrder = scores %>% 
+  arrange(desc(mean)) %>% 
   rownames()
-
+  
 # Annotations
-basel.ha = rowAnnotation(Score = anno_barplot(basel$score, 
+Jackson.ha = rowAnnotation(Score = anno_barplot(Jackson$score, 
                                               gp = gpar(fill = "lightgrey")),
                    width = unit(2, "cm"))
-wagner.ha = rowAnnotation(Score = anno_barplot(wagner$score, 
+Catena.ha = rowAnnotation(Score = anno_barplot(Catena$score,
                                               gp = gpar(fill = "lightgrey")),
-                   width = unit(2, "cm"))
-zurich1.ha = rowAnnotation(Score = anno_barplot(zurich1$score, 
+                    width = unit(2, "cm"))
+Schulz.ha = rowAnnotation(Score = anno_barplot(Schulz$score, 
                                               gp = gpar(fill = "lightgrey")),
                    width = unit(2, "cm"))
 
 
-basel.hm <- Heatmap(basel.mat, col = pal,
+Jackson.hm <- Heatmap(Jackson.mat, col = pal,
                     row_order = plottingOrder,
-                    right_annotation = basel.ha,
-                    column_title = "Basel",
+                    right_annotation = Jackson.ha,
+                    column_title = "Jackson",
                     row_names_side = "left",
                     row_names_max_width = unit(7, "cm"),
                     name = "# of clusters")
-wagner.hm <- Heatmap(wagner.mat, col = pal,
-                     row_order = plottingOrder,
-                     right_annotation = wagner.ha,
-                     show_heatmap_legend = F,
-                     column_title = "Wagner",
-                     show_row_names = F)
-zurich1.hm <- Heatmap(zurich1.mat, col = pal,
+Catena.hm <- Heatmap(Catena.mat, col = pal,
                       row_order = plottingOrder,
-                      right_annotation = zurich1.ha,
-                      show_heatmap_legend = F,
-                      column_title = "Zurich1",
-                      show_row_names = F)
+                      right_annotation = Catena.ha,
+                      column_title = "Catena",
+                      row_names_side = "left",
+                      row_names_max_width = unit(7, "cm"),
+                      name = "# of clusters")
+Schulz.hm <- Heatmap(Schulz.mat, col = pal,
+                     row_order = plottingOrder,
+                     right_annotation = Schulz.ha,
+                     show_heatmap_legend = F,
+                     column_title = "Schulz",
+                     show_row_names = F)
 
-basel.hm + wagner.hm + zurich1.hm
+
+Jackson.hm + Catena.hm + Schulz.hm
+```
+
+```{r}
+pdf(file = paste0(params$output_dir, "Final_benchmarking_heatmap.pdf"), width = 14, height = 6)
+  Jackson.hm + Catena.hm + Schulz.hm
+dev.off()
 ```
 
 
 
 Create individual heatmaps
-```{r fig.width=40, fig.height=10}
-basel <- read_csv("../output/v4/results/Assessment-individual-heatmap-basel.csv")
-basel <- basel %>% 
+```{r fig.width=45, fig.height=13}
+Jackson <- read_csv(params$Jackson_indiv)
+Jackson <- Jackson %>% 
   mutate(method = str_replace(method, "_", "\n")) %>% 
   mutate(method = str_replace(method, "_", "-")) %>% 
   mutate(method = str_replace(method, "astir", "Astir"))
 
-wagner <- read_csv("../output/v4/results/Assessment-individual-heatmap-wagner.csv")
-wagner <- wagner %>% 
+Catena <- read_csv(params$Catena_indiv)
+Catena <- Catena %>% 
   mutate(method = str_replace(method, "_", "\n")) %>% 
   mutate(method = str_replace(method, "_", "-")) %>% 
   mutate(method = str_replace(method, "astir", "Astir"))
 
-zurich1 <- read_csv("../output/v4/results/Assessment-individual-heatmap-zurich1.csv")
-zurich1 <- zurich1 %>% 
+Schulz <- read_csv(params$Schulz_indiv)
+Schulz <- Schulz %>% 
   mutate(method = str_replace(method, "_", "\n")) %>% 
   mutate(method = str_replace(method, "_", "-")) %>% 
   mutate(method = str_replace(method, "astir", "Astir"))
+
 
 summary.heatmap.theme <- function(){
   astir_paper_theme() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+  theme(axis.text.x = element_blank(),
         axis.title.x = element_blank(),
         axis.title.y = element_blank())
   #scale_color_discrete("Corresponds to cellytpe")
   #scale_colour_discrete("Continents")
 }
 
-basel.hm <- basel %>% 
+Jackson.hm <- Jackson %>% 
   filter(!grepl("Other|Unknown", cluster)) %>% 
   ggplot(aes(x = cluster, y = pathway, fill = thresh_score)) +
   geom_tile() +
@@ -154,7 +188,7 @@ basel.hm <- basel %>%
   facet_wrap(~ method, scales = "free_x", nrow = 1) +
   summary.heatmap.theme()
 
-wagner.hm <- wagner %>% 
+Catena.hm <- Jackson %>% 
   filter(!grepl("Other|Unknown", cluster)) %>% 
   ggplot(aes(x = cluster, y = pathway, fill = thresh_score)) +
   geom_tile() +
@@ -162,7 +196,7 @@ wagner.hm <- wagner %>%
   facet_wrap(~ method, scales = "free_x", nrow = 1) +
   summary.heatmap.theme()
 
-zurich1.hm <- zurich1 %>% 
+Schulz.hm <- Schulz %>% 
   filter(!grepl("Other|Unknown", cluster)) %>% 
   ggplot(aes(x = cluster, y = pathway, fill = thresh_score)) +
   geom_tile() +
@@ -171,6 +205,5 @@ zurich1.hm <- zurich1 %>%
   summary.heatmap.theme()
 
 
-ggarrange(basel.hm, wagner.hm, zurich1.hm,
-          nrow = 3)
+ggarrange(Jackson.hm, Catena.hm, Schulz.hm, nrow = 5)
 ```
