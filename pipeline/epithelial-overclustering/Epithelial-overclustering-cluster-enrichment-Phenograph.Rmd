@@ -1,0 +1,101 @@
+---
+title: "Rphenograph different cell type proportions"
+author: "Michael Geuenich"
+date: "November 25, 2020"
+output: html_document
+params:
+  markers: "all_markers"
+  cells: "../../output/squirrel/sces/basel_sce.rds"
+  cellSubset: "output/squirrel/results/epithelial_overclustering/luminal-0.3.csv" 
+  markers_list: "../../markers/jackson-2020-markers-v4.yml"
+  output_results: ""
+  percent_luminal: ""
+  cluster_options: 10
+  gsva_enrichment: ""
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = '../../')
+library(tidyverse)
+library(devtools)
+library(SingleCellExperiment)
+library(cytofkit)
+library(GSVA)
+library(taproom)
+```
+
+
+```{r}
+cell_subset <- read_csv("C:/Users/micha/CampbellLab/imc-2020/output/squirrel/results/epithelial_overclustering/luminal-0.3.csv")
+
+sce <- readRDS(params$cells)[,cell_subset$cell_id]
+
+percent_luminal <- 0.3#params$percent_luminal
+```
+
+
+Clustering
+```{r}
+markers <- read_markers(params$markers_list)
+
+if(params$markers == "all_markers"){
+  imc.data <- t(logcounts(sce))
+}else if(params$markers == "specified_markers"){
+  imc.data <- t(logcounts(sce[unique(unlist(markers$cell_types)),]))
+}
+```
+
+Cluster cells
+```{r}
+imc.pheno.cluster <- cytof_cluster(xdata = imc.data, method = "Rphenograph",
+                                   Rphenograph_k = params$cluster_options)
+sce$clusters <- imc.pheno.cluster
+
+cluster_mat <- logcounts(sce) %>% 
+  t() %>% 
+  as_tibble() %>% 
+  mutate(cluster = sce$clusters)
+
+aggregated_mat <- aggregate(cluster_mat[, 1:(ncol(cluster_mat) - 1)], 
+                            cluster_mat[, ncol(cluster_mat)], 
+                            mean)
+
+#phenograph <- sce %>% colData() %>% as.data.frame() %>% select(id, "clusters")
+#rownames(phenograph) <- c()
+gsva_markers <- list(cell_types = markers[["cell_types"]][c("Stromal", "T cells", "Epithelial (luminal)", "Macrophage")], cell_states = "")
+
+gsva <- aggregated_mat %>% 
+  select(-cluster) %>% 
+  as.matrix() %>% t() %>% 
+  gsva(gsva_markers$cell_types,
+       method="gsva")
+
+df_gsva <- t(gsva) %>% 
+  as.data.frame() %>% 
+  rownames_to_column("id") %>% 
+  gather(pathway, score, -id) %>% 
+  as_tibble()
+
+cluster_assignment <- df_gsva %>% 
+  dplyr::group_by(id) %>% 
+  dplyr::mutate(thresh_score = score == max(score)) %>% 
+  filter(thresh_score == TRUE)
+
+```
+
+
+```{r}
+clusters <- sce %>% colData() %>% as.data.frame() %>% select(id, "clusters") %>% 
+  mutate(clusters = as.character(clusters))
+rownames(clusters) <- c()
+
+assigned_cells <- left_join(clusters, 
+          select(cluster_assignment, id, pathway), by = c("clusters" = "id")) %>% 
+  dplyr::rename("cell_type" = "pathway")
+
+write_csv(assigned_cells, paste0(params$output_results,
+                                 "Epithelial_overclustering_cluster_enrichment_Phenograph_clusters-",
+                                 params$markers, "-", params$cluster_options, "-", 
+                                 percent_luminal, ".csv"))
+```

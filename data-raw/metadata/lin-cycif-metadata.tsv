@@ -1,0 +1,40 @@
+Abbreviation	Anatomic site	Age	Sex	Histology	Stage (TNM)	Image Name	tumour	core
+BL1	Bladder	45	M	Normal bladder, tiny tissue fragment or tissue missing	-	Composite-TMA-0	Normal	TMA00n
+BL2	Bladder	80	M	Transitional cell carcinoma, grade I~II	T2N0M0	Composite-TMA-1	Tumour	TMA01n
+BL3	Bladder	51	M	Transitional cell carcinoma, grade II	T1N0M0	Composite-TMA-2	Tumour	TMA02n
+BR1	Breast	38	F	Normal breast	-	Composite-TMA-3	Normal	TMA03n
+BR2	Breast	37	F	Invasive tubular mixed carcinoma	T1N1M0	Composite-TMA-4	Tumour	TMA04n
+BR3	Breast	43	F	Invasive ductual carcinoma	T2N1M0	Composite-TMA-5	Tumour	TMA05n
+ST1	GI-Stomach	71	M	Normal stomach	-	Composite-TMA-6	Normal	TMA06n
+ST2	GI-Stomach	69	F	Adenocarcinoma, grade I~II	T2N1M0	Composite-TMA-7	Tumour	TMA07n
+ST3	GI-Stomach	65	M	Adenocarcinoma, grade II~III	T3N1M0	Composite-TMA-8	Tumour	TMA08n
+CO1	GI-Colonrectal	10/12	F	Normal colon	-	Composite-TMA-9	Normal	TMA09n
+CO2	GI-Colonrectal	60	F	Colon carcinoma, grade II	T2N1M1	Composite-TMA-10	Tumour	TMA10n
+CO3	GI-Colonrectal	85	F	Rectal carcinoma, grade II~III	T2N0M0	Composite-TMA-11	Tumour	TMA11n
+KI1	Kidney	2	F	Normal kidney cortex	-	Composite-TMA-12	Normal	TMA12n
+KI2	Kidney	53	F	Clear cell carcinoma, grade II	T1N0M0	Composite-TMA-13	Tumour	TMA13n
+KI3	Kidney	44	M	Cear cell carcinoma, grade III	T1N0M0	Composite-TMA-14	Tumour	TMA14n
+LI1	Liver	52	M	Normal	-	Composite-TMA-15	Normal	TMA15n
+LI2	Liver	33	M	Hepatocellular carcinoma, grade II~II	T2N0M0	Composite-TMA-16	Tumour	TMA16n
+LI3	Liver	47	M	Hepatocellular carcinoma, grade I~II	T2N0M0	Composite-TMA-17	Tumour	TMA17n
+LU1	Lung	60	M	Normal lung	-	Composite-TMA-18	Normal	TMA18n
+LU2	Lung	69	M	Squamous cell carcinoma, grade II~III	T2N0M0	Composite-TMA-19	Tumour	TMA19n
+LU3	Lung	70	M	Adenocarcinoma, grade II	T2N1M0	Composite-TMA-20	Tumour	TMA20n
+LY1	Lymph node	39	F	Reactive	-	Composite-TMA-21	Tumour	TMA21n
+LY2	Lymph node	40	M	Hodgkin's lymphoma	-	Composite-TMA-22	Tumour	TMA22n
+LY3	Lymph node	77	F	NHL-B	-	Composite-TMA-23	Tumour	TMA23n
+OV1	Ovary	16	F	Normal ovary	-	Composite-TMA-24	Normal	TMA24n
+OV2	Ovary	20	F	Adenocarcinoma, grade I~II	T2N0M0	Composite-TMA-25	Tumour	TMA25n
+OV3	Ovary	45	F	Adenocarcinoma, grade III	T2aN0M0	Composite-TMA-26	Tumour	TMA26n
+PA1	Pancreas	46	M	Normal pancreas	-	Composite-TMA-27	Normal	TMA27n
+PA2	Pancreas	64	F	Adenocarcinoma, grade I~II	T1N0M0	Composite-TMA-28	Tumour	TMA28n
+PA3	Pancreas	49	F	Adenocarcinoma, grade II~III	T1N0M0	Composite-TMA-29	Tumour	TMA29n
+PR1	Prostate	74	M	Pro	-	Composite-TMA-30	Tumour	TMA30n
+PR2	Prostate	54	M	Transitional cell carcinoma, grade II	T1N0M0	Composite-TMA-31	Tumour	TMA31n
+PR3	Prostate	60	M	Adenocarcinoma, grade II	T1N0M0	Composite-TMA-32	Tumour	TMA32n
+SK1	Skin	48	F	Normal skin	-	Composite-TMA-33	Normal	TMA33n
+SK2	Skin	67	M	Squamous cell carcinoma, grade II	T2N0M0	Composite-TMA-34	Tumour	TMA34n
+SK3	Skin	49	M	Melanoma, grade II	T2N0M0	Composite-TMA-35	Tumour	TMA35n
+UT1	Uterus	47	F	Normal uterus	-	Composite-TMA-36	Normal	TMA36n
+UT2	Uterus	43	F	Cervical squamous cell carcinoma, grade II	T1N0M0	Composite-TMA-37	Tumour	TMA37n
+UT3	Uterus	44	F	Endometrial adenocarcinoma, grade II	T1bN0M0	Composite-TMA-38	Tumour	TMA38n

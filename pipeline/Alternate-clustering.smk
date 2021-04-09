@@ -136,22 +136,19 @@ rule create_sces:
         zurich1 = ','.join(expand(output_path + "zurich1_processed/{core}.rds", core = zurich1_cores)),
         wagner = ','.join(expand(output_path + "wagner_processed/{core}.rds", core = wagner_samples)),
         schapiro = ','.join(expand(output_path + "schapiro_processed/{core}.rds", core = schapiro_samples)),
-        lin = ','.join(expand(output_path + "lin-cycif_processed/{core}.rds", core = cycif_samples)),
-        keren = ','.join(expand(output_path + "keren_processed/{core}.rds", core = keren_cores))
+        lin = ','.join(expand(output_path + "lin-cycif_processed/{core}.rds", core = cycif_samples))
     output:
         basel = output_path + "sces/basel_sce.rds",
         wagner = output_path + "sces/wagner_sce.rds",
         zurich1 = output_path + "sces/zurich1_sce.rds",
         schapiro = output_path + "sces/schapiro_sce.rds",
-        lin = output_path + "sces/lin_cycif_sce.rds",
-        keren = output_path + "sces/keren_sce.rds"
+        lin = output_path + "sces/lin_cycif_sce.rds"
     shell:
         "Rscript pipeline/rds_to_sce.R {params.basel} {output.basel};"
         "Rscript pipeline/rds_to_sce.R {params.zurich1} {output.zurich1};"
         "Rscript pipeline/rds_to_sce.R {params.wagner} {output.wagner};"
         "Rscript pipeline/rds_to_sce.R {params.schapiro} {output.schapiro};"
         "Rscript pipeline/rds_to_sce.R {params.lin} {output.lin};"
-        "Rscript pipeline/rds_to_sce.R {params.keren} {output.keren};"
         
 
 rule phenograph_analysis:

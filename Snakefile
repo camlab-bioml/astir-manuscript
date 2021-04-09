@@ -28,6 +28,7 @@ include: "pipeline/benchmarking/benchmarking.smk"
 include: "pipeline/Alternate-clustering.smk"
 include: "pipeline/epithelial-overclustering.smk"    
 include: "pipeline/alt-masks-clustering.smk" 
+include: "pipeline/lin-cycif-breakdown.smk"
 
 include: "pipeline/robustness/robustness.smk"
 include: "pipeline/reports/reports.smk"
@@ -50,6 +51,7 @@ rule all:
         reports_output.values(),
         spatial_output.values(),
         lin_cycif_output.values(),
+        lin_cycif_breakdown.values(),
         segmentation_output.values(),
         imbalance_output.values(),
         robustness_output.values(),
