@@ -152,3 +152,31 @@ create.alluvial <- function(df, method) {
   
   plot
 }
+
+
+assign_clusters <- function(expression_mat){
+  # Function requires an expression matrix with antibodies as columns, cells as rows 
+  # and an additional column called cluster specifying the cluster a cell was assigned to
+  aggregate_expression <- aggregate(expression_mat[, 1:(ncol(expression_mat) - 1)],
+                                    expression_mat[, ncol(expression_mat)],
+                                    mean)
+  
+  gsva <- aggregate_expression %>% 
+    select(-cluster) %>% 
+    as.matrix() %>% t() %>% 
+    gsva(markers$cell_types,
+         method = "gsva")
+  
+  df_gsva <- t(gsva) %>% 
+    as.data.frame() %>% 
+    rownames_to_column("cluster") %>% 
+    gather(cell_type, score, -cluster) %>% 
+    as_tibble()
+  
+  cluster_assignment <- df_gsva %>% 
+    dplyr::group_by(cluster) %>% 
+    dplyr::mutate(thresh_score = score == max(score)) %>% 
+    filter(thresh_score == TRUE)
+  
+  cluster_assignment
+}
