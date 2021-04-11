@@ -36,6 +36,9 @@ include: "pipeline/spatial/spatial.smk"
 include: "pipeline/imbalance/imbalance.smk"
 include: "pipeline/segmentation/segmentation.smk"
 
+include: "pipeline/cla/cla.smk"
+
+
 ## Beginning of rules ----- 
 rule all:
     input:        
@@ -52,11 +55,12 @@ rule all:
         segmentation_output.values(),
         imbalance_output.values(),
         robustness_output.values(),
-        benchmarking_output.values(),
-        alternate_approaches_output.values(),
-        analysis_output.values(),
-        epithelial_overclustering.values(),
-        alt_masks.values()
+        cla_outputs.values(),
+        # benchmarking_output.values(),
+        # alternate_approaches_output.values(),
+        # analysis_output.values(),
+        # epithelial_overclustering.values(),
+        # alt_masks.values(),
 
 rule run_astir_type:
     params:
@@ -142,6 +146,7 @@ rule run_astir_type:
 #         plt.xlabel("Epoch")
 #         plt.tight_layout()
 #         plt.savefig(output.fig, dpi=300)
+
 
 
 
