@@ -182,5 +182,5 @@ assign_clusters <- function(expression_mat){
     cluster_assignment <- NULL
   }
   
-  cluster_assignment
+  list(assignment = cluster_assignment, expression = aggregate_expression)
 }

@@ -44,19 +44,39 @@ expression_mat <- expression_mat %>%
   select(-id)
 
 
-assigned <- assign_clusters(expression_mat)
+assignments <- assign_clusters(expression_mat)
+assigned <- assignments$assignment
+aggregate_expression <- assignments$expression
+```
+
+```{r}
+scaled_expression <- apply(aggregate_expression[,2:ncol(aggregate_expression)], 2, scale) %>% 
+  as.data.frame() %>% 
+  mutate(cluster = aggregate_expression$cluster)
+
+scores <- lapply(markers$cell_types, function(x) rowMeans(scaled_expression[,x])) %>% 
+  bind_cols() %>% 
+  mutate(cluster = scaled_expression$cluster)
+
+manual_annotation <- scores %>% 
+  pivot_longer(-cluster, names_to = "Manual_cell_type", values_to = "mean") %>% 
+  dplyr::group_by(cluster) %>% 
+  mutate(biggest = mean == max(mean)) %>% 
+  filter(biggest == TRUE)
 ```
 
 ```{r}
 if(is.null(assigned)){
   assigned_clustering <- clustering
-  assigned_clustering$cell_type <- NA
+  assigned_clustering$GSVA_cell_type <- NA
 }else{
-  assigned_clustering <- left_join(clustering, select(assigned, cluster, cell_type))
+  assigned_clustering <- left_join(clustering, select(assigned, cluster, cell_type)) %>% 
+    dplyr::rename("GSVA_cell_type" = "cell_type")
 }
 
-write_csv(assigned_clustering, params$output_file)
+assigned_clustering <- left_join(assigned_clustering, select(manual_annotation, Manual_cell_type, cluster))
 
+write_csv(assigned_clustering, params$output_file)
 ```
 
 
