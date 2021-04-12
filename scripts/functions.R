@@ -160,23 +160,27 @@ assign_clusters <- function(expression_mat){
   aggregate_expression <- aggregate(expression_mat[, 1:(ncol(expression_mat) - 1)],
                                     expression_mat[, ncol(expression_mat)],
                                     mean)
-  
-  gsva <- aggregate_expression %>% 
-    select(-cluster) %>% 
-    as.matrix() %>% t() %>% 
-    gsva(markers$cell_types,
-         method = "gsva")
-  
-  df_gsva <- t(gsva) %>% 
-    as.data.frame() %>% 
-    rownames_to_column("cluster") %>% 
-    gather(cell_type, score, -cluster) %>% 
-    as_tibble()
-  
-  cluster_assignment <- df_gsva %>% 
-    dplyr::group_by(cluster) %>% 
-    dplyr::mutate(thresh_score = score == max(score)) %>% 
-    filter(thresh_score == TRUE)
+
+  if(nrow(aggregate_expression) > 1){
+    gsva <- aggregate_expression %>% 
+      select(-cluster) %>% 
+      as.matrix() %>% t() %>% 
+      gsva(markers$cell_types,
+          method = "gsva")
+    
+    df_gsva <- t(gsva) %>% 
+      as.data.frame() %>% 
+      rownames_to_column("cluster") %>% 
+      gather(cell_type, score, -cluster) %>% 
+      as_tibble()
+    
+    cluster_assignment <- df_gsva %>% 
+      dplyr::group_by(cluster) %>% 
+      dplyr::mutate(thresh_score = score == max(score)) %>% 
+      filter(thresh_score == TRUE)
+  }else{
+    cluster_assignment <- NULL
+  }
   
   cluster_assignment
 }

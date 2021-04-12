@@ -6,7 +6,6 @@ params:
   markers: "../../markers/jackson-2020-markers-v4.yml"
   clustering_result: "../../output/squirrel/results/FlowSOM_clusters_zurich1_specified_markers_k8.csv"
   output_file: "../../output/squirrel/results/GSVA-assignment_FlowSOM_zurich1_specified_markers_k8.csv"
-  
 ---
 
 ```{r setup, include=FALSE}
@@ -15,8 +14,7 @@ knitr::opts_knit$set(root.dir = "../../")
 library(tidyverse)
 library(SingleCellExperiment)
 library(GSVA)
-library(devtools)
-devtools::load_all("../../../taproom/")
+library(taproom)
 source("../../scripts/functions.R")
 ```
 
@@ -27,7 +25,7 @@ sce <- readRDS(params$cells)
 
 markers <- read_markers(params$markers)
 
-clustering <- read_csv(params$clustering_result) %>% 
+clustering <- read_csv(params$clustering_result)
 colnames(clustering)[2] <- "cluster"
 
 clustering$cluster <- as.character(clustering$cluster)
@@ -50,7 +48,12 @@ assigned <- assign_clusters(expression_mat)
 ```
 
 ```{r}
-assigned_clustering <- left_join(clustering, select(assigned, cluster, cell_type))
+if(is.null(assigned)){
+  assigned_clustering <- clustering
+  assigned_clustering$cell_type <- NA
+}else{
+  assigned_clustering <- left_join(clustering, select(assigned, cluster, cell_type))
+}
 
 write_csv(assigned_clustering, params$output_file)
 
