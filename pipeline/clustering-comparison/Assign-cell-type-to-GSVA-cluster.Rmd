@@ -1,0 +1,91 @@
+---
+title: "Assign-cell-type-to-cluster"
+output: html_document
+params:
+  cells: "../../output/squirrel/sces/zurich1_sce.rds"
+  markers: "../../markers/jackson-2020-markers-v4.yml"
+  clustering_result: "../../output/squirrel/results/FlowSOM_clusters_zurich1_specified_markers_k8.csv"
+  output_file: "../../output/squirrel/results/GSVA-assignment_FlowSOM_zurich1_specified_markers_k8.csv"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "../../")
+library(tidyverse)
+library(SingleCellExperiment)
+library(GSVA)
+library(taproom)
+source("../../scripts/functions.R")
+```
+
+
+
+```{r}
+sce <- readRDS(params$cells)
+
+markers <- read_markers(params$markers)
+
+clustering <- read_csv(params$clustering_result)
+colnames(clustering)[2] <- "cluster"
+
+clustering$cluster <- as.character(clustering$cluster)
+```
+
+
+```{r}
+expression_mat <- logcounts(sce) %>% 
+  t() %>% 
+  as_tibble() %>% 
+  mutate(id = colnames(sce))
+
+
+expression_mat <- expression_mat %>% 
+  left_join(select(clustering, id, cluster)) %>% 
+  select(-id)
+
+
+assignments <- assign_clusters(expression_mat)
+assigned <- assignments$assignment
+aggregated_expression <- assignments$expression
+
+if(is.null(assigned)){
+  assigned_clustering <- clustering
+  assigned_clustering$GSVA_cell_type <- NA
+}else{
+  assigned_clustering <- left_join(clustering, select(assigned, cluster, cell_type)) %>% 
+    dplyr::rename("GSVA_cell_type" = "cell_type")
+}
+```
+
+```{r}
+if(nrow(aggregated_expression) > 1){
+  scaled_expression <- apply(aggregated_expression[,2:ncol(aggregated_expression)], 2, scale) %>% 
+    as.data.frame()
+
+  scores <- lapply(markers$cell_types, function(x){
+    if(length(x) > 1){ 
+      rowMeans(scaled_expression[,x])
+    }else{
+      scaled_expression[,x]
+    } 
+    }) %>% 
+    bind_cols() %>% 
+    mutate(cluster = aggregated_expression$cluster)
+
+  manual_annotation <- scores %>% 
+    pivot_longer(-cluster, names_to = "Manual_cell_type", values_to = "mean") %>% 
+    dplyr::group_by(cluster) %>% 
+    mutate(biggest = mean == max(mean)) %>% 
+    filter(biggest == TRUE)
+
+  assigned_clustering <- left_join(assigned_clustering, select(manual_annotation, Manual_cell_type, cluster))
+}else{
+  assigned_clustering$Manual_cell_type <- NA
+}
+```
+
+```{r}
+write_csv(assigned_clustering, params$output_file)
+```
+
+
