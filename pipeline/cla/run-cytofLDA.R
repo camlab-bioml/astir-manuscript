@@ -1,8 +1,11 @@
 
+suppressPackageStartupMessages({
 library(scater)
 library(SingleCellExperiment)
 library(argparse)
 library(tidyverse)
+
+})
 
 parser <- ArgumentParser(description = "Run cytofLDA")
 
@@ -29,6 +32,8 @@ args <- parser$parse_args()
 
 df_annot <- readr::read_tsv(args$input_labels) 
 
+df_annot <- select(df_annot, cell_id, cell_type)
+
 
 df_annot <- dplyr::rename(df_annot, annotated_cell_type = cell_type)
 
@@ -42,15 +47,31 @@ sce <- zellkonverter::readH5AD(args$input_h5ad)
 assay(sce, 'logcounts') <- assay(sce, 'X')
 
 
-sce <- sce[, colnames(sce) %in% c(cell_ids_train, cell_ids_test)]
+# sce <- sce[, colnames(sce) %in% c(cell_ids_train, cell_ids_test)]
+
+if("X" %in% rownames(sce)) {
+  sce <- sce[rownames(sce) != "X",]
+}
+
+if("Y" %in% rownames(sce)) {
+  sce <- sce[rownames(sce) != "Y",]
+}
+
+original_features <- nrow(sce)
+
 
 data <- as.data.frame(t(logcounts(sce)))
 data$cell_id <- rownames(data)
 
-data <- inner_join(data, df_annot, by = "cell_id")
+data <- left_join(data, df_annot, by = "cell_id")
 
 data_train <- filter(data, cell_id %in% cell_ids_train)
-data_test <- filter(data, cell_id %in% cell_ids_test)
+data_test <- filter(data, !(cell_id %in% cell_ids_train))
+
+print(paste("Data size", dim(data)))
+print(paste("Data test size", dim(data_test)))
+
+# stop("Done")
 
 stopifnot(length(intersect(data_train$cell_id, data_test$cell_id)) == 0)
 
@@ -66,8 +87,8 @@ source(file.path(args$cytofLDA_path, 'CyTOF_LDAtrain.R'))
 source(file.path(args$cytofLDA_path, 'CyTOF_LDApredict.R'))
 
 LDA.Model <- CyTOF_LDAtrain(TrainingSamplesExt = train_dir,TrainingLabelsExt = '',mode = 'CSV',
-                            RelevantMarkers =  c(3:40),
-                            LabelIndex = 42, 
+                            RelevantMarkers =  seq_len(original_features),
+                            LabelIndex = ncol(data), 
                             Transformation = FALSE)
 
 Predictions <- CyTOF_LDApredict(LDA.Model,TestingSamplesExt = test_dir, mode = 'CSV', RejectionThreshold = 0)
