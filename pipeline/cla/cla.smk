@@ -23,9 +23,10 @@ for method in cla_methods:
             )
 
 cla_outputs = {
-    'jackson_annotations_fixed': [output_path + "cla/Basel_annotation_fixed.csv", output_path + "cla/Zurich_annotation_fixed.csv"],
+    # 'jackson_annotations_fixed': [output_path + "cla/Basel_annotation_fixed.csv", output_path + "cla/Zurich_annotation_fixed.csv"],
     'anndata': expand(output_path + "anndata/{cohort}.h5ad", cohort=['basel','zurich1']),
-    'annotation_results': annotation_results
+    'annotation_results': annotation_results,
+    'plots': expand(output_path + "cla/output_figs_tables/cla_{what}_{cohort}.png", cohort=['basel','zurich1'], what=['annotation','cluster'])
 }
 
 
@@ -72,7 +73,7 @@ rule run_cytofLDA:
 
 rule run_ACDC:
     input:
-        h5ad=output_path + "anndata/{cohort}.h5ad",
+        h5ad=ancient(output_path + "anndata/{cohort}.h5ad"),
         yaml=ancient(lambda wildcards: config[wildcards.cohort]['marker_file']),
     output:
         output_path + "cla/annotations_acdc-{method}_{cohort}_{annotator}.tsv"
@@ -89,15 +90,37 @@ rule graph_annotation_accuracy:
     params:
         cohort='{cohort}',
         cytofLDA_path=output_path + "cla/",
-        other_workflow_path=output_path + "results/other-methods-cell-type-assignments/"
+        acdc_path=output_path + "cla/",
+        other_workflow_path=output_path + "results/other-methods-cell-type-assignments/",
+        taproom_path=config['taproom_path'],
     input:
         cla_outputs['annotation_results'],
         traintest = lambda wildcards: config['cla'][wildcards.cohort]['train_test'],
         annotations=lambda wildcards: config['cla'][wildcards.cohort]['annotators'].values(),
-        astir_assignment=output_path+"astir_assignments/{cohort}_astir_assignments.csv"
+        astir_assignments=output_path+"astir_assignments/{cohort}_astir_assignments.csv"
     output:
         plot = output_path + "cla/output_figs_tables/cla_annotation_{cohort}.png",
         tsv = output_path + "cla/output_figs_tables/cla_annotation_{cohort}.tsv",
-    run:
-        "pipeline/cla/graph-accuracy-vs-annotated.R"
+    script:
+        "graph-accuracy-vs-annotated.R"
 
+
+rule graph_cluster_accuracy:
+    params:
+        cohort='{cohort}',
+        cytofLDA_path=output_path + "cla/",
+        acdc_path=output_path + "cla/",
+        other_workflow_path=output_path + "results/other-methods-cell-type-assignments/",
+        taproom_path=config['taproom_path'],
+    input:
+        coarse_fine_mapping=config['coarse_fine_mapping'],
+        jackson_clustering=output_path + "cla/{cohort}_annotation_fixed.csv",
+        tmp=cla_outputs['annotation_results'],
+        traintest = lambda wildcards: config['cla'][wildcards.cohort]['train_test'],
+        annotations=lambda wildcards: config['cla'][wildcards.cohort]['annotators'].values(),
+        astir_assignments=output_path+"astir_assignments/{cohort}_astir_assignments.csv"
+    output:
+        plot = output_path + "cla/output_figs_tables/cla_cluster_{cohort}.png",
+        tsv = output_path + "cla/output_figs_tables/cla_cluster_{cohort}.tsv",
+    script:
+        "graph-accuracy-vs-clusters.R"

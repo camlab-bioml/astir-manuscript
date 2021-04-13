@@ -32,6 +32,8 @@ args <- parser$parse_args()
 
 df_annot <- readr::read_tsv(args$input_labels) 
 
+df_annot <- select(df_annot, cell_id, cell_type)
+
 
 df_annot <- dplyr::rename(df_annot, annotated_cell_type = cell_type)
 
