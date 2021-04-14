@@ -214,6 +214,9 @@ plottingOrder = all_scores_wide %>%
     rownames()
   
 plot_eval_heatmap <- function(counts_df, scores_df, plottingOrder, select_cohort){
+  cohort_counts <- filter(all_counts, cohort == "Basel")
+  cohort_scores <- filter(all_scores, cohort == "Basel") %>% 
+    select(-cohort)
   # filter dataframes to select required data
   cohort_counts <- filter(counts_df, cohort == select_cohort)
   cohort_scores <- filter(scores_df, cohort == select_cohort) %>% 
@@ -247,13 +250,8 @@ plot_eval_heatmap <- function(counts_df, scores_df, plottingOrder, select_cohort
   # Replace anything above 10 with 10+
   cohort_mat[!(cohort_mat %in% tooHigh) & !is.na(cohort_mat)] <- "10+"
 
-  print("Order")
-  print(cohort_scores$score[match(plottingOrder, cohort_scores$method)])
-  barplot_score <- data.frame(cohort_scores$score[match(plottingOrder, cohort_scores$method)])
-  rownames(barplot_score) <- plottingOrder
-  colnames(barplot_score) <- "score"
-  print(barplot_score)
-  
+  barplot_score <- data.frame(cohort_scores[match(rownames(cohort_mat), cohort_scores$method),])
+
   # Create annotation
   cohort.ha = rowAnnotation(Score = anno_barplot(barplot_score$score, 
                                                 gp = gpar(fill = "lightgrey")),
