@@ -17,51 +17,27 @@ params:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = '~/imc-2020/')
+knitr::opts_knit$set(root.dir = '../../')
 library(SingleCellExperiment)
 library(tidyverse)
 library(devtools)
 library(factoextra)
-library(ComplexHeatmap)
 library(scater)
 library(dichromat)
-library(viridis)
 library(cytofkit)
-library(ggalluvial)
-devtools::load_all("~/taproom/")
-source("~/imc-2020/scripts/functions.R")
+library(taproom)
 ```
 
 First read in all sc data and assign cell type
 ```{r message=F, warning=F}
 # read in data 
 sce <- readRDS(params$cells)
-#type <- read_csv(params$celltypes)
-
-#type$cell_type <- get_celltypes(select(type, -X1), 0.5) 
-#type <- select(type, X1, cell_type) %>%
-#  column_to_rownames("X1")
-#colData(sce)["cell_type"] <- type[colnames(sce),]
-
-# read in data
-#sce <- assignIdentity(params$cells, params$celltypes, params$cellstates)
-#pathways <- sce$pathways
-#sce <- sce$sce
-
-# Just for the time being until we switch everything over to remove s' at the end
-#if(params$cohort != "wagner"){
-#  sce$cell_type[which(sce$cell_type == "B cell")] <- "B cells"
-#}
-#sce$cell_type[which(sce$cell_type == "T cell")] <- "T cells"
 ```
 
 ```{r}
 if(params$markers == "all_markers"){
   imc.data <- t(logcounts(sce))
-  
-  # I will use this variable in the future to evaluate whether sections of code
-  # should be executed
-  evalStatement <- F
+
 }else if(params$markers == "specified_markers"){
   markers <- read_markers(params$markers_list)
   
@@ -107,7 +83,7 @@ imc.flowSOM.cluster <- cytof_cluster(xdata = imc.data, method = "FlowSOM",
 sce$FlowSOM.k20 <- imc.flowSOM.cluster
 ```
 
-Write out the files as csv's.
+Write out the files as csvs.
 ```{r eval=params$create_csv}
 flowSOM_k4 <- sce %>% colData() %>% as.data.frame() %>% select(id, "FlowSOM.k4")
 rownames(flowSOM_k4) <- c()
@@ -115,7 +91,7 @@ flowSOM_k4$method <- "FlowSOM"
 flowSOM_k4$params <- paste(params$markers, "k4", sep = "_")
 write.csv(flowSOM_k4, file = paste0(params$output_results, "FlowSOM_clusters_", 
                                     params$cohort, "_", params$markers, "_k4.csv"),
-          col.names = T, row.names = F, sep = ",")
+          col.names = T, row.names = F, sep = ",", quote = FALSE)
 
 flowSOM_k7 <- sce %>% colData() %>% as.data.frame() %>% select(id, "FlowSOM.k7")
 rownames(flowSOM_k7) <- c()
@@ -123,7 +99,7 @@ flowSOM_k7$method <- "FlowSOM"
 flowSOM_k7$params <- paste(params$markers, "k7", sep = "_")
 write.csv(flowSOM_k7, file = paste0(params$output_results, "FlowSOM_clusters_", 
                                     params$cohort, "_", params$markers, "_k7.csv"),
-          col.names = T, row.names = F, sep = ",")
+          col.names = T, row.names = F, sep = ",", quote = FALSE)
 
 
 flowSOM_k8 <- sce %>% colData() %>% as.data.frame() %>% select(id, "FlowSOM.k8")
@@ -132,7 +108,7 @@ flowSOM_k8$method <- "FlowSOM"
 flowSOM_k8$params <- paste(params$markers, "k8", sep = "_")
 write.csv(flowSOM_k8, file = paste0(params$output_results, "FlowSOM_clusters_", 
                                     params$cohort, "_", params$markers, "_k8.csv"),
-          col.names = T, row.names = F, sep = ",")
+          col.names = T, row.names = F, sep = ",", quote = FALSE)
 
 
 flowSOM_k8 <- sce %>% colData() %>% as.data.frame() %>% select(id, "FlowSOM.k12")
@@ -141,7 +117,7 @@ flowSOM_k8$method <- "FlowSOM"
 flowSOM_k8$params <- paste(params$markers, "k12", sep = "_")
 write.csv(flowSOM_k8, file = paste0(params$output_results, "FlowSOM_clusters_",
                                     params$cohort, "_", params$markers, "_k12.csv"),
-          col.names = T, row.names = F, sep = ",")
+          col.names = T, row.names = F, sep = ",", quote = FALSE)
 
 
 flowSOM_k8 <- sce %>% colData() %>% as.data.frame() %>% select(id, "FlowSOM.k15")
@@ -150,7 +126,7 @@ flowSOM_k8$method <- "FlowSOM"
 flowSOM_k8$params <- paste(params$markers, "k15", sep = "_")
 write.csv(flowSOM_k8, file = paste0(params$output_results, "FlowSOM_clusters_", 
                                     params$cohort, "_", params$markers, "_k15.csv"),
-          col.names = T, row.names = F, sep = ",")
+          col.names = T, row.names = F, sep = ",", quote = FALSE)
 
 
 flowSOM_k8 <- sce %>% colData() %>% as.data.frame() %>% select(id, "FlowSOM.k20")
@@ -159,6 +135,6 @@ flowSOM_k8$method <- "FlowSOM"
 flowSOM_k8$params <- paste(params$markers, "k20", sep = "_")
 write.csv(flowSOM_k8, file = paste0(params$output_results, "FlowSOM_clusters_", 
                                     params$cohort, "_", params$markers, "_k20.csv"),
-          col.names = T, row.names = F, sep = ",")
+          col.names = T, row.names = F, sep = ",", quote = FALSE)
 
 ```
