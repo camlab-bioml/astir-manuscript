@@ -10,7 +10,7 @@ params:
   markers_list: "../../markers/jackson-2020-markers-v4.yml"
   output_results: ""
   percent_luminal: ""
-  cluster_options: 10
+  cluster_options: ""
   gsva_enrichment: ""
 ---
 
@@ -27,11 +27,11 @@ library(taproom)
 
 
 ```{r}
-cell_subset <- read_csv("C:/Users/micha/CampbellLab/imc-2020/output/squirrel/results/epithelial_overclustering/luminal-0.3.csv")
+cell_subset <- read_csv(params$cellSubset)
 
 sce <- readRDS(params$cells)[,cell_subset$cell_id]
 
-percent_luminal <- 0.3#params$percent_luminal
+percent_luminal <- params$percent_luminal
 ```
 
 
@@ -49,7 +49,7 @@ if(params$markers == "all_markers"){
 Cluster cells
 ```{r}
 imc.pheno.cluster <- cytof_cluster(xdata = imc.data, method = "Rphenograph",
-                                   Rphenograph_k = params$cluster_options)
+                                   Rphenograph_k = as.integer(params$cluster_options))
 sce$clusters <- imc.pheno.cluster
 
 cluster_mat <- logcounts(sce) %>% 
@@ -79,13 +79,26 @@ df_gsva <- t(gsva) %>%
 
 cluster_assignment <- df_gsva %>% 
   dplyr::group_by(id) %>% 
-  dplyr::mutate(thresh_score = score == max(score)) %>% 
-  filter(thresh_score == TRUE)
+  dplyr::mutate(thresh_score = score == max(score))
+```
+```{r}
+cluster_assignment$method <- "Phenograph"
+cluster_assignment$params <- paste(params$markers, paste0("k", params$cluster_options), sep = "_")
+cluster_assignment$percent_epithelial <- percent_luminal
+```
 
+```{r}
+write_csv(cluster_assignment, paste0(params$output_results, 
+                                     "Epithelial_overclustering_cluster_enrichment_Phenograph_clustersOnly-",
+                                     params$markers, "-k", params$cluster_options, "-", 
+                                     percent_luminal, ".csv"))
 ```
 
 
 ```{r}
+cluster_assignment <- cluster_assignment %>% 
+  filter(thresh_score == TRUE)
+  
 clusters <- sce %>% colData() %>% as.data.frame() %>% select(id, "clusters") %>% 
   mutate(clusters = as.character(clusters))
 rownames(clusters) <- c()
@@ -94,8 +107,12 @@ assigned_cells <- left_join(clusters,
           select(cluster_assignment, id, pathway), by = c("clusters" = "id")) %>% 
   dplyr::rename("cell_type" = "pathway")
 
+assigned_cells$method <- "Phenograph"
+assigned_cells$params <- paste(params$markers, paste0("k", params$cluster_options), sep = "_")
+assigned_cells$percent_epithelial <- percent_luminal
+
 write_csv(assigned_cells, paste0(params$output_results,
                                  "Epithelial_overclustering_cluster_enrichment_Phenograph_clusters-",
-                                 params$markers, "-", params$cluster_options, "-", 
+                                 params$markers, "-k", params$cluster_options, "-", 
                                  percent_luminal, ".csv"))
 ```

@@ -40,9 +40,6 @@ acc_wrap <- function(tt) {
 coarse_mapping <- read_yaml(snakemake@input[['coarse_fine_mapping']])
 coarse_mapping <- unlist(Biobase::reverseSplit(coarse_mapping))
 
-cluster_mapping <- read_yaml(snakemake@input[['cluster_mapping']])
-cluster_mapping <- unlist(Biobase::reverseSplit(cluster_mapping))
-
 coarse_mapping['Unclear'] <- 'Unclear'
 
 remap_to_coarse <- function(dfr, mapping = coarse_mapping, input_column = 'cell_type_predicted', output_column = 'cell_type_predicted') {
@@ -64,9 +61,10 @@ cell_types <- unique(coarse_mapping)
 
 cat("\n Reading previous annotations \n")
 
-df_cluster <- read_csv(snakemake@input[['jackson_clustering']]) %>% 
-  remap_to_coarse(mapping = cluster_mapping, input_column='cell_type', output_column='cell_type_annotated') 
+df_cluster <- read_csv(snakemake@input[['clustering']]) %>% 
+  rename(cell_type_annotated=cell_type)
 
+df_cluster <- filter(df_cluster, cell_type_annotated != "Apoptotic")
 
 print(df_cluster)
 
@@ -256,7 +254,7 @@ df_plot <- mutate(df_plot, method_type = case_when(
 method_cols <- c(
   "Supervised"="#AA3939",
   "Unsupervised"="#882D61",
-  "Cluster & intrepret"="#AA6C39"
+  "Cluster & interpret"="#AA6C39"
 )
 
 ggplot(df_plot, aes(x = forcats::fct_reorder(method, .estimate), y = .estimate, fill = method_type)) +

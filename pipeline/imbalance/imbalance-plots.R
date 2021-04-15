@@ -38,6 +38,32 @@ read_astir <- function(f) {
 }
 
 df_astir <- map_dfr(files, read_astir)
+# df_astir$p_epithelial <- as.character(df_astir$p_epithelial)
+
+# ACDC -----
+
+files <- dir(snakemake@params[['input_dir_acdc']], pattern = "acdc_imbalance_", full.names = TRUE)
+
+read_acdc <- function(f) {
+  p_epithelial <- gsub(".tsv", "", strsplit(f, "_")[[1]][3], fixed=TRUE)
+  df <- read_tsv(f)
+  df2 <- tibble(celltype = df$cell_type)
+  df_count <- count(df2, celltype)
+  df_count <- mutate(
+    df_count,
+    n_cluster = 1 * (n>0),
+    prop_celltype = n / sum(n)
+  )
+  df_count <- 
+    mutate(df_count,
+           p_epithelial = p_epithelial,
+           method = "ACDC",
+           workflow = df$method[1])
+  df_count
+}
+
+df_acdc <- map_dfr(files, read_acdc)
+
 
 
 # Everything else ---------------------------------------------------------
@@ -52,8 +78,10 @@ read_other <- function(f) {
   names(df)[2] <- "cluster"
   df <- rename(df, 
                p_epithelial = percent_epithelial,
-               celltype = `cell type`)
+               celltype = cell_type)
   df <- mutate(df, workflow = paste0(method, " - ", params))
+
+  df$p_epithelial <- as.numeric(df$p_epithelial)
   
   df_count <- count(df, method, workflow, p_epithelial, celltype, cluster) %>% 
     count(method, workflow, p_epithelial, celltype) %>% 
@@ -71,10 +99,13 @@ read_other <- function(f) {
   df_count
 }
 
-df_other <- map_dfr(files, read_other)
+# df_other <- map_dfr(files, read_other)
 
 df_astir$p_epithelial <- as.numeric(df_astir$p_epithelial)
-df <- bind_rows(df_astir, df_other)
+df_acdc$p_epithelial <- as.numeric(df_acdc$p_epithelial)
+df <- bind_rows(df_astir, df_acdc)
+
+# write_csv(df, "df_imbalance.csv")
 
 df_mean <- group_by(df, celltype, p_epithelial, method) %>% 
   summarize(mean_prop_celltype = mean(prop_celltype),

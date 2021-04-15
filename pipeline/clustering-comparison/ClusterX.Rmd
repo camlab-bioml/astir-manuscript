@@ -16,19 +16,15 @@ params:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = '~/imc-2020/')
+knitr::opts_knit$set(root.dir = '../../')
 library(SingleCellExperiment)
 library(tidyverse)
 library(devtools)
 library(factoextra)
-library(ComplexHeatmap)
 library(scater)
 library(dichromat)
-library(viridis)
 library(cytofkit)
-library(ggalluvial)
-devtools::load_all('~/taproom/')
-source("~/imc-2020/scripts/functions.R")
+library(taproom)
 ```
 
 
@@ -36,32 +32,11 @@ First read in all sc data and assign cell type
 ```{r message=F, warning=F}
 # read in data 
 sce <- readRDS(params$cells)
-#type <- read_csv(params$celltypes)
-
-#type$cell_type <- get_celltypes(select(type, -X1), 0.5) 
-#type <- select(type, X1, cell_type) %>%
-#  column_to_rownames("X1")
-#colData(sce)["cell_type"] <- type[colnames(sce),]
-
-# read in data
-#sce <- assignIdentity(params$cells, params$celltypes, params$cellstates)
-#pathways <- sce$pathways
-#sce <- sce$sce
-
-# Just for the time being until we switch everything over to remove s' at the end
-#if(params$cohort != "wagner"){
-#  sce$cell_type[which(sce$cell_type == "B cell")] <- "B cells"
-#}
-#sce$cell_type[which(sce$cell_type == "T cell")] <- "T cells"
 ```
 
 ```{r}
 if(params$markers == "all_markers"){
   imc.data <- t(logcounts(sce))
-  
-  # I will use this variable in the future to evaluate whether sections of code
-  # should be executed
-  evalStatement <- F
 }else if(params$markers == "specified_markers"){
   markers <- read_markers(params$markers_list)
   
@@ -78,7 +53,6 @@ if(params$cohort != "basel" & params$cohort != "zurich1"){
 ```{r}
 # ClusterX requires a tsne plot to start with
 imc.tsne <- cytof_dimReduction(data=imc.data, method = "tsne")
-saveRDS(imc.tsne, "clusterX.tsne.troubleshoot.rds")
 imc.clusterX.cluster <- cytof_cluster(ydata = imc.tsne, method = "ClusterX")
 
 sce$clusterX <- imc.clusterX.cluster
@@ -92,5 +66,5 @@ ClusterX$method <- "ClusterX"
 ClusterX$params <- paste(params$markers, "Default", sep = "_")
 write.csv(ClusterX, file = paste0(params$output_results, "ClusterX_clusters_", params$cohort,
                                   "_", params$markers, "_default.csv"),
-          col.names = T, row.names = F, sep = ",")
+          col.names = T, row.names = F, sep = ",", quotes = F)
 ```

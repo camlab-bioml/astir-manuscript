@@ -206,6 +206,8 @@ df_other_acc <- df_other %>% mutate(
 # Overall plot ------------------------------------------------------------
 
 
+# Overall plot ------------------------------------------------------------
+
 df_plot <- bind_rows(
   df_astir_default,
   # df_astir_high_confidence,
@@ -216,12 +218,51 @@ df_plot <- bind_rows(
 
 df_plot$annotator_test <- paste("Test annotator: ", df_plot$annotator_test)
 
+df_plot <- mutate(df_plot, method = case_when(
+  grepl("Astir", method) ~ "Astir",
+  method == "acdc-absent" ~ "ACDC_absent",
+  method == "acdc-no-consider" ~ "ACDC_no_consider",
+  TRUE ~ method
+))
 
-ggplot(df_plot, aes(x = method, y = .estimate, fill=annotator_train)) +
+df_plot <- mutate(df_plot, .metric = case_when(
+  .metric == "f_meas" ~ "F-measure",
+  .metric == "kap" ~ "Cohen's\nkappa",
+  .metric == "mcc" ~ "MCC",
+  TRUE ~ stringr::str_to_title(.metric)
+))
+
+df_plot <- mutate(df_plot, method_type = case_when(
+  grepl("LDA", method) ~ "Supervised",
+  grepl("Astir|ACDC", method) ~ "Unsupervised",
+  TRUE ~ "Cluster & interpret"
+))
+
+method_cols <- c(
+  "Supervised"="#AA3939",
+  "Unsupervised"="#882D61",
+  "Cluster & interpret"="#AA6C39"
+)
+
+
+df_plot <- df_plot[!is.nan(df_plot$.estimate),]
+
+fill_cols <- c("None"="grey50",
+               "Annotator-1"=scales::muted('blue'),
+               "Annotator-2"=scales::muted('red'))
+
+ggplot(df_plot, aes(x = forcats::fct_reorder(method, .estimate), y = .estimate, fill = method_type)) +
   geom_bar(stat='identity', position = "dodge2") +
   geom_boxplot() +
-  facet_grid(.metric ~ annotator_test) +
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+  facet_grid(.metric ~ annotator_test, scales="free_y") +
+  astir_paper_theme() +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
+  labs(x = "Method", y = "Estimate") +
+  scale_fill_manual(values=method_cols) +
+  theme(legend.title = element_blank(),
+        legend.position = "bottom",
+        axis.text.x = element_text(size=8))
+
 
 ggsave(snakemake@output[['plot']], width=10, height=10)
 

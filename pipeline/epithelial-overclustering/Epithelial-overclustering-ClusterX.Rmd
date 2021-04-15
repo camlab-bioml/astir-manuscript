@@ -21,7 +21,7 @@ library(SingleCellExperiment)
 library(cytofkit)
 library(GSVA)
 library(taproom)
-source("../../scripts/functions.R")
+source("scripts/functions.R")
 ```
 
 
