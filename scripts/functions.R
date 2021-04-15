@@ -154,7 +154,7 @@ create.alluvial <- function(df, method) {
 }
 
 
-assign_clusters <- function(expression_mat){
+assign_clusters <- function(expression_mat, markers){
   # Function requires an expression matrix with antibodies as columns, cells as rows 
   # and an additional column called cluster specifying the cluster a cell was assigned to
   aggregate_expression <- aggregate(expression_mat[, 1:(ncol(expression_mat) - 1)],

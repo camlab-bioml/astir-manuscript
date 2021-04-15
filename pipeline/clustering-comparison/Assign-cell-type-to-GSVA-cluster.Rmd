@@ -44,7 +44,7 @@ expression_mat <- expression_mat %>%
   select(-id)
 
 
-assignments <- assign_clusters(expression_mat)
+assignments <- assign_clusters(expression_mat, markers)
 assigned <- assignments$assignment
 aggregated_expression <- assignments$expression
 

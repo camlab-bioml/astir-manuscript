@@ -11,6 +11,7 @@ params:
   cohort: "zurich1"
   markers_list: ""
   output_results: ""
+  cluster_options: ""
 ---
 
 ```{r setup, include=FALSE}
@@ -50,22 +51,10 @@ if(params$cohort != "basel" & params$cohort != "zurich1"){
 ```{r}
 # Find clusters using different methods
 imc.pheno.cluster.k10 <- cytof_cluster(xdata = imc.data, method = "Rphenograph",
-                                   Rphenograph_k = 10)
-imc.pheno.cluster.k20 <- cytof_cluster(xdata = imc.data, method = "Rphenograph",
-                                   Rphenograph_k = 20)
-imc.pheno.cluster.k30 <- cytof_cluster(xdata = imc.data, method = "Rphenograph",
-                                   Rphenograph_k = 30)
-imc.pheno.cluster.k40 <- cytof_cluster(xdata = imc.data, method = "Rphenograph",
-                                   Rphenograph_k = 40)
-imc.pheno.cluster.k50 <- cytof_cluster(xdata = imc.data, method = "Rphenograph",
-                                   Rphenograph_k = 50)
+                                   Rphenograph_k = as.integer(params$cluster_options))
 
 # Add newly defined clusters to sc data
 sce$phenograph.k10 <- imc.pheno.cluster.k10
-sce$phenograph.k20 <- imc.pheno.cluster.k20
-sce$phenograph.k30 <- imc.pheno.cluster.k30
-sce$phenograph.k40 <- imc.pheno.cluster.k40
-sce$phenograph.k50 <- imc.pheno.cluster.k50
 ```
 
 Write out the results to csv files.
@@ -74,41 +63,9 @@ Write out the results to csv files.
 phenograph.k10 <- sce %>% colData() %>% as.data.frame() %>% select(id, "phenograph.k10")
 rownames(phenograph.k10) <- c()
 phenograph.k10$method <- "Phenograph"
-phenograph.k10$params <- paste(params$markers, "k10", sep = "_")
+phenograph.k10$params <- paste(params$markers, "k", params$cluster_options, sep = "_")
 write.csv(phenograph.k10, file = paste0(params$output_results, "Phenograph_clusters_", 
-                                        params$cohort, "_", params$markers, "_k10.csv"),
+                                        params$cohort, "_", params$markers, "_k", 
+                                        params$cluster_options, ".csv"),
           col.names = T, row.names = F, sep = ",", quote = FALSE)
-
-phenograph.k20 <- sce %>% colData() %>% as.data.frame() %>% select(id, "phenograph.k20")
-rownames(phenograph.k20) <- c()
-phenograph.k20$method <- "Phenograph"
-phenograph.k20$params <- paste(params$markers, "k20", sep = "_")
-write.csv(phenograph.k20, file = paste0(params$output_results, "Phenograph_clusters_", 
-                                        params$cohort, "_", params$markers, "_k20.csv"),
-          col.names = T, row.names = F, sep = ",", quote = FALSE)
-
-phenograph.k30 <- sce %>% colData() %>% as.data.frame() %>% select(id, "phenograph.k30")
-rownames(phenograph.k30) <- c()
-phenograph.k30$method <- "Phenograph"
-phenograph.k30$params <- paste(params$markers, "k30", sep = "_")
-write.csv(phenograph.k30, file = paste0(params$output_results, "Phenograph_clusters_", 
-                                        params$cohort, "_", params$markers, "_k30.csv"),
-          col.names = T, row.names = F, sep = ",", quote = FALSE)
-
-phenograph.k40 <- sce %>% colData() %>% as.data.frame() %>% select(id, "phenograph.k40")
-rownames(phenograph.k40) <- c()
-phenograph.k40$method <- "Phenograph"
-phenograph.k40$params <- paste(params$markers, "k40", sep = "_")
-write.csv(phenograph.k40, file = paste0(params$output_results, "Phenograph_clusters_",
-                                        params$cohort, "_", params$markers, "_k40.csv"),
-          col.names = T, row.names = F, sep = ",", quote = FALSE)
-
-phenograph.k50 <- sce %>% colData() %>% as.data.frame() %>% select(id, "phenograph.k50")
-rownames(phenograph.k50) <- c()
-phenograph.k50$method <- "Phenograph"
-phenograph.k50$params <- paste(params$markers, "k50", sep = "_")
-write.csv(phenograph.k50, file = paste0(params$output_results, "Phenograph_clusters_",
-                                        params$cohort, "_", params$markers, "_k50.csv"),
-          col.names = T, row.names = F, sep = ",", quote = FALSE)
-
 ```
