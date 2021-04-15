@@ -10,6 +10,7 @@ params:
   markers_list: ""
   output_results: ""
   percent_luminal: ""
+  cluster_options: "4"
 ---
 
 ```{r setup, include=FALSE}
@@ -21,6 +22,7 @@ library(SingleCellExperiment)
 library(cytofkit)
 library(GSVA)
 library(taproom)
+source("../../scripts/functions.R")
 ```
 
 
@@ -42,224 +44,46 @@ if(params$markers == "all_markers"){
 }else if(params$markers == "specified_markers"){  
   imc.data <- t(logcounts(sce[unique(unlist(markers$cell_types)),]))
 }
+
+
+imc.flowSOM.cluster <- cytof_cluster(xdata = imc.data, method = "FlowSOM",
+                                     FlowSOM_k = as.integer(params$cluster_options))
+
+FlowSOM <- as.data.frame(imc.flowSOM.cluster) %>% 
+  rownames_to_column("id")
+
+colnames(FlowSOM)[2] <- "cluster"
+FlowSOM$cluster <- as.character(FlowSOM$cluster)
 ```
 
 Gene set enrichment analysis
 ```{r}
 gsva_markers <- list(cell_types = markers[["cell_types"]][c("Stromal", "T cells", "Epithelial (luminal)", "Macrophage")], cell_states = "")
 
-gsva <- gsva(logcounts(sce),
-          gsva_markers$cell_types,
-          method="gsva")
-
-df_gsva <- t(gsva) %>% 
+expression_tibble <- t(logcounts(sce)) %>% 
   as.data.frame() %>% 
   rownames_to_column("id") %>% 
-  gather(pathway, score, -id) %>% 
+  left_join(FlowSOM) %>% 
+  select(-id) %>% 
   as_tibble()
+
+assignments <- assign_clusters(expression_tibble, gsva_markers)
+
+GSVA_assignment <- assignments$assignment
+manual_assignment <- manual_cluster_assignment(assignments$expression, markers)
+
+
+cell_assignments <- left_join(FlowSOM, select(GSVA_assignment, cluster, GSVA_cell_type)) %>% 
+  left_join(manual_assignment)
 ```
 
 ```{r}
-# FlowSOM - just going with the number of cell types for now
-imc.flowSOM.cluster <- cytof_cluster(xdata = imc.data, method = "FlowSOM",
-                                     FlowSOM_k = 4)
-sce$FlowSOM.k4 <- imc.flowSOM.cluster
+FlowSOM$method <- "FlowSOM"
+FlowSOM$params <- paste(params$markers, paste0("k", params$cluster_options), sep = "_")
+FlowSOM$percent_epithelial <- percent_luminal
 
-imc.flowSOM.cluster <- cytof_cluster(xdata = imc.data, method = "FlowSOM",
-                                     FlowSOM_k = 7)
-sce$FlowSOM.k7 <- imc.flowSOM.cluster
-
-imc.flowSOM.cluster <- cytof_cluster(xdata = imc.data, method = "FlowSOM",
-                                     FlowSOM_k = 8)
-sce$FlowSOM.k8 <- imc.flowSOM.cluster
-
-#K 12
-imc.flowSOM.cluster <- cytof_cluster(xdata = imc.data, method = "FlowSOM",
-                                     FlowSOM_k = 12)
-sce$FlowSOM.k12 <- imc.flowSOM.cluster
-
-
-# K15
-imc.flowSOM.cluster <- cytof_cluster(xdata = imc.data, method = "FlowSOM",
-                                     FlowSOM_k = 15)
-sce$FlowSOM.k15 <- imc.flowSOM.cluster
-
-
-#K 20
-imc.flowSOM.cluster <- cytof_cluster(xdata = imc.data, method = "FlowSOM",
-                                     FlowSOM_k = 20)
-sce$FlowSOM.k20 <- imc.flowSOM.cluster
+write_csv(FlowSOM, file = paste0(params$output_results, 
+                                 "Epithelial_overclustering_FlowSOM_clusters-",
+                                 params$markers, "-k", params$cluster_options, 
+                                 "-", percent_luminal, ".csv"))
 ```
-
-
-
-Write out the files as csvs.
-```{r eval=params$create_csv}
-flowSOM_k4 <- sce %>% colData() %>% as.data.frame() %>% select(id, "FlowSOM.k4")
-rownames(flowSOM_k4) <- c()
-
-cluster_cell_type_scores <- inner_join(df_gsva, flowSOM_k4) %>% 
-  group_by(pathway, FlowSOM.k4) %>%
-  dplyr::summarize(mean_score = mean(score)) %>% 
-  ungroup() %>% 
-  group_by(pathway) %>% 
-  mutate(mean_score = (mean_score - mean(mean_score)) / sd(mean_score)) %>% 
-  ungroup() %>% 
-  group_by(FlowSOM.k4) %>% 
-  mutate(thresh_score = mean_score == max(mean_score)) %>% 
-  filter(thresh_score == TRUE)
-
-
-flowSOM_k4 <- inner_join(flowSOM_k4, cluster_cell_type_scores) %>% 
-  select(-c(mean_score, thresh_score)) %>% 
-  dplyr::rename("cell type" = "pathway")
-
-flowSOM_k4$method <- "FlowSOM"
-flowSOM_k4$params <- paste(params$markers, "k4", sep = "_")
-flowSOM_k4$percent_epithelial <- percent_luminal
-write.csv(flowSOM_k4, file = paste0(params$output_results, 
-                                    "Epithelial_overclustering_FlowSOM_clusters-",
-                                        params$markers, "-k4-", percent_luminal, ".csv"),
-          col.names = T, row.names = F, sep = ",", quote = FALSE)
-
-
-flowSOM_k7 <- sce %>% colData() %>% as.data.frame() %>% select(id, "FlowSOM.k7")
-rownames(flowSOM_k7) <- c()
-
-cluster_cell_type_scores <- inner_join(df_gsva, flowSOM_k7) %>% 
-  group_by(pathway, FlowSOM.k7) %>%
-  dplyr::summarize(mean_score = mean(score)) %>% 
-  ungroup() %>% 
-  group_by(pathway) %>% 
-  mutate(mean_score = (mean_score - mean(mean_score)) / sd(mean_score)) %>% 
-  ungroup() %>% 
-  group_by(FlowSOM.k7) %>% 
-  mutate(thresh_score = mean_score == max(mean_score)) %>% 
-  filter(thresh_score == TRUE)
-
-
-flowSOM_k7 <- inner_join(flowSOM_k7, cluster_cell_type_scores) %>% 
-  select(-c(mean_score, thresh_score)) %>% 
-  dplyr::rename("cell type" = "pathway")
-
-flowSOM_k7$method <- "FlowSOM"
-flowSOM_k7$params <- paste(params$markers, "k7", sep = "_")
-flowSOM_k7$percent_epithelial <- percent_luminal
-write.csv(flowSOM_k7, file = paste0(params$output_results, 
-                                    "Epithelial_overclustering_FlowSOM_clusters-",
-                                        params$markers, "-k7-", percent_luminal, ".csv"),
-          col.names = T, row.names = F, sep = ",", quote = FALSE)
-
-flowSOM_k8 <- sce %>% colData() %>% as.data.frame() %>% select(id, "FlowSOM.k8")
-rownames(flowSOM_k8) <- c()
-
-cluster_cell_type_scores <- inner_join(df_gsva, flowSOM_k8) %>% 
-  group_by(pathway, FlowSOM.k8) %>%
-  dplyr::summarize(mean_score = mean(score)) %>% 
-  ungroup() %>% 
-  group_by(pathway) %>% 
-  mutate(mean_score = (mean_score - mean(mean_score)) / sd(mean_score)) %>% 
-  ungroup() %>% 
-  group_by(FlowSOM.k8) %>% 
-  mutate(thresh_score = mean_score == max(mean_score)) %>% 
-  filter(thresh_score == TRUE)
-
-
-flowSOM_k8 <- inner_join(flowSOM_k8, cluster_cell_type_scores) %>% 
-  select(-c(mean_score, thresh_score)) %>% 
-  dplyr::rename("cell type" = "pathway")
-
-flowSOM_k8$method <- "FlowSOM"
-flowSOM_k8$params <- paste(params$markers, "k8", sep = "_")
-flowSOM_k8$percent_epithelial <- percent_luminal
-write.csv(flowSOM_k8, file = paste0(params$output_results, 
-                                    "Epithelial_overclustering_FlowSOM_clusters-",
-                                        params$markers, "-k8-", percent_luminal, ".csv"),
-          col.names = T, row.names = F, sep = ",", quote = FALSE)
-
-
-flowSOM_k12 <- sce %>% colData() %>% as.data.frame() %>% select(id, "FlowSOM.k12")
-rownames(flowSOM_k12) <- c()
-
-cluster_cell_type_scores <- inner_join(df_gsva, flowSOM_k12) %>% 
-  group_by(pathway, FlowSOM.k12) %>%
-  dplyr::summarize(mean_score = mean(score)) %>% 
-  ungroup() %>% 
-  group_by(pathway) %>% 
-  mutate(mean_score = (mean_score - mean(mean_score)) / sd(mean_score)) %>% 
-  ungroup() %>% 
-  group_by(FlowSOM.k12) %>% 
-  mutate(thresh_score = mean_score == max(mean_score)) %>% 
-  filter(thresh_score == TRUE)
-
-
-flowSOM_k12 <- inner_join(flowSOM_k12, cluster_cell_type_scores) %>% 
-  select(-c(mean_score, thresh_score)) %>% 
-  dplyr::rename("cell type" = "pathway")
-
-flowSOM_k12$method <- "FlowSOM"
-flowSOM_k12$params <- paste(params$markers, "k12", sep = "_")
-flowSOM_k12$percent_epithelial <- percent_luminal
-write.csv(flowSOM_k12, file = paste0(params$output_results, 
-                                    "Epithelial_overclustering_FlowSOM_clusters-",
-                                        params$markers, "-k12-", percent_luminal, ".csv"),
-          col.names = T, row.names = F, sep = ",", quote = FALSE)
-
-
-flowSOM_k15 <- sce %>% colData() %>% as.data.frame() %>% select(id, "FlowSOM.k15")
-rownames(flowSOM_k15) <- c()
-
-cluster_cell_type_scores <- inner_join(df_gsva, flowSOM_k15) %>% 
-  group_by(pathway, FlowSOM.k15) %>%
-  dplyr::summarize(mean_score = mean(score)) %>% 
-  ungroup() %>% 
-  group_by(pathway) %>% 
-  mutate(mean_score = (mean_score - mean(mean_score)) / sd(mean_score)) %>% 
-  ungroup() %>% 
-  group_by(FlowSOM.k15) %>% 
-  mutate(thresh_score = mean_score == max(mean_score)) %>% 
-  filter(thresh_score == TRUE)
-
-
-flowSOM_k15 <- inner_join(flowSOM_k15, cluster_cell_type_scores) %>% 
-  select(-c(mean_score, thresh_score)) %>% 
-  dplyr::rename("cell type" = "pathway")
-
-flowSOM_k15$method <- "FlowSOM"
-flowSOM_k15$params <- paste(params$markers, "k15", sep = "_")
-flowSOM_k15$percent_epithelial <- percent_luminal
-write.csv(flowSOM_k15, file = paste0(params$output_results, 
-                                    "Epithelial_overclustering_FlowSOM_clusters-",
-                                        params$markers, "-k15-", percent_luminal, ".csv"),
-          col.names = T, row.names = F, sep = ",", quote = FALSE)
-
-
-flowSOM_k20 <- sce %>% colData() %>% as.data.frame() %>% select(id, "FlowSOM.k20")
-rownames(flowSOM_k20) <- c()
-
-cluster_cell_type_scores <- inner_join(df_gsva, flowSOM_k20) %>% 
-  group_by(pathway, FlowSOM.k20) %>%
-  dplyr::summarize(mean_score = mean(score)) %>% 
-  ungroup() %>% 
-  group_by(pathway) %>% 
-  mutate(mean_score = (mean_score - mean(mean_score)) / sd(mean_score)) %>% 
-  ungroup() %>% 
-  group_by(FlowSOM.k20) %>% 
-  mutate(thresh_score = mean_score == max(mean_score)) %>% 
-  filter(thresh_score == TRUE)
-
-
-flowSOM_k20 <- inner_join(flowSOM_k20, cluster_cell_type_scores) %>% 
-  select(-c(mean_score, thresh_score)) %>% 
-  dplyr::rename("cell type" = "pathway")
-
-flowSOM_k20$method <- "FlowSOM"
-flowSOM_k20$params <- paste(params$markers, "k20", sep = "_")
-flowSOM_k20$percent_epithelial <- percent_luminal
-write.csv(flowSOM_k20, file = paste0(params$output_results, 
-                                    "Epithelial_overclustering_FlowSOM_clusters-",
-                                        params$markers, "-k20-", percent_luminal, ".csv"),
-          col.names = T, row.names = F, sep = ",", quote = FALSE)
-
-```
-
