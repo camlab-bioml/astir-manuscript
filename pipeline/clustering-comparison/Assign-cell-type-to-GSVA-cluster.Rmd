@@ -52,7 +52,7 @@ if(is.null(assigned)){
   assigned_clustering <- clustering
   assigned_clustering$GSVA_cell_type <- NA
 }else{
-  assigned_clustering <- left_join(clustering, select(assigned, cluster, cell_type))
+  assigned_clustering <- left_join(clustering, select(assigned, cluster, GSVA_cell_type))
 }
 ```
 

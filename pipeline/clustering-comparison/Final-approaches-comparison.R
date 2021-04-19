@@ -179,7 +179,8 @@ all_scores <- all_counts %>%
   ungroup() %>%
   mutate(score = case_when(
     n == 1 ~ 1,
-    n != 1 ~ -1
+    n == 0 ~ -1,
+    n > 1 ~ -1
   )) %>% group_by(cohort, method) %>% 
   dplyr::summarize(score = sum(score)) %>% 
   ungroup()

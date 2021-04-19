@@ -23,7 +23,7 @@ library(SingleCellExperiment)
 library(cytofkit)
 library(GSVA)
 library(taproom)
-source("../../")
+source("../../scripts/functions.R")
 ```
 
 
@@ -70,7 +70,7 @@ expression_tibble <- t(logcounts(sce)) %>%
 assignments <- assign_clusters(expression_tibble, gsva_markers)
 
 GSVA_assignment <- assignments$assignment
-manual_assignment <- manual_cluster_assignment(assignments$expression, markers)
+manual_assignment <- manual_cluster_assignment(assignments$expression, gsva_markers)
 
 
 cell_assignments <- left_join(phenograph, select(GSVA_assignment, cluster, GSVA_cell_type)) %>% 
@@ -85,7 +85,7 @@ cell_assignments$params <- paste(params$markers, paste0("k", params$cluster_opti
 cell_assignments$percent_epithelial <- percent_luminal
 
 write_csv(cell_assignments, file = paste0(params$output_results, 
-                                          "Epithelial_overclustering_FlowSOM_clusters-",
+                                          "Epithelial_overclustering_Phenograph_clusters-",
                                           params$markers, "-k", params$cluster_options, 
                                           "-", percent_luminal, ".csv"))
 

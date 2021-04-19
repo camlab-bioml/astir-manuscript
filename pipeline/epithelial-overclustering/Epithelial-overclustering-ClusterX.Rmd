@@ -21,7 +21,7 @@ library(SingleCellExperiment)
 library(cytofkit)
 library(GSVA)
 library(taproom)
-source("scripts/functions.R")
+source("../../scripts/functions.R")
 ```
 
 
@@ -67,7 +67,7 @@ expression_tibble <- t(logcounts(sce)) %>%
 assignments <- assign_clusters(as_tibble(expression_tibble), gsva_markers)
 
 GSVA_assignment <- assignments$assignment
-manual_assignment <- manual_cluster_assignment(assignments$expression, markers)
+manual_assignment <- manual_cluster_assignment(assignments$expression, gsva_markers)
 
 
 cell_assignments <- left_join(clusterX, select(GSVA_assignment, cluster, GSVA_cell_type)) %>% 
