@@ -18,6 +18,10 @@ epithelial_overclustering = {
     'ClusterX_assignments': expand(epi_shared_output_dir + 'epithelial_overclustering/Epithelial_overclustering_ClusterX_clusters-{marker_category}-default-{perc}.csv', marker_category = marker_options, perc = percent_luminal),
     'Phenograph_assignments_html': expand(epi_output_dir_reports + 'Epithelial_overclustering_Phenograph_clusters-{marker_category}-k{clusters}-{perc}.html', marker_category = marker_options, clusters = Phenograph_Cluster_sizes, perc = percent_luminal),
     'Phenograph_assignments_csv': expand(epi_shared_output_dir + 'epithelial_overclustering/Epithelial_overclustering_Phenograph_clusters-{marker_category}-k{clusters}-{perc}.csv', marker_category = marker_options, clusters = Phenograph_Cluster_sizes, perc = percent_luminal),
+
+    #'Phenograph_cluster_enrichmen_assignments_html': expand(epi_output_dir_reports + 'Epithelial_overclustering_cluster_enrichment_Phenograph_clusters-{marker_category}-k{clusters}-{perc}.html', marker_category = marker_options, clusters = Phenograph_Cluster_sizes, perc = percent_luminal),
+    #'Phenograph_cluster_enrichment_assignments_csv': expand(epi_shared_output_dir + 'epithelial_overclustering/Epithelial_overclustering_cluster_enrichment_Phenograph_clusters-{marker_category}-k{clusters}-{perc}.csv', marker_category = marker_options, clusters = Phenograph_Cluster_sizes, perc = percent_luminal),
+    
     'FlowSOM_assignments_html': expand(epi_output_dir_reports + 'Epithelial_overclustering_FlowSOM_clusters-{marker_category}-k{clusters}-{perc}.html', marker_category = marker_options, clusters = FlowSOM_Cluster_sizes, perc = percent_luminal),
     'FlowSOM_assignments_csv': expand(epi_shared_output_dir + 'epithelial_overclustering/Epithelial_overclustering_FlowSOM_clusters-{marker_category}-k{clusters}-{perc}.csv', marker_category = marker_options, clusters = FlowSOM_Cluster_sizes, perc = percent_luminal),
     'UMAPs': expand(epi_shared_output_dir + "epithelial_overclustering/UMAPs/UMAP-luminal-{perc}-{marker_category}.csv", perc = percent_luminal, marker_category = marker_options),
@@ -68,7 +72,26 @@ rule Phenograph_epithelial_overclustering:
         "Rscript -e \" Sys.setenv(RSTUDIO_PANDOC='/home/ltri/campbell/share/software/pandoc-2.9.2.1/bin');"
         "rmarkdown::render('pipeline/epithelial-overclustering/Epithelial-overclustering-Phenograph.Rmd', output_file = '{output.html}', "
         "output_dir = '" + epi_output_dir_reports + "', params = list(markers = '{wildcards.marker_category}', cells = '{input.cells}', "
-        "cellSubset = '{input.cell_subset}', markers_list = '{input.markers}', percent_luminal = '{wildcards.perc}', output_results = '" + epi_shared_output_dir + "epithelial_overclustering/'))\" "
+        "cellSubset = '{input.cell_subset}', markers_list = '{input.markers}', percent_luminal = '{wildcards.perc}', "
+        "output_results = '" + epi_shared_output_dir + "epithelial_overclustering/', cluster_options = '{wildcards.clusters}'))\" "
+
+rule Phenograph_epithelial_overclustering_cluster_enrichment:
+    input:
+        markers = lambda wildcards: config['basel']['marker_file'],
+        cells = output_path + "sces/basel_sce.rds",
+        cell_subset = output_path + "results/epithelial_overclustering/luminal-{perc}.csv"
+    output:
+        html = epi_output_dir_reports + "Epithelial_overclustering_cluster_enrichment_Phenograph_clusters-{marker_category}-k{clusters}-{perc}.html",
+        csv = epi_shared_output_dir + "epithelial_overclustering/Epithelial_overclustering_cluster_enrichment_Phenograph_clusters-{marker_category}-k{clusters}-{perc}.csv"
+    container: "astir-manuscript.sif"
+    resources:
+        mem_mb=5000
+    shell:
+        "Rscript -e \" Sys.setenv(RSTUDIO_PANDOC='/home/ltri/campbell/share/software/pandoc-2.9.2.1/bin');"
+        "rmarkdown::render('pipeline/epithelial-overclustering/Epithelial-overclustering-cluster-enrichment-Phenograph.Rmd', output_file = '{output.html}', "
+        "output_dir = '" + epi_output_dir_reports + "', params = list(markers = '{wildcards.marker_category}', cells = '{input.cells}', "
+        "cellSubset = '{input.cell_subset}', markers_list = '{input.markers}', percent_luminal = '{wildcards.perc}', "
+        "output_results = '" + epi_shared_output_dir + "epithelial_overclustering/', cluster_options = '{wildcards.clusters}'))\" "
 
 
 rule FlowSOM_epithelial_overclustering:
@@ -86,7 +109,8 @@ rule FlowSOM_epithelial_overclustering:
         "Rscript -e \" Sys.setenv(RSTUDIO_PANDOC='/home/ltri/campbell/share/software/pandoc-2.9.2.1/bin');"
         "rmarkdown::render('pipeline/epithelial-overclustering/Epithelial-overclustering-FlowSOM.Rmd', output_file = '{output.html}', "
         "output_dir = '" + epi_output_dir_reports + "', params = list(markers = '{wildcards.marker_category}', cells = '{input.cells}', "
-        "cellSubset = '{input.cell_subset}', markers_list = '{input.markers}', percent_luminal = '{wildcards.perc}', output_results = '" + epi_shared_output_dir + "epithelial_overclustering/'))\" "
+        "cellSubset = '{input.cell_subset}', markers_list = '{input.markers}', percent_luminal = '{wildcards.perc}', output_results = '" + epi_shared_output_dir + 
+        "epithelial_overclustering/', cluster_options = '{wildcards.clusters}'))\" "
 
 
 
