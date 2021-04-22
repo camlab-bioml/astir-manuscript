@@ -20,9 +20,9 @@ LI3	Liver	47	M	Hepatocellular carcinoma, grade I~II	T2N0M0	Composite-TMA-17	Tumo
 LU1	Lung	60	M	Normal lung	-	Composite-TMA-18	Normal	TMA18n
 LU2	Lung	69	M	Squamous cell carcinoma, grade II~III	T2N0M0	Composite-TMA-19	Tumour	TMA19n
 LU3	Lung	70	M	Adenocarcinoma, grade II	T2N1M0	Composite-TMA-20	Tumour	TMA20n
-LY1	Lymph node	39	F	Reactive	-	Composite-TMA-21	Tumour	TMA21n
-LY2	Lymph node	40	M	Hodgkin's lymphoma	-	Composite-TMA-22	Tumour	TMA22n
-LY3	Lymph node	77	F	NHL-B	-	Composite-TMA-23	Tumour	TMA23n
+LY1	Lymph-node	39	F	Reactive	-	Composite-TMA-21	Tumour	TMA21n
+LY2	Lymph-node	40	M	Hodgkin's lymphoma	-	Composite-TMA-22	Tumour	TMA22n
+LY3	Lymph-node	77	F	NHL-B	-	Composite-TMA-23	Tumour	TMA23n
 OV1	Ovary	16	F	Normal ovary	-	Composite-TMA-24	Normal	TMA24n
 OV2	Ovary	20	F	Adenocarcinoma, grade I~II	T2N0M0	Composite-TMA-25	Tumour	TMA25n
 OV3	Ovary	45	F	Adenocarcinoma, grade III	T2aN0M0	Composite-TMA-26	Tumour	TMA26n

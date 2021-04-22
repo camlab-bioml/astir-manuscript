@@ -172,7 +172,8 @@ assign_clusters <- function(expression_mat, markers){
       as.data.frame() %>% 
       rownames_to_column("cluster") %>% 
       gather(cell_type, score, -cluster) %>% 
-      as_tibble()
+      as_tibble() %>% 
+      dplyr::rename("GSVA_cell_type" = "cell_type")
     
     cluster_assignment <- df_gsva %>% 
       dplyr::group_by(cluster) %>% 
@@ -184,3 +185,33 @@ assign_clusters <- function(expression_mat, markers){
   
   list(assignment = cluster_assignment, expression = aggregate_expression)
 }
+
+
+
+manual_cluster_assignment <- function(aggregated_expression, markers){
+  scaled_expression <- apply(aggregated_expression[,2:ncol(aggregated_expression)], 2, scale) %>% 
+    as.data.frame()
+  
+  scores <- lapply(markers$cell_types, function(x){
+    if(length(x) > 1){ 
+      rowMeans(scaled_expression[,x])
+    }else{
+      scaled_expression[,x]
+    } 
+  }) %>% 
+    bind_cols() %>% 
+    mutate(cluster = aggregated_expression$cluster)
+  
+  manual_annotation <- scores %>% 
+    pivot_longer(-cluster, names_to = "Manual_cell_type", values_to = "mean") %>% 
+    dplyr::group_by(cluster) %>% 
+    mutate(biggest = mean == max(mean)) %>% 
+    filter(biggest == TRUE) %>% 
+    mutate(cluster = as.character(cluster))
+  
+  select(manual_annotation, Manual_cell_type, cluster)
+}
+
+
+
+

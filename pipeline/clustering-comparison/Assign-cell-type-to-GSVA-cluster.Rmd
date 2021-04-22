@@ -52,33 +52,15 @@ if(is.null(assigned)){
   assigned_clustering <- clustering
   assigned_clustering$GSVA_cell_type <- NA
 }else{
-  assigned_clustering <- left_join(clustering, select(assigned, cluster, cell_type)) %>% 
-    dplyr::rename("GSVA_cell_type" = "cell_type")
+  assigned_clustering <- left_join(clustering, select(assigned, cluster, GSVA_cell_type))
 }
 ```
 
 ```{r}
 if(nrow(aggregated_expression) > 1){
-  scaled_expression <- apply(aggregated_expression[,2:ncol(aggregated_expression)], 2, scale) %>% 
-    as.data.frame()
+  manual_annotation <- manual_cluster_assignment(assignments$expression, markers)
 
-  scores <- lapply(markers$cell_types, function(x){
-    if(length(x) > 1){ 
-      rowMeans(scaled_expression[,x])
-    }else{
-      scaled_expression[,x]
-    } 
-    }) %>% 
-    bind_cols() %>% 
-    mutate(cluster = aggregated_expression$cluster)
-
-  manual_annotation <- scores %>% 
-    pivot_longer(-cluster, names_to = "Manual_cell_type", values_to = "mean") %>% 
-    dplyr::group_by(cluster) %>% 
-    mutate(biggest = mean == max(mean)) %>% 
-    filter(biggest == TRUE)
-
-  assigned_clustering <- left_join(assigned_clustering, select(manual_annotation, Manual_cell_type, cluster))
+  assigned_clustering <- left_join(assigned_clustering, manual_annotation)
 }else{
   assigned_clustering$Manual_cell_type <- NA
 }

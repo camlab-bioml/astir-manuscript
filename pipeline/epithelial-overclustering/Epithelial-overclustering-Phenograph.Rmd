@@ -5,11 +5,13 @@ date: "November 25, 2020"
 output: html_document
 params:
   markers: "all_markers"
-  cells: "output/chipmunk/sces/wagner_sce.rds"
-  cellSubset: "output/chipmunk/results/epithelial_overclustering/luminal_20.csv" 
-  markers_list: ""
+  cells: "../../output/squirrel/sces/basel_sce.rds"
+  cellSubset: "output/squirrel/results/epithelial_overclustering/luminal-0.3.csv" 
+  markers_list: "../../markers/jackson-2020-markers-v4.yml"
   output_results: ""
   percent_luminal: ""
+  cluster_options: 10
+  gsva_enrichment: ""
 ---
 
 ```{r setup, include=FALSE}
@@ -21,6 +23,7 @@ library(SingleCellExperiment)
 library(cytofkit)
 library(GSVA)
 library(taproom)
+source("../../scripts/functions.R")
 ```
 
 
@@ -42,182 +45,48 @@ if(params$markers == "all_markers"){
 }else if(params$markers == "specified_markers"){
   imc.data <- t(logcounts(sce[unique(unlist(markers$cell_types)),]))
 }
+
+imc.pheno.cluster <- cytof_cluster(xdata = imc.data, method = "Rphenograph",
+                                   Rphenograph_k = as.integer(params$cluster_options))
+phenograph <- as.data.frame(imc.pheno.cluster) %>% 
+  rownames_to_column("id")
+
+colnames(phenograph)[2] <- "cluster"
+phenograph$cluster <- as.character(phenograph$cluster)
 ```
 
-Gene set enrichment analysis
+
+Assign clusters
 ```{r}
 gsva_markers <- list(cell_types = markers[["cell_types"]][c("Stromal", "T cells", "Epithelial (luminal)", "Macrophage")], cell_states = "")
 
-gsva <- gsva(logcounts(sce),
-          gsva_markers$cell_types,
-          method="gsva")
-
-df_gsva <- t(gsva) %>% 
+expression_tibble <- t(logcounts(sce)) %>% 
   as.data.frame() %>% 
   rownames_to_column("id") %>% 
-  gather(pathway, score, -id) %>% 
+  left_join(phenograph) %>% 
+  select(-id) %>% 
   as_tibble()
-```
 
-```{r}
-# Find clusters using different methods
-imc.pheno.cluster.k10 <- cytof_cluster(xdata = imc.data, method = "Rphenograph",
-                                   Rphenograph_k = 10)
-imc.pheno.cluster.k20 <- cytof_cluster(xdata = imc.data, method = "Rphenograph",
-                                   Rphenograph_k = 20)
-imc.pheno.cluster.k30 <- cytof_cluster(xdata = imc.data, method = "Rphenograph",
-                                   Rphenograph_k = 30)
-imc.pheno.cluster.k40 <- cytof_cluster(xdata = imc.data, method = "Rphenograph",
-                                   Rphenograph_k = 40)
-imc.pheno.cluster.k50 <- cytof_cluster(xdata = imc.data, method = "Rphenograph",
-                                   Rphenograph_k = 50)
+assignments <- assign_clusters(expression_tibble, gsva_markers)
 
-# Add newly defined clusters to sc data
-sce$phenograph.k10 <- imc.pheno.cluster.k10
-sce$phenograph.k20 <- imc.pheno.cluster.k20
-sce$phenograph.k30 <- imc.pheno.cluster.k30
-sce$phenograph.k40 <- imc.pheno.cluster.k40
-sce$phenograph.k50 <- imc.pheno.cluster.k50
+GSVA_assignment <- assignments$assignment
+manual_assignment <- manual_cluster_assignment(assignments$expression, gsva_markers)
+
+
+cell_assignments <- left_join(phenograph, select(GSVA_assignment, cluster, GSVA_cell_type)) %>% 
+  left_join(manual_assignment)
 ```
 
 
+Save clusters 
 ```{r}
-phenograph.k10 <- sce %>% colData() %>% as.data.frame() %>% select(id, "phenograph.k10")
-rownames(phenograph.k10) <- c()
+cell_assignments$method <- "Phenograph"
+cell_assignments$params <- paste(params$markers, paste0("k", params$cluster_options), sep = "_")
+cell_assignments$percent_epithelial <- percent_luminal
 
-cluster_cell_type_scores <- inner_join(df_gsva, phenograph.k10) %>% 
-  group_by(pathway, phenograph.k10) %>%
-  dplyr::summarize(mean_score = mean(score)) %>% 
-  ungroup() %>% 
-  group_by(pathway) %>% 
-  mutate(mean_score = (mean_score - mean(mean_score)) / sd(mean_score)) %>% 
-  ungroup() %>% 
-  group_by(phenograph.k10) %>% 
-  mutate(thresh_score = mean_score == max(mean_score)) %>% 
-  filter(thresh_score == TRUE)
+write_csv(cell_assignments, file = paste0(params$output_results, 
+                                          "Epithelial_overclustering_Phenograph_clusters-",
+                                          params$markers, "-k", params$cluster_options, 
+                                          "-", percent_luminal, ".csv"))
 
-
-phenograph.k10 <- inner_join(phenograph.k10, cluster_cell_type_scores) %>% 
-  select(-c(mean_score, thresh_score)) %>% 
-  dplyr::rename("cell type" = "pathway")
-
-phenograph.k10$method <- "Phenograph"
-phenograph.k10$params <- paste(params$markers, "k10", sep = "_")
-phenograph.k10$percent_epithelial <- percent_luminal
-write.csv(phenograph.k10, file = paste0(params$output_results, 
-                                        "Epithelial_overclustering_Phenograph_clusters-",
-                                        params$markers, "-k10-", percent_luminal, ".csv"),
-          col.names = T, row.names = F, sep = ",", quote = FALSE)
-
-
-phenograph.k20 <- sce %>% colData() %>% as.data.frame() %>% select(id, "phenograph.k20")
-rownames(phenograph.k20) <- c()
-
-cluster_cell_type_scores <- inner_join(df_gsva, phenograph.k20) %>% 
-  group_by(pathway, phenograph.k20) %>%
-  dplyr::summarize(mean_score = mean(score)) %>% 
-  ungroup() %>% 
-  group_by(pathway) %>% 
-  mutate(mean_score = (mean_score - mean(mean_score)) / sd(mean_score)) %>% 
-  ungroup() %>% 
-  group_by(phenograph.k20) %>% 
-  mutate(thresh_score = mean_score == max(mean_score)) %>% 
-  filter(thresh_score == TRUE)
-
-
-phenograph.k20 <- inner_join(phenograph.k20, cluster_cell_type_scores) %>% 
-  select(-c(mean_score, thresh_score)) %>% 
-  dplyr::rename("cell type" = "pathway")
-
-phenograph.k20$method <- "Phenograph"
-phenograph.k20$params <- paste(params$markers, "k20", sep = "_")
-phenograph.k20$percent_epithelial <- percent_luminal
-write.csv(phenograph.k20, file = paste0(params$output_results, 
-                                        "Epithelial_overclustering_Phenograph_clusters-",
-                                        params$markers, "-k20-", percent_luminal, ".csv"),
-          col.names = T, row.names = F, sep = ",", quote = FALSE)
-
-
-phenograph.k30 <- sce %>% colData() %>% as.data.frame() %>% select(id, "phenograph.k30")
-rownames(phenograph.k30) <- c()
-
-cluster_cell_type_scores <- inner_join(df_gsva, phenograph.k30) %>% 
-  group_by(pathway, phenograph.k30) %>%
-  dplyr::summarize(mean_score = mean(score)) %>% 
-  ungroup() %>% 
-  group_by(pathway) %>% 
-  mutate(mean_score = (mean_score - mean(mean_score)) / sd(mean_score)) %>% 
-  ungroup() %>% 
-  group_by(phenograph.k30) %>% 
-  mutate(thresh_score = mean_score == max(mean_score)) %>% 
-  filter(thresh_score == TRUE)
-
-
-phenograph.k30 <- inner_join(phenograph.k30, cluster_cell_type_scores) %>% 
-  select(-c(mean_score, thresh_score)) %>% 
-  dplyr::rename("cell type" = "pathway")
-
-phenograph.k30$method <- "Phenograph"
-phenograph.k30$params <- paste(params$markers, "k30", sep = "_")
-phenograph.k30$percent_epithelial <- percent_luminal
-write.csv(phenograph.k30, file = paste0(params$output_results, 
-                                        "Epithelial_overclustering_Phenograph_clusters-",
-                                        params$markers, "-k30-", percent_luminal, ".csv"),
-          col.names = T, row.names = F, sep = ",", quote = FALSE)
-
-
-phenograph.k40 <- sce %>% colData() %>% as.data.frame() %>% select(id, "phenograph.k40")
-rownames(phenograph.k40) <- c()
-
-cluster_cell_type_scores <- inner_join(df_gsva, phenograph.k40) %>% 
-  group_by(pathway, phenograph.k40) %>%
-  dplyr::summarize(mean_score = mean(score)) %>% 
-  ungroup() %>% 
-  group_by(pathway) %>% 
-  mutate(mean_score = (mean_score - mean(mean_score)) / sd(mean_score)) %>% 
-  ungroup() %>% 
-  group_by(phenograph.k40) %>% 
-  mutate(thresh_score = mean_score == max(mean_score)) %>% 
-  filter(thresh_score == TRUE)
-
-
-phenograph.k40 <- inner_join(phenograph.k40, cluster_cell_type_scores) %>% 
-  select(-c(mean_score, thresh_score)) %>% 
-  dplyr::rename("cell type" = "pathway")
-
-phenograph.k40$method <- "Phenograph"
-phenograph.k40$params <- paste(params$markers, "k40", sep = "_")
-phenograph.k40$percent_epithelial <- percent_luminal
-write.csv(phenograph.k40, file = paste0(params$output_results, 
-                                        "Epithelial_overclustering_Phenograph_clusters-",
-                                        params$markers, "-k40-", percent_luminal, ".csv"),
-          col.names = T, row.names = F, sep = ",", quote = FALSE)
-
-
-phenograph.k50 <- sce %>% colData() %>% as.data.frame() %>% select(id, "phenograph.k50")
-rownames(phenograph.k50) <- c()
-
-cluster_cell_type_scores <- inner_join(df_gsva, phenograph.k50) %>% 
-  group_by(pathway, phenograph.k50) %>%
-  dplyr::summarize(mean_score = mean(score)) %>% 
-  ungroup() %>% 
-  group_by(pathway) %>% 
-  mutate(mean_score = (mean_score - mean(mean_score)) / sd(mean_score)) %>% 
-  ungroup() %>% 
-  group_by(phenograph.k50) %>% 
-  mutate(thresh_score = mean_score == max(mean_score)) %>% 
-  filter(thresh_score == TRUE)
-
-
-phenograph.k50 <- inner_join(phenograph.k50, cluster_cell_type_scores) %>% 
-  select(-c(mean_score, thresh_score)) %>% 
-  dplyr::rename("cell type" = "pathway")
-
-phenograph.k50$method <- "Phenograph"
-phenograph.k50$params <- paste(params$markers, "k50", sep = "_")
-phenograph.k50$percent_epithelial <- percent_luminal
-write.csv(phenograph.k50, file = paste0(params$output_results, 
-                                        "Epithelial_overclustering_Phenograph_clusters-",
-                                        params$markers, "-k50-", percent_luminal, ".csv"),
-          col.names = T, row.names = F, sep = ",", quote = FALSE)
 ```

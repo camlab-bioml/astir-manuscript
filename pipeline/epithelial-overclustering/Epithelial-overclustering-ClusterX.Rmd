@@ -5,11 +5,11 @@ date: "November 24, 2020"
 output: html_document
 params:
   markers: "all_markers"
-  cells: "output/chipmunk/sces/wagner_sce.rds"
-  cellSubset: "output/chipmunk/results/epithelial_overclustering/luminal_20.csv" 
-  markers_list: ""
+  cells: "../../output/squirrel/sces/basel_sce.rds"
+  cellSubset: "../../output/squirrel/results/epithelial_overclustering/luminal-0.3.csv" 
+  markers_list: "../../markers/jackson-2020-markers-v4.yml"
   output_results: ""
-  percent_luminal: ""
+  percent_luminal: "0.3"
 ---
 
 ```{r setup, include=FALSE}
@@ -21,7 +21,7 @@ library(SingleCellExperiment)
 library(cytofkit)
 library(GSVA)
 library(taproom)
-source("scripts/functions.R")
+source("../../scripts/functions.R")
 ```
 
 
@@ -47,54 +47,39 @@ if(params$markers == "all_markers"){
 imc.tsne <- cytof_dimReduction(data=imc.data, method = "tsne")
 imc.clusterX.cluster <- cytof_cluster(ydata = imc.tsne, method = "ClusterX")
 
-sce$clusterX <- imc.clusterX.cluster
-
-ClusterX <- sce %>% 
-  colData() %>% 
-  as.data.frame() %>% 
-  select(id, "clusterX")
+clusterX <-  as.data.frame(imc.clusterX.cluster) %>% 
+  rownames_to_column("id")
+colnames(clusterX)[2] <- "cluster"
+clusterX$cluster <- as.character(clusterX$cluster)
 ```
 
 Gene set enrichment analysis
 ```{r}
 gsva_markers <- list(cell_types = markers[["cell_types"]][c("Stromal", "T cells", "Epithelial (luminal)", "Macrophage")], cell_states = "")
 
-gsva <- gsva(logcounts(sce),
-          gsva_markers$cell_types,
-          method="gsva")
-
-df_gsva <- t(gsva) %>% 
+expression_tibble <- t(logcounts(sce)) %>% 
   as.data.frame() %>% 
   rownames_to_column("id") %>% 
-  gather(pathway, score, -id) %>% 
+  left_join(clusterX) %>% 
+  select(-id) %>% 
   as_tibble()
+
+assignments <- assign_clusters(as_tibble(expression_tibble), gsva_markers)
+
+GSVA_assignment <- assignments$assignment
+manual_assignment <- manual_cluster_assignment(assignments$expression, gsva_markers)
+
+
+cell_assignments <- left_join(clusterX, select(GSVA_assignment, cluster, GSVA_cell_type)) %>% 
+  left_join(manual_assignment)
 ```
 
-```{r message=F}
-cluster_cell_type_scores <- inner_join(df_gsva, ClusterX) %>% 
-  group_by(pathway, clusterX) %>%
-  dplyr::summarize(mean_score = mean(score)) %>% 
-  ungroup() %>% 
-  group_by(pathway) %>% 
-  mutate(mean_score = (mean_score - mean(mean_score)) / sd(mean_score)) %>% 
-  ungroup() %>% 
-  group_by(clusterX) %>% 
-  mutate(thresh_score = mean_score == max(mean_score)) %>% 
-  filter(thresh_score == TRUE)
 
-
-ClusterX <- inner_join(ClusterX, cluster_cell_type_scores) %>% 
-  select(-c(mean_score, thresh_score)) %>% 
-  dplyr::rename("cell type" = "pathway")
-```
 
 ```{r}
-ClusterX$method <- "ClusterX"
-ClusterX$params <- paste(params$markers, "Default", sep = "_")
-ClusterX$percent_epithelial <- percent_luminal
-write.csv(ClusterX, file = paste0(params$output_results, 
-                                  "Epithelial_overclustering_ClusterX_clusters-",
-                                  params$markers, "-default-", percent_luminal, ".csv"),
-          col.names = T, row.names = F, sep = ",", quote = FALSE)
-
+cell_assignments$method <- "ClusterX"
+cell_assignments$params <- paste(params$markers, "Default", "_")
+cell_assignments$percent_epithelial <- percent_luminal
+write_csv(cell_assignments, paste0(params$output_results, "Epithelial_overclustering_ClusterX_clusters-",
+                                  params$markers, "-default-", percent_luminal, ".csv"))
 ```
