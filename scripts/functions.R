@@ -84,11 +84,11 @@ assignIdentity <- function(raw.sce, types, states, dimReduct = F, thresh = 0.5){
     dplyr::mutate(activation.med = median(activation)) %>% 
     dplyr::mutate(fac = factor(ifelse(activation < activation.med, "lo", "hi"))) %>% 
     select(-activation.med) %>% 
-    mutate(pathway_activation = paste0(state, "_", fac)) %>% 
+    dplyr::mutate(pathway_activation = paste0(state, "_", fac)) %>% 
     pivot_wider(names_from = state, values_from = c(activation, fac, pathway_activation), 
                 names_glue = "{state}.{.value}") %>% 
     unite(type_summary, ends_with("pathway_activation")) %>%
-    mutate(type_state = paste0(cell_type, "_", type_summary))
+    dplyr::mutate(type_state = paste0(cell_type, "_", type_summary))
   
   
   if("B cell" %in% levels(typeState$cell_type) &
@@ -96,8 +96,8 @@ assignIdentity <- function(raw.sce, types, states, dimReduct = F, thresh = 0.5){
     typeState$cell_type <- as.character(typeState$cell_type)
     
     typeState <- typeState %>% 
-      mutate(cell_type = replace(cell_type, cell_type == "B cell", "B cells")) %>% 
-      mutate(cell_type = replace(cell_type, cell_type == "T cell", "T cells"))
+      dplyr::mutate(cell_type = replace(cell_type, cell_type == "B cell", "B cells")) %>% 
+      dplyr::mutate(cell_type = replace(cell_type, cell_type == "T cell", "T cells"))
     
     typeState$cell_type <- as.factor(typeState$cell_type)
   }
@@ -200,14 +200,14 @@ manual_cluster_assignment <- function(aggregated_expression, markers){
     } 
   }) %>% 
     bind_cols() %>% 
-    mutate(cluster = aggregated_expression$cluster)
+    dplyr::mutate(cluster = aggregated_expression$cluster)
   
   manual_annotation <- scores %>% 
     pivot_longer(-cluster, names_to = "Manual_cell_type", values_to = "mean") %>% 
     dplyr::group_by(cluster) %>% 
-    mutate(biggest = mean == max(mean)) %>% 
+    dplyr::mutate(biggest = mean == max(mean)) %>% 
     filter(biggest == TRUE) %>% 
-    mutate(cluster = as.character(cluster))
+    dplyr::mutate(cluster = as.character(cluster))
   
   select(manual_annotation, Manual_cell_type, cluster)
 }

@@ -29,6 +29,7 @@ parser$add_argument('--schapiro_files', type = 'character', nargs = '+')
 parser$add_argument('--wagner_files', type = 'character', nargs = '+')
 parser$add_argument('--lin_files', type = 'character', nargs = '+')
 parser$add_argument('--zurich_files', type = 'character', nargs = '+')
+parser$add_argument('--acdc_files', type = 'character', nargs = '+')
 parser$add_argument('--output_heatmap', type = 'character', nargs = '+')
 
 args <- parser$parse_args()
@@ -91,10 +92,10 @@ create_counts <- function(expression, markers, cohort){
     assign_clusters(markers)
   
   astir_counts <- GSVA_Astir_celltypes$assignment %>% 
-    group_by(cell_type) %>% 
+    group_by(GSVA_cell_type) %>% 
     tally() %>% 
     mutate(cohort = cohort, method = "Astir")
-  astir_counts <- astir_counts[,c("cohort", "method", "cell_type", "n")]
+  astir_counts <- astir_counts[,c("cohort", "method", "GSVA_cell_type", "n")]
 }
 
 basel_counts <- create_counts(basel_expression, basel_markers, "Basel")
@@ -150,6 +151,15 @@ head(zurich)
 lin <- read_in_cohort(args$lin_files, "Lin")
 head(lin)
 
+acdc <- lapply(args$acdc_files, read_tsv) %>% 
+  bind_rows()
+acdc_count <- acdc %>% 
+  select(-c(cell_id, annotator)) %>% 
+  group_by(cohort, method, cell_type) %>%
+  distinct() %>% 
+  tally() %>% 
+  dplyr::rename("GSVA_cell_type" = "cell_type")
+
 
 # all_cohorts <- bind_rows(basel, schapiro, wagner, zurich, lin) %>% 
 #   mutate(params = str_replace(params, "_", " ")) %>% 
@@ -171,7 +181,7 @@ all_counts$n[is.na(all_counts$cell_type)] <- NA
 
 # Add other method counts and astir counts
 all_counts <- bind_rows(all_counts, basel_counts, schapiro_counts, wagner_counts,
-                        zurich_counts, lin_counts)
+                        zurich_counts, lin_counts, acdc_count)
 
 
 
@@ -215,9 +225,9 @@ plottingOrder = all_scores_wide %>%
     rownames()
   
 plot_eval_heatmap <- function(counts_df, scores_df, plottingOrder, select_cohort){
-  cohort_counts <- filter(all_counts, cohort == "Basel")
-  cohort_scores <- filter(all_scores, cohort == "Basel") %>% 
-    select(-cohort)
+  #cohort_counts <- filter(all_counts, cohort == "Basel")
+  #cohort_scores <- filter(all_scores, cohort == "Basel") %>% 
+  #  select(-cohort)
   # filter dataframes to select required data
   cohort_counts <- filter(counts_df, cohort == select_cohort)
   cohort_scores <- filter(scores_df, cohort == select_cohort) %>% 
@@ -304,7 +314,7 @@ lin.hm <- plot_eval_heatmap(counts_df = all_counts,
 
 
 
-pdf(file = args$output_heatmap, width = 14, height = 7)
+pdf(file = args$output_heatmap, width = 14, height = 9)
   hm_list = basel.hm + schapiro.hm + wagner.hm + zurich.hm + lin.hm
   draw(hm_list, ht_gap = unit(0.5, "cm"))
 dev.off()
