@@ -157,8 +157,15 @@ acdc_count <- acdc %>%
   select(-c(cell_id, annotator)) %>% 
   group_by(cohort, method, cell_type) %>%
   distinct() %>% 
-  tally() %>% 
-  dplyr::rename("GSVA_cell_type" = "cell_type")
+  tally()
+
+acdc_count <- acdc_count %>% 
+  mutate(cohort = case_when(
+    cohort == "zurich1" ~ "Zurich",
+    cohort == "basel" ~ "Basel",
+    cohort == "schapiro" ~ "Schapiro",
+    cohort == "wagner", ~ "Wagner",
+    cohort == "lin-cycif" ~ "Lin"))
 
 
 # all_cohorts <- bind_rows(basel, schapiro, wagner, zurich, lin) %>% 
@@ -185,15 +192,42 @@ all_counts <- bind_rows(all_counts, basel_counts, schapiro_counts, wagner_counts
 
 
 
-all_scores <- all_counts %>% 
-  ungroup() %>%
+# Calculate scores for all methods across all cohorts
+# First I need a list of cell types for each cohort
+cohort_markers <- list(list("Basel", basel_markers$cell_types),
+                       list("Schapiro", schapiro_markers$cell_types),
+                       list("Wagner", wagner_markers$cell_types),
+                       list("Zurich", zurich_markers$cell_types),
+                       list("Lin", lin_markers$cell_types))
+
+methods <- unique(all_counts$method)
+
+# Get a dataframe with all method x cell type combinations for each cohort
+cohort_cell_types <- lapply(cohort_markers, function(x){
+  cell_types <- names(x[[2]])
+  
+  grid <- expand.grid(methods, cell_types)
+  grid$cohort <- x[[1]]
+  colnames(grid) <- c("method", "cell_type", "cohort")
+  
+  grid
+}) %>% bind_rows()
+
+# Join with actual scores so that those cell types for which no cluster was found
+# Can also be taken into account
+all_scores <- full_join(all_counts, cohort_cell_types)
+all_scores$n[is.na(all_scores$n)] <- 0
+
+# Calculate scores
+all_scores <- all_scores %>% 
+  ungroup() %>% 
   mutate(score = case_when(
     n == 1 ~ 1,
-    n == 0 ~ -1,
-    n > 1 ~ -1
+    n != 1 ~ -1
   )) %>% group_by(cohort, method) %>% 
-  dplyr::summarize(score = sum(score)) %>% 
+  dplyr::summarise(score = sum(score)) %>% 
   ungroup()
+
 
 # Get maximum clusters
 max.clusters <- all_counts %>% 
@@ -225,8 +259,8 @@ plottingOrder = all_scores_wide %>%
     rownames()
   
 plot_eval_heatmap <- function(counts_df, scores_df, plottingOrder, select_cohort){
-  #cohort_counts <- filter(all_counts, cohort == "Basel")
-  #cohort_scores <- filter(all_scores, cohort == "Basel") %>% 
+  #cohort_counts <- filter(all_counts, cohort == "Zurich")
+  #cohort_scores <- filter(all_scores, cohort == "Zurich") %>% 
   #  select(-cohort)
   # filter dataframes to select required data
   cohort_counts <- filter(counts_df, cohort == select_cohort)
@@ -248,9 +282,9 @@ plot_eval_heatmap <- function(counts_df, scores_df, plottingOrder, select_cohort
     counts_wide[is.na(counts_wide$`NA`), 3:(3 + no_of_cell_types)] <- NA
     
     cohort_mat <- counts_wide %>% 
-    select(-c(`NA`, cohort)) %>% 
-    column_to_rownames("method") %>% 
-    as.matrix()
+      select(-c(`NA`, cohort)) %>% 
+      column_to_rownames("method") %>% 
+      as.matrix()
   }else{
     cohort_mat <- counts_wide %>% 
       select(-cohort) %>% 
