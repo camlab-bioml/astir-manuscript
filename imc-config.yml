@@ -1,5 +1,5 @@
 
-version: squirrel
+version: cardinal
 
 astir_opts:
     max_epochs: 1000
@@ -34,6 +34,9 @@ schapiro:
     marker_file: markers/schapiro-markers.yml
 
 lin_cycif:
+    marker_file: markers/lin_cycif-markers.yml
+
+lin-cycif:
     marker_file: markers/lin_cycif-markers.yml
 
 keren:
