@@ -12,7 +12,9 @@ tmp_wagner_output = expand(output_path +
 
 wagner_output = {
     'rds_csv': tmp_wagner_output,
-    'loom': output_path + "looms/wagner.loom"# ,
+    'loom': output_path + "looms/wagner.loom",
+    # 'clusters': output_path + "wagner_clusters/wagner_clusters.tsv"
+    # 'adata': output_path + "anndata/wagner.h5ad"
     # 'subset': output_path + "wagner_subset/wagner_subset_expression.csv"# ,
     # 'subset_sce': output_path + "wagner_subset/wagner_subset_sce.rds"
 }
@@ -20,13 +22,15 @@ wagner_output = {
 
 rule read_wagner_2019:
     input:
-        config['wagner']['fcs_dir'] + "/{sample}.fcs"
+        fcs=config['wagner']['fcs_dir'] + "/{sample}.fcs",
+        # cluster_identities = output_path + "wagner_clusters/wagner_clusters.tsv",
     output:
         rds = output_path + "wagner_processed/{sample}.rds",
         csv = output_path + "wagner_processed/{sample}.csv",
     shell:
         "Rscript pipeline/wagner/wagner-fcs-to-csv.R "
-        "--input_fcs {input} "
+        "--input_fcs {input.fcs} "
+        # "--cluster_identities {input.cluster_identities} "
         "--output_rds {output.rds} "
         "--output_csv {output.csv} "
 
@@ -40,6 +44,23 @@ rule wagner_to_loom:
         "{output_path}/wagner_processed "
         "{output} "
 
+# rule wagner_to_ad:
+#     input:
+#         wagner_output['rds_csv'],
+#     output:
+#         wagner_output['adata'],
+#     shell:
+#         "R pipeline/cla/dir-of-csvs-to-scanpy.py "
+#         "{output_path}/wagner_processed "
+#         "{output} "
+
+# rule get_wagner_clusters:
+#     output:
+#         output_path + "wagner_clusters/wagner_clusters.tsv"
+#     shell:
+#         "Rscript pipeline/wagner/get-wagner-clusters.R "
+#         "--input_yaml imc-config.yml "
+#         "--output_tsv {output} "
 
 
 # rule subset_wagner:
