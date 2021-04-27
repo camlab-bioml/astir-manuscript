@@ -8,6 +8,8 @@ def get_core_list(cohort):
         return zurich1_cores
     elif cohort == "wagner":
         return wagner_samples
+    elif cohort == "lin-cycif":
+        return cycif_samples
     else:
         return None
 
@@ -106,6 +108,14 @@ rule run_ACDC:
         "--method {wildcards.method} "
         "--cohort {wildcards.cohort} "
 
+rule copy_lin_assignments:
+    input:
+        output_path + "astir_assignments/lin_cycif_astir_assignments.csv",
+    output:
+        output_path + "astir_assignments/lin-cycif_astir_assignments.csv",
+    shell:
+        "cp {input} {output} "
+
 
 rule graph_annotation_accuracy:
     params:
@@ -119,6 +129,7 @@ rule graph_annotation_accuracy:
         traintest = lambda wildcards: config['cla'][wildcards.cohort]['train_test'],
         annotations=lambda wildcards: config['cla'][wildcards.cohort]['annotators'].values(),
         astir_assignments=output_path+"astir_assignments/{cohort}_astir_assignments.csv"
+        # astir_assignments="astir_basel_assignments-withneg.csv",
     output:
         plot = output_path + "cla/output_figs_tables/cla_annotation_{cohort}.png",
         tsv = output_path + "cla/output_figs_tables/cla_annotation_{cohort}.tsv",
