@@ -12,7 +12,7 @@ output_path = "output/" + config['version'] + "/"
 
 # Final assignments
 datasets = ['basel', 'zurich1', 'wagner', 'schapiro']
-asts_type = {d: output_path + f"astir_assignments/{d}_astir_assignments.csv" for d in datasets + ["lin_cycif", "keren"]}
+asts_type = {d: output_path + f"astir_assignments/{d}_astir_assignments.csv" for d in datasets + ["lin_cycif"]}
 asts_state = {d: output_path + f"astir_assignments/{d}_astir_assignments_state.csv" for d in datasets}
 
 # Lin-cycif tissue type assignments
@@ -49,7 +49,7 @@ include: "pipeline/dataset-basel.smk"
 include: "pipeline/dataset-zurich1.smk"
 include: "pipeline/dataset-schapiro.smk"
 include: "pipeline/dataset-lin-cycif.smk"
-include: "pipeline/dataset-keren.smk"
+# include: "pipeline/dataset-keren.smk"
 
 include: "analysis/analysis.smk"
 include: "pipeline/benchmarking/benchmarking.smk"
@@ -59,12 +59,13 @@ include: "pipeline/alt-masks-clustering.smk"
 include: "pipeline/lin-cycif-breakdown.smk"
 
 include: "pipeline/robustness/robustness.smk"
-include: "pipeline/reports/reports.smk"
+# include: "pipeline/reports/reports.smk"
 include: "pipeline/spatial/spatial.smk"
 include: "pipeline/imbalance/imbalance.smk"
 include: "pipeline/segmentation/segmentation.smk"
 
 include: "pipeline/cla/cla.smk"
+#include: "pipeline/granularity/granularity.smk"
 
 
 ## Beginning of rules ----- 
@@ -87,10 +88,12 @@ rule all:
         # benchmarking_output.values(),
         alternate_approaches_output.values(),
         # analysis_output.values(),
+
         #epithelial_overclustering.values(),
         alt_masks.values(),
         lin_tissue_types_anndata,
-        lin_tissue_types_asts_type.values()
+        lin_tissue_types_asts_type.values(),
+        #granularity_outputs.values(),
 
 rule create_lin_anndata_objects:
     input:

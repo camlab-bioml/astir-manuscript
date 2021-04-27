@@ -27,34 +27,45 @@ p <- add_argument(p, "--output_rds", "Output RDS location")
 
 argv <- parse_args(p)
 
-df <- read_csv(argv$input_sc)
+df <- read_tsv(argv$input_sc)
 
 
-cd <- select(df, Area:Y)
-df <- select(df, -(Area:Y))
-expr_mat_raw <- t(as.matrix(df))
+cd <- select(df, cell_id:sample)
+df <- select(df, -(cell_id:sample))
+expr_mat <- t(as.matrix(df))
 
-# expr_mat_raw <- t(apply(expr_mat_raw, 1, winsorize_one, c(0.01, 0.99)))
+feature_names <- sapply(rownames(expr_mat), function(s) strsplit(s, "-")[[1]][1])
 
-expr_mat_raw <- t(apply(expr_mat_raw, 1, function(x) {
-  x / mean(x)
-}))
+feature_names <- unlist(feature_names)
+names(feature_names) <- NULL
+
+print(feature_names)
+
+rownames(expr_mat) <- feature_names
+
+# expr_mat_raw <- t(apply(expr_mat_raw, 1, function(x) {
+#   x / mean(x)
+# }))
 
 # rm <- rowMins(expr_mat_raw)
 # expr_mat_raw <- expr_mat_raw - rm # make minimum as zero
 
-expr_mat <- asinh(expr_mat_raw / 5)
+# expr_mat <- asinh(expr_mat_raw / 5)
 
 # expr_mat <- t( scale( t (expr_mat ), center = FALSE))
 
-rownames(expr_mat) <- rownames(expr_mat_raw)
+# rownames(expr_mat) <- rownames(expr_mat_raw)
+
+colnames(expr_mat) <- paste0(cd$sample, "_", cd$cell_id)
 
 sce <- SingleCellExperiment(
-  assays = list(raw = expr_mat_raw, logcounts = expr_mat),
+  assays = list(raw = expr_mat, logcounts = expr_mat),
   colData = cd
 )
 
-colnames(sce) <- paste0(argv$id, "_", seq_len(ncol(sce)))
+sce <- sce[,logcounts(sce)['Hoechst/DNA4',] > 3]
+
+# colnames(sce) <- paste0(argv$id, "_", seq_len(ncol(sce)))
 
 to_csv(sce, argv$output_csv, include_xy=FALSE)
 

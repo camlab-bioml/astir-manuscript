@@ -40,6 +40,8 @@ df_annot <- dplyr::rename(df_annot, annotated_cell_type = cell_type)
 
 df_train_test <- readr::read_tsv(args$input_traintest)
 
+df_train_test <- df_train_test[df_train_test$cell_id %in% df_annot$cell_id,]
+
 cell_ids_train <- filter(df_train_test, train_test == "train") %>% .$cell_id
 cell_ids_test <- filter(df_train_test, train_test == "test") %>% .$cell_id
 
