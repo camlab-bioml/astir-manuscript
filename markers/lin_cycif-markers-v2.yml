@@ -1,0 +1,27 @@
+
+
+cell_types:
+  Epithelial:
+    - Ecad
+    - Keratin
+  Epithelial proliferative:
+    - Ecad
+    - Keratin
+    - Ki67
+  Epithelial immunosuppressive:
+    - Ecad
+    - Keratin
+    - PDL1
+  Epithelial I-P:
+    - Ecad
+    - Keratin
+    - Ki67
+    - PDL1
+  Stromal:
+    - Vimentin
+  Treg:
+    - CD45
+    - CD4
+  Other immune:
+    - CD45
+
