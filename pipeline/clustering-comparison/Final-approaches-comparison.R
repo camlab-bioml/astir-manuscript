@@ -29,6 +29,7 @@ parser$add_argument('--schapiro_files', type = 'character', nargs = '+')
 parser$add_argument('--wagner_files', type = 'character', nargs = '+')
 parser$add_argument('--lin_files', type = 'character', nargs = '+')
 parser$add_argument('--zurich_files', type = 'character', nargs = '+')
+parser$add_argument('--acdc_files', type = 'character', nargs = '+')
 parser$add_argument('--output_heatmap', type = 'character', nargs = '+')
 
 args <- parser$parse_args()
@@ -91,10 +92,10 @@ create_counts <- function(expression, markers, cohort){
     assign_clusters(markers)
   
   astir_counts <- GSVA_Astir_celltypes$assignment %>% 
-    group_by(cell_type) %>% 
+    group_by(GSVA_cell_type) %>% 
     tally() %>% 
     mutate(cohort = cohort, method = "Astir")
-  astir_counts <- astir_counts[,c("cohort", "method", "cell_type", "n")]
+  astir_counts <- astir_counts[,c("cohort", "method", "GSVA_cell_type", "n")]
 }
 
 basel_counts <- create_counts(basel_expression, basel_markers, "Basel")
@@ -150,6 +151,22 @@ head(zurich)
 lin <- read_in_cohort(args$lin_files, "Lin")
 head(lin)
 
+acdc <- lapply(args$acdc_files, read_tsv) %>% 
+  bind_rows()
+acdc_count <- acdc %>% 
+  select(-c(cell_id, annotator)) %>% 
+  group_by(cohort, method, cell_type) %>%
+  distinct() %>% 
+  tally()
+
+acdc_count <- acdc_count %>% 
+  mutate(cohort = case_when(
+    cohort == "zurich1" ~ "Zurich",
+    cohort == "basel" ~ "Basel",
+    cohort == "schapiro" ~ "Schapiro",
+    cohort == "wagner", ~ "Wagner",
+    cohort == "lin-cycif" ~ "Lin"))
+
 
 # all_cohorts <- bind_rows(basel, schapiro, wagner, zurich, lin) %>% 
 #   mutate(params = str_replace(params, "_", " ")) %>% 
@@ -171,19 +188,46 @@ all_counts$n[is.na(all_counts$cell_type)] <- NA
 
 # Add other method counts and astir counts
 all_counts <- bind_rows(all_counts, basel_counts, schapiro_counts, wagner_counts,
-                        zurich_counts, lin_counts)
+                        zurich_counts, lin_counts, acdc_count)
 
 
 
-all_scores <- all_counts %>% 
-  ungroup() %>%
+# Calculate scores for all methods across all cohorts
+# First I need a list of cell types for each cohort
+cohort_markers <- list(list("Basel", basel_markers$cell_types),
+                       list("Schapiro", schapiro_markers$cell_types),
+                       list("Wagner", wagner_markers$cell_types),
+                       list("Zurich", zurich_markers$cell_types),
+                       list("Lin", lin_markers$cell_types))
+
+methods <- unique(all_counts$method)
+
+# Get a dataframe with all method x cell type combinations for each cohort
+cohort_cell_types <- lapply(cohort_markers, function(x){
+  cell_types <- names(x[[2]])
+  
+  grid <- expand.grid(methods, cell_types)
+  grid$cohort <- x[[1]]
+  colnames(grid) <- c("method", "cell_type", "cohort")
+  
+  grid
+}) %>% bind_rows()
+
+# Join with actual scores so that those cell types for which no cluster was found
+# Can also be taken into account
+all_scores <- full_join(all_counts, cohort_cell_types)
+all_scores$n[is.na(all_scores$n)] <- 0
+
+# Calculate scores
+all_scores <- all_scores %>% 
+  ungroup() %>% 
   mutate(score = case_when(
     n == 1 ~ 1,
-    n == 0 ~ -1,
-    n > 1 ~ -1
+    n != 1 ~ -1
   )) %>% group_by(cohort, method) %>% 
-  dplyr::summarize(score = sum(score)) %>% 
+  dplyr::summarise(score = sum(score)) %>% 
   ungroup()
+
 
 # Get maximum clusters
 max.clusters <- all_counts %>% 
@@ -215,9 +259,9 @@ plottingOrder = all_scores_wide %>%
     rownames()
   
 plot_eval_heatmap <- function(counts_df, scores_df, plottingOrder, select_cohort){
-  cohort_counts <- filter(all_counts, cohort == "Basel")
-  cohort_scores <- filter(all_scores, cohort == "Basel") %>% 
-    select(-cohort)
+  #cohort_counts <- filter(all_counts, cohort == "Zurich")
+  #cohort_scores <- filter(all_scores, cohort == "Zurich") %>% 
+  #  select(-cohort)
   # filter dataframes to select required data
   cohort_counts <- filter(counts_df, cohort == select_cohort)
   cohort_scores <- filter(scores_df, cohort == select_cohort) %>% 
@@ -238,9 +282,9 @@ plot_eval_heatmap <- function(counts_df, scores_df, plottingOrder, select_cohort
     counts_wide[is.na(counts_wide$`NA`), 3:(3 + no_of_cell_types)] <- NA
     
     cohort_mat <- counts_wide %>% 
-    select(-c(`NA`, cohort)) %>% 
-    column_to_rownames("method") %>% 
-    as.matrix()
+      select(-c(`NA`, cohort)) %>% 
+      column_to_rownames("method") %>% 
+      as.matrix()
   }else{
     cohort_mat <- counts_wide %>% 
       select(-cohort) %>% 
@@ -304,7 +348,7 @@ lin.hm <- plot_eval_heatmap(counts_df = all_counts,
 
 
 
-pdf(file = args$output_heatmap, width = 14, height = 7)
+pdf(file = args$output_heatmap, width = 14, height = 9)
   hm_list = basel.hm + schapiro.hm + wagner.hm + zurich.hm + lin.hm
   draw(hm_list, ht_gap = unit(0.5, "cm"))
 dev.off()
