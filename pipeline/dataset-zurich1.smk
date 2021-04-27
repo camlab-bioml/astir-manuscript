@@ -9,8 +9,8 @@ zurch1_subset_cell_ids = cell_ids=output_path + "zurich1_subset/zurich1_subset_c
 zurich1_output = {
     'rds_csv': tmp_zurich1_output,
     'loom': output_path + "looms/zurich1.loom",
-    'subset': output_path + "zurich1_subset/zurich1_subset_expression.csv",
-    'subset_sce': output_path + "zurich1_subset/zurich1_subset_sce.rds"
+    # 'subset': output_path + "zurich1_subset/zurich1_subset_expression.csv",
+    # 'subset_sce': output_path + "zurich1_subset/zurich1_subset_sce.rds"
 }
 
 
