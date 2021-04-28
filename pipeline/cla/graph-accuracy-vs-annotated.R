@@ -22,16 +22,17 @@ devtools::load_all(snakemake@params[['taproom_path']])
 
 acc_wrap <- function(tt) {
   # annotated <- unique(as.character(tt$cell_type_annotated))
+  cell_types <- unique(intersect(tt$cell_type_annotated, tt$cell_type_predicted))
   
   tt$cell_type_annotated <- factor(tt$cell_type_annotated, levels = cell_types)
   tt$cell_type_predicted <- factor(tt$cell_type_predicted, levels = cell_types)
   
   bind_rows(
     kap(tt, cell_type_annotated, cell_type_predicted),
-    f_meas(tt, cell_type_annotated, cell_type_predicted),
-    precision(tt, cell_type_annotated, cell_type_predicted),
-    recall(tt, cell_type_annotated, cell_type_predicted),
-    # bal_accuracy(tt, cell_type_annotated, cell_type_predicted),
+    # f_meas(tt, cell_type_annotated, cell_type_predicted),
+    # precision(tt, cell_type_annotated, cell_type_predicted),
+    # recall(tt, cell_type_annotated, cell_type_predicted),
+    bal_accuracy(tt, cell_type_annotated, cell_type_predicted),
     mcc(tt, cell_type_annotated, cell_type_predicted),
     # j_index(tt, cell_type_annotated, cell_type_predicted),
   )
@@ -40,9 +41,7 @@ acc_wrap <- function(tt) {
 cohort <- snakemake@params[['cohort']]
 
 
-df_train_test <- read_tsv(snakemake@input[['traintest']])
 
-cell_ids_test <- filter(df_train_test, train_test == "test") %>% .$cell_id
 
 # Annotations -------------------------------------------------------------
 
@@ -56,6 +55,12 @@ df_annot <- snakemake@input[['annotations']] %>%
   map_dfr(read_tsv) %>% 
   rename(cell_type_annotated = cell_type,
          annotator_test = annotator)
+
+df_train_test <- read_tsv(snakemake@input[['traintest']])
+
+df_train_test <- df_train_test[df_train_test$cell_id %in% df_annot$cell_id,]
+
+cell_ids_test <- filter(df_train_test, train_test == "test") %>% .$cell_id
 
 df_annot <- filter(df_annot, cell_id %in% cell_ids_test)
 
@@ -87,7 +92,7 @@ df_astir <- read_csv(snakemake@input[['astir_assignments']])
 
 
 astir_types_default <- get_astir_assignments(df_astir, 0.5, cell_ids_test)
-astir_types_high_confidence <- get_astir_assignments(df_astir, 0.95, cell_ids_test)
+
 
 df_astir_default <-   inner_join(df_annot, astir_types_default) %>% 
   # filter(cell_type_annotated != "Unclear",
@@ -104,8 +109,11 @@ df_astir_default <-   inner_join(df_annot, astir_types_default) %>%
   mutate(method = "Astir default",
          annotator_train = "None")
 
-df_astir_high_confidence <- inner_join(df_annot, astir_types_high_confidence) %>% 
- filter(cell_type_predicted != "Unclear") %>% 
+astir_types_high_confidence <- get_astir_assignments(df_astir, 0.95, cell_ids_test)
+
+df_astir_high_confidence <-   inner_join(df_annot, astir_types_high_confidence) %>% 
+  # filter(cell_type_annotated != "Unclear",
+  #        cell_type_predicted != "Unclear") %>% 
   mutate(
     cell_type_annotated = factor(cell_type_annotated, levels=cell_types),
     cell_type_predicted = factor(cell_type_predicted, levels=cell_types)
@@ -174,34 +182,34 @@ df_acdc <- inner_join(df_annot, types_acdc) %>%
 
 cat("\n Reading other \n")
 
-df_other <- dir(snakemake@params[['other_workflow_path']],
-    pattern=cohort,
-    full.names=TRUE) %>% 
-  map_dfr(read_csv)
+# df_other <- dir(snakemake@params[['other_workflow_path']],
+#     pattern=cohort,
+#     full.names=TRUE) %>% 
+#   map_dfr(read_csv)
 
 
-df_other <- gather(df_other, annotation_method, cell_type_predicted, -(id:params))
+# df_other <- gather(df_other, annotation_method, cell_type_predicted, -(id:params))
 
-df_other <- rename(df_other, cell_id = id)
+# df_other <- rename(df_other, cell_id = id)
 
-df_other$method <- paste0(df_other$method, "_", df_other$annotation_method)
+# df_other$method <- paste0(df_other$method, "_", df_other$annotation_method)
 
-df_other <- select(df_other, -annotation_method)
+# df_other <- select(df_other, -annotation_method)
 
-df_other <- inner_join(df_annot, df_other)
+# df_other <- inner_join(df_annot, df_other)
 
-df_other_acc <- df_other %>% mutate(
-  cell_type_annotated = factor(cell_type_annotated, levels=cell_types),
-  cell_type_predicted = factor(cell_type_predicted, levels=cell_types)
-) %>% 
-  group_by(annotator_test, method, params) %>% 
-  do(
-    acc_wrap(.)
-  ) %>% 
-  ungroup() %>% 
-  mutate(annotator_train = "None")
+# df_other_acc <- df_other %>% mutate(
+#   cell_type_annotated = factor(cell_type_annotated, levels=cell_types),
+#   cell_type_predicted = factor(cell_type_predicted, levels=cell_types)
+# ) %>% 
+#   group_by(annotator_test, method, params) %>% 
+#   do(
+#     acc_wrap(.)
+#   ) %>% 
+#   ungroup() %>% 
+#   mutate(annotator_train = "None")
 
-
+# save.image("~/deleteme.rds  ")
 
 # Overall plot ------------------------------------------------------------
 
@@ -210,19 +218,20 @@ df_other_acc <- df_other %>% mutate(
 
 df_plot <- bind_rows(
   df_astir_default,
-  # df_astir_high_confidence,
+  df_astir_high_confidence,
   df_cytoflda,
-  df_other_acc,
+  # df_other_acc,
   df_acdc
 )
 
 df_plot$annotator_test <- paste("Test annotator: ", df_plot$annotator_test)
 
-df_plot <- mutate(df_plot, method = case_when(
-  grepl("Astir", method) ~ "Astir",
-  method == "acdc-absent" ~ "ACDC_absent",
-  method == "acdc-no-consider" ~ "ACDC_no_consider",
-  TRUE ~ method
+df_plot <- mutate(df_plot, .metric = case_when(
+  .metric == "f_meas" ~ "F-measure",
+  .metric == "kap" ~ "Cohen's\nkappa",
+  .metric == "bal_accuracy" ~ "Balanced\naccuracy",
+  .metric == "mcc" ~ "MCC",
+  TRUE ~ stringr::str_to_title(.metric)
 ))
 
 df_plot <- mutate(df_plot, .metric = case_when(
@@ -247,11 +256,14 @@ method_cols <- c(
 
 df_plot <- df_plot[!is.nan(df_plot$.estimate),]
 
+df_plot <- group_by(df_plot, .metric) %>%
+  mutate(norm_estimate = (.estimate - mean(.estimate)) / sd(.estimate) )
+
 fill_cols <- c("None"="grey50",
                "Annotator-1"=scales::muted('blue'),
                "Annotator-2"=scales::muted('red'))
 
-ggplot(df_plot, aes(x = forcats::fct_reorder(method, .estimate), y = .estimate, fill = method_type)) +
+ggplot(df_plot, aes(x = forcats::fct_reorder(method, norm_estimate), y = .estimate, fill = method_type)) +
   geom_bar(stat='identity', position = "dodge2") +
   geom_boxplot() +
   facet_grid(.metric ~ annotator_test, scales="free_y") +

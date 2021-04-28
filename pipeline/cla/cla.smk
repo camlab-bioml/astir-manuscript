@@ -8,8 +8,26 @@ def get_core_list(cohort):
         return zurich1_cores
     elif cohort == "wagner":
         return wagner_samples
+    elif cohort == "schapiro":
+        return schapiro_samples
+    elif cohort == "lin-cycif":
+        return cycif_samples
     else:
         return None
+
+# def get_core_list_acdc(cohort):
+#     if cohort == "basel":
+#         return basel_cores
+#     elif cohort == "zurich1":
+#         return zurich1_cores
+#     elif cohort == "wagner":
+#         return wagner_samples
+#     elif cohort == "Lin-CyCif":
+#         return cycif_samples
+#     elif cohort == "schapiro":
+#         return schapiro_samples
+#     else:
+#         return None
 
 cla_methods = ['cytofLDA', 'acdc-absent', 'acdc-no-consider']
 cla_cohorts = config['cla'].keys()
@@ -61,15 +79,15 @@ rule fix_wagner_cluster_annotations:
 
 
 
-rule jackson_to_ad:
-    input:
-        lambda wildcards: expand(output_path + wildcards.cohort + "_processed/{core}.csv", core=get_core_list(wildcards.cohort)),
-    output:
-        output_path + "anndata/{cohort}.h5ad",
-    shell:
-        "python pipeline/cla/dir-of-csvs-to-scanpy.py "
-        "{output_path}/{wildcards.cohort}_processed "
-        "{output} "
+# rule jackson_to_ad:
+#     input:
+#         lambda wildcards: expand(output_path + wildcards.cohort + "_processed/{core}.csv", core=get_core_list(wildcards.cohort)),
+#     output:
+#         output_path + "anndata/{cohort}.h5ad",
+#     shell:
+#         "python pipeline/cla/dir-of-csvs-to-scanpy.py "
+#         "{output_path}/{wildcards.cohort}_processed "
+#         "{output} "
 
 
 rule run_cytofLDA:
@@ -106,6 +124,14 @@ rule run_ACDC:
         "--method {wildcards.method} "
         "--cohort {wildcards.cohort} "
 
+rule copy_lin_assignments:
+    input:
+        output_path + "astir_assignments/lin_cycif_astir_assignments.csv",
+    output:
+        output_path + "astir_assignments/lin-cycif_astir_assignments.csv",
+    shell:
+        "cp {input} {output} "
+
 
 rule graph_annotation_accuracy:
     params:
@@ -119,6 +145,7 @@ rule graph_annotation_accuracy:
         traintest = lambda wildcards: config['cla'][wildcards.cohort]['train_test'],
         annotations=lambda wildcards: config['cla'][wildcards.cohort]['annotators'].values(),
         astir_assignments=output_path+"astir_assignments/{cohort}_astir_assignments.csv"
+        # astir_assignments="astir_basel_assignments-withneg.csv",
     output:
         plot = output_path + "cla/output_figs_tables/cla_annotation_{cohort}.png",
         tsv = output_path + "cla/output_figs_tables/cla_annotation_{cohort}.tsv",
