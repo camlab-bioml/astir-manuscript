@@ -122,7 +122,7 @@ rule graph_annotation_accuracy:
         cohort='{cohort}',
         cytofLDA_path=output_path + "cla/",
         acdc_path=output_path + "cla/",
-        other_workflow_path=output_path + "results/other-methods-cell-type-assignments/",
+        other_workflow_path=output_path + "results/",
         taproom_path=config['taproom_path'],
     input:
         cla_outputs['annotation_results'],
@@ -142,7 +142,7 @@ rule graph_cluster_accuracy:
         cohort='{cohort}',
         cytofLDA_path=output_path + "cla/",
         acdc_path=output_path + "cla/",
-        other_workflow_path=output_path + "results/other-methods-cell-type-assignments/",
+        other_workflow_path=output_path + "results/",
         taproom_path=config['taproom_path'],
     input:
         coarse_fine_mapping=lambda wildcards: config['coarse_fine_mapping'][wildcards.cohort],
@@ -163,7 +163,7 @@ rule graph_cluster_accuracy_wagner:
         cohort='wagner',
         cytofLDA_path=output_path + "cla/",
         acdc_path=output_path + "cla/",
-        other_workflow_path=output_path + "results/other-methods-cell-type-assignments/",
+        other_workflow_path=output_path + "results/",
         taproom_path=config['taproom_path'],
     input:
         coarse_fine_mapping=config['coarse_fine_mapping']['wagner'],
