@@ -8,10 +8,26 @@ def get_core_list(cohort):
         return zurich1_cores
     elif cohort == "wagner":
         return wagner_samples
+    elif cohort == "schapiro":
+        return schapiro_samples
     elif cohort == "lin-cycif":
         return cycif_samples
     else:
         return None
+
+# def get_core_list_acdc(cohort):
+#     if cohort == "basel":
+#         return basel_cores
+#     elif cohort == "zurich1":
+#         return zurich1_cores
+#     elif cohort == "wagner":
+#         return wagner_samples
+#     elif cohort == "Lin-CyCif":
+#         return cycif_samples
+#     elif cohort == "schapiro":
+#         return schapiro_samples
+#     else:
+#         return None
 
 cla_methods = ['cytofLDA', 'acdc-absent', 'acdc-no-consider']
 cla_cohorts = config['cla'].keys()
@@ -68,15 +84,15 @@ rule fix_wagner_cluster_annotations:
 
 
 
-rule jackson_to_ad:
-    input:
-        lambda wildcards: expand(output_path + wildcards.cohort + "_processed/{core}.csv", core=get_core_list(wildcards.cohort)),
-    output:
-        output_path + "anndata/{cohort}.h5ad",
-    shell:
-        "python pipeline/cla/dir-of-csvs-to-scanpy.py "
-        "{output_path}/{wildcards.cohort}_processed "
-        "{output} "
+# rule jackson_to_ad:
+#     input:
+#         lambda wildcards: expand(output_path + wildcards.cohort + "_processed/{core}.csv", core=get_core_list(wildcards.cohort)),
+#     output:
+#         output_path + "anndata/{cohort}.h5ad",
+#     shell:
+#         "python pipeline/cla/dir-of-csvs-to-scanpy.py "
+#         "{output_path}/{wildcards.cohort}_processed "
+#         "{output} "
 
 
 rule run_cytofLDA:
