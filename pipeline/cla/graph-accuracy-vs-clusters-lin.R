@@ -4,7 +4,6 @@ library(yardstick)
 library(yaml)
 library(matrixStats)
 
-
 source("pipeline/cla/helpers.R")
 
 #' We need:
@@ -24,36 +23,34 @@ cohort <- snakemake@params[['cohort']]
 devtools::load_all(snakemake@params[['taproom_path']])
 
 
-coarse_mapping <- read_yaml(snakemake@input[['coarse_fine_mapping']])
-coarse_mapping <- unlist(Biobase::reverseSplit(coarse_mapping))
 
-coarse_mapping['Unclear'] <- 'Unclear'
+# coarse_mapping <- read_yaml(snakemake@input[['coarse_fine_mapping']])
+# coarse_mapping <- unlist(Biobase::reverseSplit(coarse_mapping))
 
-remap_to_coarse <- function(dfr, mapping = coarse_mapping, input_column = 'cell_type_predicted', output_column = 'cell_type_predicted') {
-  dfr[[output_column]] <- plyr::mapvalues(
-    dfr[[input_column]],
-    from=names(mapping),
-    to=mapping
-  )
-  dfr
-}
+# coarse_mapping['Unclear'] <- 'Unclear'
 
-coarse_mapping['Unclear'] <- 'Unclear'
+# remap_to_coarse <- function(dfr, mapping = coarse_mapping, input_column = 'cell_type_predicted', output_column = 'cell_type_predicted') {
+#   dfr[[output_column]] <- plyr::mapvalues(
+#     dfr[[input_column]],
+#     from=names(mapping),
+#     to=mapping
+#   )
+#   dfr
+# }
+
+# coarse_mapping['Unclear'] <- 'Unclear'
 
 
-cell_types <- unique(coarse_mapping)
+# cell_types <- unique(coarse_mapping)
 
 
 # Annotations -------------------------------------------------------------
 
 cat("\n Reading previous annotations \n")
 
-df_cluster <- read_csv(snakemake@input[['clustering']]) %>% 
+df_cluster <- read_tsv(snakemake@input[['clustering']]) %>% 
   rename(cell_type_annotated=cell_type)
 
-df_cluster <- filter(df_cluster, cell_type_annotated != "Apoptotic")
-
-print(df_cluster)
 
 df_train_test <- read_tsv(snakemake@input[['traintest']])
 
@@ -84,14 +81,17 @@ cell_ids_test <- setdiff(df_astir$X1, cell_ids_train)
 astir_types_default <- get_astir_assignments(df_astir, 0.5, cell_ids_test)
 astir_types_high_confidence <- get_astir_assignments(df_astir, 0.95, cell_ids_test)
 
-astir_types_default <- remap_to_coarse(astir_types_default)
-astir_types_high_confidence <- remap_to_coarse(astir_types_high_confidence)
+
+
+
+# astir_types_default <- remap_to_coarse(astir_types_default)
+# astir_types_high_confidence <- remap_to_coarse(astir_types_high_confidence)
 
 df_astir_default <- inner_join(df_cluster, astir_types_default) %>% 
-  mutate(
-    cell_type_annotated = factor(cell_type_annotated, levels=cell_types),
-    cell_type_predicted = factor(cell_type_predicted, levels=cell_types)
-  ) %>% 
+#   mutate(
+#     cell_type_annotated = factor(cell_type_annotated, levels=cell_types),
+#     cell_type_predicted = factor(cell_type_predicted, levels=cell_types)
+#   ) %>% 
   do(
     acc_wrap(.)
   ) %>% 
@@ -99,18 +99,18 @@ df_astir_default <- inner_join(df_cluster, astir_types_default) %>%
   mutate(method = "Astir",
          annotator_train = "None")
 
-df_astir_high_confidence <- inner_join(df_cluster, astir_types_high_confidence) %>% 
- filter(cell_type_predicted != "Unknown") %>% 
-  mutate(
-    cell_type_annotated = factor(cell_type_annotated, levels=cell_types),
-    cell_type_predicted = factor(cell_type_predicted, levels=cell_types)
-  ) %>% 
-  do(
-    acc_wrap(.)
-  ) %>% 
-  ungroup() %>% 
-  mutate(method = "Astir high confidence",
-         annotator_train = "None")
+# df_astir_high_confidence <- inner_join(df_cluster, astir_types_high_confidence) %>% 
+#  filter(cell_type_predicted != "Unknown") %>% 
+#   mutate(
+#     cell_type_annotated = factor(cell_type_annotated, levels=cell_types),
+#     cell_type_predicted = factor(cell_type_predicted, levels=cell_types)
+#   ) %>% 
+#   do(
+#     acc_wrap(.)
+#   ) %>% 
+#   ungroup() %>% 
+#   mutate(method = "Astir high confidence",
+#          annotator_train = "None")
 
 
 
@@ -122,16 +122,16 @@ types_cytoflda <- dir(snakemake@params[['cytofLDA_path']], pattern=paste0("annot
   map_dfr(read_tsv) %>% 
   rename(annotator_train = annotator, cell_type_predicted = cell_type)
 
-types_cytoflda <- remap_to_coarse(types_cytoflda)
+# types_cytoflda <- remap_to_coarse(types_cytoflda)
 
 
 df_cytoflda <- inner_join(df_cluster, types_cytoflda) %>% 
   # filter(cell_type_annotated != "Unclear",
   #        cell_type_predicted != "Unclear") %>% 
-  mutate(
-    cell_type_annotated = factor(cell_type_annotated, levels=cell_types),
-    cell_type_predicted = factor(cell_type_predicted, levels=cell_types)
-  ) %>% 
+#   mutate(
+#     cell_type_annotated = factor(cell_type_annotated, levels=cell_types),
+#     cell_type_predicted = factor(cell_type_predicted, levels=cell_types)
+#   ) %>% 
   group_by(annotator_train) %>% 
   do(
     acc_wrap(.)
@@ -152,14 +152,14 @@ types_acdc <- dir(snakemake@params[['acdc_path']],
 
 types_acdc$cell_type_predicted[types_acdc$cell_type_predicted == "unknown"] <- "Unclear"
 
-types_acdc <- remap_to_coarse(types_acdc)
+# types_acdc <- remap_to_coarse(types_acdc)
 
 
 df_acdc <- inner_join(df_cluster, types_acdc) %>% 
-  mutate(
-    cell_type_annotated = factor(cell_type_annotated, levels=cell_types),
-    cell_type_predicted = factor(cell_type_predicted, levels=cell_types)
-  ) %>% 
+#   mutate(
+#     cell_type_annotated = factor(cell_type_annotated, levels=cell_types),
+#     cell_type_predicted = factor(cell_type_predicted, levels=cell_types)
+#   ) %>% 
   group_by(method) %>% 
   do(
     acc_wrap(.)
@@ -173,7 +173,7 @@ df_acdc <- inner_join(df_cluster, types_acdc) %>%
 cat("\n Reading Other \n")
 
 df_other <- dir(snakemake@params[['other_workflow_path']],
-    pattern=cohort,
+    pattern="lin_cycif",
     full.names=TRUE) %>% 
   map_dfr(read_csv)
 
@@ -188,14 +188,15 @@ df_other$method <- paste0(df_other$method, "_", df_other$annotation_method)
 df_other <- select(df_other, -annotation_method)
 
 
-df_other <- remap_to_coarse(df_other)
+# df_other <- remap_to_coarse(df_other)
 
 df_other <- inner_join(df_cluster, df_other, by="cell_id")
 
-df_other_acc <- df_other %>% mutate(
-  cell_type_annotated = factor(cell_type_annotated, levels=cell_types),
-  cell_type_predicted = factor(cell_type_predicted, levels=cell_types)
-) %>%
+df_other_acc <- df_other %>% 
+# mutate(
+#   cell_type_annotated = factor(cell_type_annotated, levels=cell_types),
+#   cell_type_predicted = factor(cell_type_predicted, levels=cell_types)
+# ) %>%
   group_by(method, params) %>%
   do(
     acc_wrap(.)
@@ -210,7 +211,6 @@ df_other_acc <- df_other %>% mutate(
 
 df_plot <- bind_rows(
   df_astir_default,
-  # df_astir_high_confidence,
   df_cytoflda,
   df_other_acc,
   df_acdc

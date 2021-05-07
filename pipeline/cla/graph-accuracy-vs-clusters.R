@@ -16,23 +16,12 @@ library(matrixStats)
 #' (9) coarse-fine mapping file
 
 
+source("pipeline/cla/helpers.R")
+
 cohort <- snakemake@params[['cohort']]
 
 devtools::load_all(snakemake@params[['taproom_path']])
 
-acc_wrap <- function(tt) {
-  # annotated <- unique(as.character(tt$cell_type_annotated))
-  cell_types <- unique(intersect(tt$cell_type_annotated, tt$cell_type_predicted))
-  
-  tt$cell_type_annotated <- factor(tt$cell_type_annotated, levels = cell_types)
-  tt$cell_type_predicted <- factor(tt$cell_type_predicted, levels = cell_types)
-
-  bind_rows(
-     tryCatch({kap(tt, cell_type_annotated, cell_type_predicted)}, error=function(e) NULL),
-    tryCatch({bal_accuracy(tt, cell_type_annotated, cell_type_predicted)}, error=function(e) NULL),
-     tryCatch({mcc(tt, cell_type_annotated, cell_type_predicted)}, error=function(e) NULL)
-  )
-}
 
 coarse_mapping <- read_yaml(snakemake@input[['coarse_fine_mapping']])
 coarse_mapping <- unlist(Biobase::reverseSplit(coarse_mapping))

@@ -5,6 +5,9 @@ suppressPackageStartupMessages({
   library(matrixStats)
 })
 
+
+source("pipeline/cla/helpers.R")
+
 #' We need:
 #' (1) train test directory
 #' (2) cohort name
@@ -20,19 +23,6 @@ print(snakemake@input)
 
 devtools::load_all(snakemake@params[['taproom_path']])
 
-acc_wrap <- function(tt) {
-  # annotated <- unique(as.character(tt$cell_type_annotated))
-  cell_types <- unique(intersect(tt$cell_type_annotated, tt$cell_type_predicted))
-  
-  tt$cell_type_annotated <- factor(tt$cell_type_annotated, levels = cell_types)
-  tt$cell_type_predicted <- factor(tt$cell_type_predicted, levels = cell_types)
-
-  bind_rows(
-     tryCatch({kap(tt, cell_type_annotated, cell_type_predicted)}, error=function(e) NULL),
-    tryCatch({bal_accuracy(tt, cell_type_annotated, cell_type_predicted)}, error=function(e) NULL),
-     tryCatch({mcc(tt, cell_type_annotated, cell_type_predicted)}, error=function(e) NULL)
-  )
-}
 
 cohort <- snakemake@params[['cohort']]
 
@@ -178,8 +168,10 @@ df_acdc <- inner_join(df_annot, types_acdc) %>%
 
 cat("\n Reading other \n")
 
+cohort_tmp <- gsub("-", "_", cohort, fixed=TRUE)
+
 df_other <- dir(snakemake@params[['other_workflow_path']],
-    pattern=cohort,
+    pattern=cohort_tmp,
     full.names=TRUE) %>% 
   map_dfr(read_csv)
 
