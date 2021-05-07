@@ -1,0 +1,38 @@
+
+Lymphocyte:
+  - B cell
+  - T cell
+  - T & B cells
+
+Macrophage:
+  - Macrophage
+  - Macrohage
+  
+Stromal:
+  - Vimentin hi
+  - Small circular
+  - Small elongated
+  - Fibronectin hi
+  - SMA hi Vimentin hi
+  - Large elongated
+
+Endothelial:
+  - Endothelial
+
+Epithelial:
+  - CK+ HR+
+  - CK lo HR hi p53+
+  - CK+ HR hi
+  - CK+ HR lo
+  - Myoepithelial
+  - Epithelial low
+  - p53+ EGFR+
+  - CK7+ CK hi Ecadh hi
+  - CK lo HR lo
+  - Basal CK
+  - CK7+
+
+Unclear:
+  - Apoptotic
+  - Proliferative
+  - Hypoxic
