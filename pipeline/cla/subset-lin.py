@@ -14,6 +14,8 @@ adata = sc.read_h5ad(args.input_h5ad)
 
 adata2 = adata[adata.obs.batch.isin(['TMA-27', 'TMA-28', 'TMA-29']),:]
 
+expr = adata2.X.copy()
+
 sc.pp.scale(adata2, max_value=10)
 
 sc.tl.pca(adata2, svd_solver='arpack')
@@ -21,6 +23,8 @@ sc.tl.pca(adata2, svd_solver='arpack')
 sc.pp.neighbors(adata2, n_neighbors=10, n_pcs=20)
 
 sc.tl.leiden(adata2, resolution=1.2)
+
+adata2.X = expr
 
 adata2.write_h5ad(args.output_h5ad)
 

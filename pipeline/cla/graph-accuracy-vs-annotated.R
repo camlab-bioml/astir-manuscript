@@ -142,9 +142,14 @@ df_cytoflda <- inner_join(df_annot, types_cytoflda) %>%
 
 cat("\n Reading ACDC \n")
 
+pattern <- NULL
+
+if(cohort != "lin-cycif") {
+  pattern <- paste0("annotations_acdc_*.*",cohort)
+}
 
 types_acdc <- dir(snakemake@params[['acdc_path']], 
-                      pattern=paste0("annotations_acdc_*.*",cohort), full.names=TRUE) %>% 
+                      pattern=pattern, full.names=TRUE) %>% 
   map_dfr(read_tsv) %>% 
   rename(annotator_train = annotator, cell_type_predicted = cell_type)
 
