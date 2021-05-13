@@ -1,0 +1,501 @@
+cell_id	cell_type	annotator
+ZTMA208_slide_2_Cy1x4_1394	B cells	Annotator-2
+ZTMA208_slide_67_Ay14x6_1662	T cells	Annotator-2
+ZTMA208_slide_67_Ay14x6_1302	Stromal	Annotator-2
+ZTMA208_slide_40_By7x4_481	Epithelial (other)	Annotator-2
+ZTMA208_slide_2_Cy1x4_1015	Unclear	Annotator-2
+ZTMA208_slide_2_Cy1x4_4997	B cells	Annotator-2
+ZTMA208_slide_44_Ay6x2_683	Stromal	Annotator-2
+ZTMA208_slide_2_Cy1x4_4302	B cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_151	B cells	Annotator-2
+ZTMA208_slide_56_By2x1_1440	Epithelial (other)	Annotator-2
+ZTMA208_slide_56_By2x1_1027	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_3617	B cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_1316	B cells	Annotator-2
+ZTMA208_slide_35_By15x5_135	Macrophage	Annotator-2
+ZTMA208_slide_2_Cy1x4_4291	B cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_31	B cells	Annotator-2
+ZTMA208_slide_44_Ay6x2_930	Stromal	Annotator-2
+ZTMA208_slide_35_By15x5_1285	Macrophage	Annotator-2
+ZTMA208_slide_2_Cy1x4_4944	B cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_3464	T cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_2777	T cells	Annotator-2
+ZTMA208_slide_67_Ay14x6_1377	T cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_4015	B cells	Annotator-2
+ZTMA208_slide_60_Cy14x1_579	Stromal	Annotator-2
+ZTMA208_slide_56_By2x1_1755	Stromal	Annotator-2
+ZTMA208_slide_40_By7x4_503	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_60_Cy14x1_474	Stromal	Annotator-2
+ZTMA208_slide_2_Cy1x4_2882	B cells	Annotator-2
+ZTMA208_slide_56_By2x1_696	Unclear	Annotator-2
+ZTMA208_slide_2_Cy1x4_4724	B cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_5717	T cells	Annotator-2
+ZTMA208_slide_56_By2x1_440	Epithelial (other)	Annotator-2
+ZTMA208_slide_35_By15x5_680	Unclear	Annotator-2
+ZTMA208_slide_2_Cy1x4_3236	T cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_5015	T cells	Annotator-2
+ZTMA208_slide_60_Cy14x1_351	Stromal	Annotator-2
+ZTMA208_slide_38_By4x7_509	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_2406	T cells	Annotator-2
+ZTMA208_slide_38_By4x7_188	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_2286	B cells	Annotator-2
+ZTMA208_slide_44_Ay6x2_1054	Stromal	Annotator-2
+ZTMA208_slide_2_Cy1x4_1313	B cells	Annotator-2
+ZTMA208_slide_44_Ay6x2_206	Stromal	Annotator-2
+ZTMA208_slide_2_Cy1x4_3625	B cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_3318	T cells	Annotator-2
+ZTMA208_slide_40_By7x4_903	Unclear	Annotator-2
+ZTMA208_slide_44_Ay6x2_1198	Unclear	Annotator-2
+ZTMA208_slide_67_Ay14x6_818	Stromal	Annotator-2
+ZTMA208_slide_2_Cy1x4_988	B cells	Annotator-2
+ZTMA208_slide_44_Ay6x2_785	Stromal	Annotator-2
+ZTMA208_slide_2_Cy1x4_4061	B cells	Annotator-2
+ZTMA208_slide_35_By15x5_370	Macrophage	Annotator-2
+ZTMA208_slide_35_By15x5_1124	Epithelial (other)	Annotator-2
+ZTMA208_slide_2_Cy1x4_4715	T cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_5407	T cells	Annotator-2
+ZTMA208_slide_38_By4x7_1266	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_67_Ay14x6_380	Stromal	Annotator-2
+ZTMA208_slide_40_By7x4_90	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_38_By4x7_1132	Stromal	Annotator-2
+ZTMA208_slide_40_By7x4_326	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_5608	T cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_259	B cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_4303	B cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_4172	T cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_1963	B cells	Annotator-2
+ZTMA208_slide_56_By2x1_1026	Stromal	Annotator-2
+ZTMA208_slide_38_By4x7_21	Stromal	Annotator-2
+ZTMA208_slide_35_By15x5_1019	Unclear	Annotator-2
+ZTMA208_slide_67_Ay14x6_1582	Endothelial	Annotator-2
+ZTMA208_slide_2_Cy1x4_2608	Macrophage	Annotator-2
+ZTMA208_slide_2_Cy1x4_5720	B cells	Annotator-2
+ZTMA208_slide_38_By4x7_313	Epithelial (other)	Annotator-2
+ZTMA208_slide_35_By15x5_1135	Epithelial (other)	Annotator-2
+ZTMA208_slide_2_Cy1x4_5423	B cells	Annotator-2
+ZTMA208_slide_44_Ay6x2_1298	Stromal	Annotator-2
+ZTMA208_slide_2_Cy1x4_4374	T cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_3247	Endothelial	Annotator-2
+ZTMA208_slide_67_Ay14x6_721	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_3509	T cells	Annotator-2
+ZTMA208_slide_44_Ay6x2_1173	Stromal	Annotator-2
+ZTMA208_slide_40_By7x4_50	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_3696	B cells	Annotator-2
+ZTMA208_slide_60_Cy14x1_385	Macrophage	Annotator-2
+ZTMA208_slide_56_By2x1_1212	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_539	T cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_1923	B cells	Annotator-2
+ZTMA208_slide_67_Ay14x6_1739	Epithelial (basal)	Annotator-2
+ZTMA208_slide_35_By15x5_1012	Macrophage	Annotator-2
+ZTMA208_slide_44_Ay6x2_802	Stromal	Annotator-2
+ZTMA208_slide_50_Ay11x3_738	Unclear	Annotator-2
+ZTMA208_slide_38_By4x7_792	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_40_By7x4_1099	Stromal	Annotator-2
+ZTMA208_slide_35_By15x5_816	Macrophage	Annotator-2
+ZTMA208_slide_44_Ay6x2_204	Stromal	Annotator-2
+ZTMA208_slide_35_By15x5_1036	Stromal	Annotator-2
+ZTMA208_slide_38_By4x7_1152	Epithelial (basal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_1397	T cells	Annotator-2
+ZTMA208_slide_56_By2x1_1133	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_38_By4x7_1022	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_4518	B cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_5567	B cells	Annotator-2
+ZTMA208_slide_56_By2x1_1553	Unclear	Annotator-2
+ZTMA208_slide_44_Ay6x2_287	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_3239	T cells	Annotator-2
+ZTMA208_slide_40_By7x4_1174	T cells	Annotator-2
+ZTMA208_slide_38_By4x7_1270	Stromal	Annotator-2
+ZTMA208_slide_2_Cy1x4_3951	B cells	Annotator-2
+ZTMA208_slide_38_By4x7_204	Endothelial	Annotator-2
+ZTMA208_slide_44_Ay6x2_1039	Stromal	Annotator-2
+ZTMA208_slide_44_Ay6x2_71	Stromal	Annotator-2
+ZTMA208_slide_67_Ay14x6_203	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_56_By2x1_1074	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_67_Ay14x6_262	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_2208	B cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_4546	B cells	Annotator-2
+ZTMA208_slide_44_Ay6x2_954	Stromal	Annotator-2
+ZTMA208_slide_56_By2x1_589	Stromal	Annotator-2
+ZTMA208_slide_60_Cy14x1_761	Endothelial	Annotator-2
+ZTMA208_slide_56_By2x1_502	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_5001	T cells	Annotator-2
+ZTMA208_slide_50_Ay11x3_789	T cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_3581	B cells	Annotator-2
+ZTMA208_slide_44_Ay6x2_586	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_2748	B cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_5178	T cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_1673	B cells	Annotator-2
+ZTMA208_slide_67_Ay14x6_196	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_38_By4x7_506	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_67_Ay14x6_1571	T cells	Annotator-2
+ZTMA208_slide_40_By7x4_808	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_3584	B cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_1948	B cells	Annotator-2
+ZTMA208_slide_35_By15x5_1496	Macrophage	Annotator-2
+ZTMA208_slide_67_Ay14x6_1551	Stromal	Annotator-2
+ZTMA208_slide_2_Cy1x4_5442	B cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_1060	B cells	Annotator-2
+ZTMA208_slide_38_By4x7_357	Stromal	Annotator-2
+ZTMA208_slide_2_Cy1x4_2834	T cells	Annotator-2
+ZTMA208_slide_60_Cy14x1_38	Stromal	Annotator-2
+ZTMA208_slide_2_Cy1x4_4620	Macrophage	Annotator-2
+ZTMA208_slide_38_By4x7_217	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_67_Ay14x6_725	Macrophage	Annotator-2
+ZTMA208_slide_35_By15x5_192	Epithelial (other)	Annotator-2
+ZTMA208_slide_40_By7x4_718	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_2450	B cells	Annotator-2
+ZTMA208_slide_38_By4x7_962	Unclear	Annotator-2
+ZTMA208_slide_2_Cy1x4_1743	B cells	Annotator-2
+ZTMA208_slide_44_Ay6x2_1130	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_50_Ay11x3_244	Stromal	Annotator-2
+ZTMA208_slide_2_Cy1x4_4233	B cells	Annotator-2
+ZTMA208_slide_44_Ay6x2_1142	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_242	B cells	Annotator-2
+ZTMA208_slide_40_By7x4_695	Stromal	Annotator-2
+ZTMA208_slide_50_Ay11x3_449	Unclear	Annotator-2
+ZTMA208_slide_35_By15x5_398	Stromal	Annotator-2
+ZTMA208_slide_44_Ay6x2_757	Stromal	Annotator-2
+ZTMA208_slide_2_Cy1x4_3911	B cells	Annotator-2
+ZTMA208_slide_67_Ay14x6_1150	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_67_Ay14x6_1293	Endothelial	Annotator-2
+ZTMA208_slide_2_Cy1x4_5655	B cells	Annotator-2
+ZTMA208_slide_38_By4x7_805	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_44_Ay6x2_413	Stromal	Annotator-2
+ZTMA208_slide_38_By4x7_999	Macrophage	Annotator-2
+ZTMA208_slide_38_By4x7_870	Epithelial (basal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_3421	T cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_2363	B cells	Annotator-2
+ZTMA208_slide_40_By7x4_836	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_44_Ay6x2_1437	Stromal	Annotator-2
+ZTMA208_slide_44_Ay6x2_1451	Stromal	Annotator-2
+ZTMA208_slide_44_Ay6x2_268	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_38_By4x7_710	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_4256	B cells	Annotator-2
+ZTMA208_slide_38_By4x7_904	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_1442	Endothelial	Annotator-2
+ZTMA208_slide_2_Cy1x4_3949	B cells	Annotator-2
+ZTMA208_slide_50_Ay11x3_691	Unclear	Annotator-2
+ZTMA208_slide_2_Cy1x4_855	B cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_2894	T cells	Annotator-2
+ZTMA208_slide_35_By15x5_1247	Epithelial (other)	Annotator-2
+ZTMA208_slide_60_Cy14x1_213	Stromal	Annotator-2
+ZTMA208_slide_50_Ay11x3_297	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_67_Ay14x6_222	Epithelial (basal)	Annotator-2
+ZTMA208_slide_56_By2x1_1277	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_44_Ay6x2_1023	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_40_By7x4_778	Stromal	Annotator-2
+ZTMA208_slide_40_By7x4_1208	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_40_By7x4_4	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_67_Ay14x6_299	Macrophage	Annotator-2
+ZTMA208_slide_2_Cy1x4_3069	B cells	Annotator-2
+ZTMA208_slide_67_Ay14x6_1762	T cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_1562	B cells	Annotator-2
+ZTMA208_slide_38_By4x7_1349	Stromal	Annotator-2
+ZTMA208_slide_56_By2x1_872	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_44_Ay6x2_896	Stromal	Annotator-2
+ZTMA208_slide_35_By15x5_107	Unclear	Annotator-2
+ZTMA208_slide_35_By15x5_596	Unclear	Annotator-2
+ZTMA208_slide_2_Cy1x4_3043	T cells	Annotator-2
+ZTMA208_slide_40_By7x4_693	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_60_Cy14x1_697	Stromal	Annotator-2
+ZTMA208_slide_2_Cy1x4_3294	B cells	Annotator-2
+ZTMA208_slide_56_By2x1_125	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_39_Ay15x7_71	Stromal	Annotator-2
+ZTMA208_slide_2_Cy1x4_4776	B cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_2788	T cells	Annotator-2
+ZTMA208_slide_56_By2x1_1618	Stromal	Annotator-2
+ZTMA208_slide_38_By4x7_708	Macrophage	Annotator-2
+ZTMA208_slide_40_By7x4_605	Unclear	Annotator-2
+ZTMA208_slide_44_Ay6x2_618	Stromal	Annotator-2
+ZTMA208_slide_67_Ay14x6_1810	Stromal	Annotator-2
+ZTMA208_slide_56_By2x1_1665	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_67_Ay14x6_610	Endothelial	Annotator-2
+ZTMA208_slide_39_Ay15x7_38	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_35_By15x5_1347	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_40_By7x4_692	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_413	B cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_1204	T cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_3833	Endothelial	Annotator-2
+ZTMA208_slide_56_By2x1_274	Endothelial	Annotator-2
+ZTMA208_slide_2_Cy1x4_4738	T cells	Annotator-2
+ZTMA208_slide_56_By2x1_1308	Stromal	Annotator-2
+ZTMA208_slide_2_Cy1x4_5699	B cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_904	T cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_1258	B cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_1928	B cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_646	B cells	Annotator-2
+ZTMA208_slide_44_Ay6x2_532	Stromal	Annotator-2
+ZTMA208_slide_2_Cy1x4_549	Endothelial	Annotator-2
+ZTMA208_slide_50_Ay11x3_2	Stromal	Annotator-2
+ZTMA208_slide_2_Cy1x4_3049	T cells	Annotator-2
+ZTMA208_slide_67_Ay14x6_104	Stromal	Annotator-2
+ZTMA208_slide_38_By4x7_577	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_4713	B cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_3111	B cells	Annotator-2
+ZTMA208_slide_67_Ay14x6_478	Stromal	Annotator-2
+ZTMA208_slide_2_Cy1x4_4552	B cells	Annotator-2
+ZTMA208_slide_56_By2x1_119	Unclear	Annotator-2
+ZTMA208_slide_44_Ay6x2_957	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_35_By15x5_222	Macrophage	Annotator-2
+ZTMA208_slide_2_Cy1x4_2213	B cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_1233	T cells	Annotator-2
+ZTMA208_slide_67_Ay14x6_47	T cells	Annotator-2
+ZTMA208_slide_50_Ay11x3_287	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_60_Cy14x1_597	Stromal	Annotator-2
+ZTMA208_slide_2_Cy1x4_5596	T cells	Annotator-2
+ZTMA208_slide_44_Ay6x2_696	Stromal	Annotator-2
+ZTMA208_slide_56_By2x1_298	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_67_Ay14x6_874	Epithelial (basal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_256	T cells	Annotator-2
+ZTMA208_slide_38_By4x7_386	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_40_By7x4_240	Stromal	Annotator-2
+ZTMA208_slide_40_By7x4_237	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_1960	B cells	Annotator-2
+ZTMA208_slide_67_Ay14x6_668	Stromal	Annotator-2
+ZTMA208_slide_2_Cy1x4_4729	B cells	Annotator-2
+ZTMA208_slide_56_By2x1_707	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_38_By4x7_960	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_38_By4x7_493	Stromal	Annotator-2
+ZTMA208_slide_60_Cy14x1_459	Stromal	Annotator-2
+ZTMA208_slide_40_By7x4_974	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_40_By7x4_1075	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_1464	B cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_3146	B cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_2330	T cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_3984	B cells	Annotator-2
+ZTMA208_slide_40_By7x4_41	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_35_By15x5_313	Macrophage	Annotator-2
+ZTMA208_slide_38_By4x7_14	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_60_Cy14x1_516	Stromal	Annotator-2
+ZTMA208_slide_2_Cy1x4_4875	B cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_1078	B cells	Annotator-2
+ZTMA208_slide_44_Ay6x2_74	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_2760	B cells	Annotator-2
+ZTMA208_slide_50_Ay11x3_368	Stromal	Annotator-2
+ZTMA208_slide_2_Cy1x4_2758	B cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_2037	B cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_4494	B cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_742	B cells	Annotator-2
+ZTMA208_slide_35_By15x5_439	Macrophage	Annotator-2
+ZTMA208_slide_2_Cy1x4_3338	B cells	Annotator-2
+ZTMA208_slide_38_By4x7_17	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_38_By4x7_1111	Epithelial (basal)	Annotator-2
+ZTMA208_slide_44_Ay6x2_457	Stromal	Annotator-2
+ZTMA208_slide_60_Cy14x1_83	Stromal	Annotator-2
+ZTMA208_slide_38_By4x7_358	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_3165	T cells	Annotator-2
+ZTMA208_slide_67_Ay14x6_1470	T cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_4106	T cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_5477	T cells	Annotator-2
+ZTMA208_slide_50_Ay11x3_201	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_56_By2x1_311	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_60_Cy14x1_581	Stromal	Annotator-2
+ZTMA208_slide_50_Ay11x3_147	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_67_Ay14x6_1505	Stromal	Annotator-2
+ZTMA208_slide_44_Ay6x2_831	Stromal	Annotator-2
+ZTMA208_slide_2_Cy1x4_4925	B cells	Annotator-2
+ZTMA208_slide_44_Ay6x2_1145	Stromal	Annotator-2
+ZTMA208_slide_56_By2x1_714	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_44_Ay6x2_799	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_60_Cy14x1_154	Stromal	Annotator-2
+ZTMA208_slide_2_Cy1x4_1831	B cells	Annotator-2
+ZTMA208_slide_35_By15x5_706	Macrophage	Annotator-2
+ZTMA208_slide_38_By4x7_607	Epithelial (basal)	Annotator-2
+ZTMA208_slide_50_Ay11x3_457	Stromal	Annotator-2
+ZTMA208_slide_38_By4x7_319	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_44_Ay6x2_1026	Stromal	Annotator-2
+ZTMA208_slide_56_By2x1_1480	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_2096	Endothelial	Annotator-2
+ZTMA208_slide_40_By7x4_885	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_291	B cells	Annotator-2
+ZTMA208_slide_50_Ay11x3_815	Unclear	Annotator-2
+ZTMA208_slide_2_Cy1x4_1835	B cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_3127	B cells	Annotator-2
+ZTMA208_slide_40_By7x4_229	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_44_Ay6x2_375	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_35_By15x5_6	Macrophage	Annotator-2
+ZTMA208_slide_2_Cy1x4_4972	B cells	Annotator-2
+ZTMA208_slide_44_Ay6x2_333	Stromal	Annotator-2
+ZTMA208_slide_2_Cy1x4_5358	B cells	Annotator-2
+ZTMA208_slide_67_Ay14x6_1291	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_50_Ay11x3_790	Stromal	Annotator-2
+ZTMA208_slide_44_Ay6x2_603	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_44_Ay6x2_170	Stromal	Annotator-2
+ZTMA208_slide_39_Ay15x7_1	Unclear	Annotator-2
+ZTMA208_slide_2_Cy1x4_5497	T cells	Annotator-2
+ZTMA208_slide_35_By15x5_588	Epithelial (basal)	Annotator-2
+ZTMA208_slide_40_By7x4_508	T cells	Annotator-2
+ZTMA208_slide_44_Ay6x2_291	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_56_By2x1_1038	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_1956	Endothelial	Annotator-2
+ZTMA208_slide_50_Ay11x3_375	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_35_By15x5_531	Macrophage	Annotator-2
+ZTMA208_slide_40_By7x4_273	Stromal	Annotator-2
+ZTMA208_slide_35_By15x5_838	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_40_By7x4_1133	Epithelial (other)	Annotator-2
+ZTMA208_slide_2_Cy1x4_5698	B cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_1498	B cells	Annotator-2
+ZTMA208_slide_67_Ay14x6_33	T cells	Annotator-2
+ZTMA208_slide_56_By2x1_769	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_38_By4x7_489	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_67_Ay14x6_1349	T cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_191	B cells	Annotator-2
+ZTMA208_slide_44_Ay6x2_231	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_4399	B cells	Annotator-2
+ZTMA208_slide_56_By2x1_1511	Stromal	Annotator-2
+ZTMA208_slide_60_Cy14x1_405	Stromal	Annotator-2
+ZTMA208_slide_2_Cy1x4_4695	B cells	Annotator-2
+ZTMA208_slide_67_Ay14x6_417	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_40_By7x4_1271	Stromal	Annotator-2
+ZTMA208_slide_67_Ay14x6_128	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_56_By2x1_517	Epithelial (other)	Annotator-2
+ZTMA208_slide_67_Ay14x6_936	Endothelial	Annotator-2
+ZTMA208_slide_38_By4x7_1079	T cells	Annotator-2
+ZTMA208_slide_50_Ay11x3_522	Stromal	Annotator-2
+ZTMA208_slide_50_Ay11x3_684	Unclear	Annotator-2
+ZTMA208_slide_67_Ay14x6_174	Stromal	Annotator-2
+ZTMA208_slide_35_By15x5_859	Macrophage	Annotator-2
+ZTMA208_slide_56_By2x1_989	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_50_Ay11x3_335	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_67_Ay14x6_653	Epithelial (basal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_3765	Epithelial (basal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_4682	B cells	Annotator-2
+ZTMA208_slide_60_Cy14x1_298	Stromal	Annotator-2
+ZTMA208_slide_56_By2x1_691	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_67_Ay14x6_604	Endothelial	Annotator-2
+ZTMA208_slide_35_By15x5_1005	Macrophage	Annotator-2
+ZTMA208_slide_38_By4x7_1147	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_2792	T cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_3082	B cells	Annotator-2
+ZTMA208_slide_35_By15x5_305	Macrophage	Annotator-2
+ZTMA208_slide_40_By7x4_38	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_40_By7x4_586	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_5242	B cells	Annotator-2
+ZTMA208_slide_67_Ay14x6_1633	Stromal	Annotator-2
+ZTMA208_slide_35_By15x5_548	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_1165	B cells	Annotator-2
+ZTMA208_slide_60_Cy14x1_358	Stromal	Annotator-2
+ZTMA208_slide_40_By7x4_442	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_40_By7x4_642	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_44_Ay6x2_36	Stromal	Annotator-2
+ZTMA208_slide_2_Cy1x4_2583	Endothelial	Annotator-2
+ZTMA208_slide_2_Cy1x4_535	T cells	Annotator-2
+ZTMA208_slide_56_By2x1_1316	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_56_By2x1_1576	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_2589	T cells	Annotator-2
+ZTMA208_slide_38_By4x7_1168	Stromal	Annotator-2
+ZTMA208_slide_40_By7x4_794	Endothelial	Annotator-2
+ZTMA208_slide_2_Cy1x4_3814	B cells	Annotator-2
+ZTMA208_slide_38_By4x7_286	Endothelial	Annotator-2
+ZTMA208_slide_56_By2x1_1437	Stromal	Annotator-2
+ZTMA208_slide_2_Cy1x4_5094	B cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_504	B cells	Annotator-2
+ZTMA208_slide_40_By7x4_178	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_67_Ay14x6_361	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_38_By4x7_1158	Epithelial (basal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_4913	B cells	Annotator-2
+ZTMA208_slide_56_By2x1_12	Stromal	Annotator-2
+ZTMA208_slide_2_Cy1x4_602	T cells	Annotator-2
+ZTMA208_slide_67_Ay14x6_384	Stromal	Annotator-2
+ZTMA208_slide_56_By2x1_765	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_40_By7x4_369	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_56_By2x1_550	Stromal	Annotator-2
+ZTMA208_slide_2_Cy1x4_5339	B cells	Annotator-2
+ZTMA208_slide_35_By15x5_1305	Epithelial (other)	Annotator-2
+ZTMA208_slide_2_Cy1x4_3903	Endothelial	Annotator-2
+ZTMA208_slide_67_Ay14x6_360	Endothelial	Annotator-2
+ZTMA208_slide_2_Cy1x4_1796	B cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_5338	B cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_4042	T cells	Annotator-2
+ZTMA208_slide_38_By4x7_364	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_3335	B cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_2059	B cells	Annotator-2
+ZTMA208_slide_60_Cy14x1_264	Stromal	Annotator-2
+ZTMA208_slide_60_Cy14x1_733	Macrophage	Annotator-2
+ZTMA208_slide_56_By2x1_670	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_56_By2x1_1729	Stromal	Annotator-2
+ZTMA208_slide_2_Cy1x4_3494	B cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_5409	B cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_459	B cells	Annotator-2
+ZTMA208_slide_60_Cy14x1_292	Stromal	Annotator-2
+ZTMA208_slide_2_Cy1x4_185	B cells	Annotator-2
+ZTMA208_slide_56_By2x1_1008	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_618	B cells	Annotator-2
+ZTMA208_slide_38_By4x7_455	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_67_Ay14x6_1716	T cells	Annotator-2
+ZTMA208_slide_35_By15x5_365	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_60_Cy14x1_627	Macrophage	Annotator-2
+ZTMA208_slide_56_By2x1_332	Unclear	Annotator-2
+ZTMA208_slide_2_Cy1x4_3799	T cells	Annotator-2
+ZTMA208_slide_44_Ay6x2_1186	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_35_By15x5_1286	Macrophage	Annotator-2
+ZTMA208_slide_38_By4x7_1200	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_56_By2x1_1625	Stromal	Annotator-2
+ZTMA208_slide_67_Ay14x6_296	Macrophage	Annotator-2
+ZTMA208_slide_44_Ay6x2_1057	Stromal	Annotator-2
+ZTMA208_slide_2_Cy1x4_5027	B cells	Annotator-2
+ZTMA208_slide_38_By4x7_117	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_2470	T cells	Annotator-2
+ZTMA208_slide_56_By2x1_1719	T cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_860	B cells	Annotator-2
+ZTMA208_slide_67_Ay14x6_1795	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_5502	B cells	Annotator-2
+ZTMA208_slide_35_By15x5_524	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_1706	B cells	Annotator-2
+ZTMA208_slide_40_By7x4_1040	Macrophage	Annotator-2
+ZTMA208_slide_2_Cy1x4_2211	B cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_985	B cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_3017	T cells	Annotator-2
+ZTMA208_slide_40_By7x4_1111	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_3626	B cells	Annotator-2
+ZTMA208_slide_56_By2x1_1563	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_67_Ay14x6_866	Epithelial (basal)	Annotator-2
+ZTMA208_slide_67_Ay14x6_133	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_67_Ay14x6_1484	T cells	Annotator-2
+ZTMA208_slide_50_Ay11x3_364	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_270	T cells	Annotator-2
+ZTMA208_slide_67_Ay14x6_813	Stromal	Annotator-2
+ZTMA208_slide_44_Ay6x2_408	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_44_Ay6x2_632	Unclear	Annotator-2
+ZTMA208_slide_44_Ay6x2_79	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_35_By15x5_527	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_5732	B cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_1703	Macrophage	Annotator-2
+ZTMA208_slide_38_By4x7_137	Stromal	Annotator-2
+ZTMA208_slide_2_Cy1x4_448	B cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_5565	T cells	Annotator-2
+ZTMA208_slide_2_Cy1x4_4723	B cells	Annotator-2
+ZTMA208_slide_67_Ay14x6_1019	Epithelial (basal)	Annotator-2
+ZTMA208_slide_67_Ay14x6_793	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_67_Ay14x6_1417	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_1230	B cells	Annotator-2
+ZTMA208_slide_38_By4x7_892	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_1366	T cells	Annotator-2
+ZTMA208_slide_40_By7x4_488	Stromal	Annotator-2
+ZTMA208_slide_2_Cy1x4_79	B cells	Annotator-2
+ZTMA208_slide_44_Ay6x2_1111	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_67_Ay14x6_465	Unclear	Annotator-2
+ZTMA208_slide_40_By7x4_125	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_67_Ay14x6_1060	Endothelial	Annotator-2
+ZTMA208_slide_35_By15x5_367	Macrophage	Annotator-2
+ZTMA208_slide_56_By2x1_1413	Macrophage	Annotator-2
+ZTMA208_slide_2_Cy1x4_3124	Macrophage	Annotator-2
+ZTMA208_slide_2_Cy1x4_4548	T cells	Annotator-2
+ZTMA208_slide_44_Ay6x2_1502	Stromal	Annotator-2
+ZTMA208_slide_2_Cy1x4_1517	B cells	Annotator-2
+ZTMA208_slide_60_Cy14x1_571	Stromal	Annotator-2
+ZTMA208_slide_40_By7x4_712	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_56_By2x1_576	Unclear	Annotator-2
+ZTMA208_slide_2_Cy1x4_1553	B cells	Annotator-2
+ZTMA208_slide_38_By4x7_618	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_2593	B cells	Annotator-2
+ZTMA208_slide_67_Ay14x6_1232	Stromal	Annotator-2
+ZTMA208_slide_2_Cy1x4_3080	T cells	Annotator-2
+ZTMA208_slide_60_Cy14x1_701	Stromal	Annotator-2
+ZTMA208_slide_35_By15x5_733	Stromal	Annotator-2
+ZTMA208_slide_44_Ay6x2_886	Stromal	Annotator-2
+ZTMA208_slide_60_Cy14x1_20	Stromal	Annotator-2
+ZTMA208_slide_44_Ay6x2_1263	Stromal	Annotator-2
+ZTMA208_slide_60_Cy14x1_347	T cells	Annotator-2
+ZTMA208_slide_44_Ay6x2_219	Epithelial (luminal)	Annotator-2
+ZTMA208_slide_2_Cy1x4_3148	B cells	Annotator-2
