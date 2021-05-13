@@ -39,8 +39,6 @@ lin_cycif:
 lin-cycif:
     marker_file: markers/lin_cycif-markers-v2.yml
 
-lin-cycif:
-    marker_file: markers/lin_cycif-markers.yml
 
 keren:
     marker_file: markers/keren-2018-markers-v1.yml
