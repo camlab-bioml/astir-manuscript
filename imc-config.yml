@@ -1,5 +1,5 @@
 
-version: cardinal
+version: phoenix
 
 astir_opts:
     max_epochs: 1000
