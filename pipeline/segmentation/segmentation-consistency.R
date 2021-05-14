@@ -2,18 +2,45 @@
 library(tidyverse)
 library(glue)
 library(forcats)
+library(DelayedArray)
+library(devtools)
+#library(taproom)
 
 
 devtools::load_all("../taproom")
 
 schapiro_alt_mask_samples <- c('Cy1x5_32', 'Cy1x6_33', 'Cy1x8_35')
 schapiro_users <- c('Catena', 'Jackson', 'Schulz')
+iteration <- c('0', '1', '2', '3', '4')
 
 dir_astir <- snakemake@params[['dir_astir']]
 dir_other <- snakemake@params[['dir_other']]
 
-get_df_for_sample <- function(sample) {
-  path_for_sample <- glue("{dir_astir}/assignments_{sample}_{{user}}.csv")
+
+# get_df_for_sample <- function(sample, iteration) {
+#   path_for_sample <- glue("{dir_astir}/assignments_{sample}_{{user}}_{iteration}.csv")
+  
+#   read_user <- function(user, iteration, path) {
+#     input_path <- glue(path)
+#     df <- read_csv(input_path)
+#     cell_ids <- df$X1
+#     df$X1 <- NULL
+#     celltypes <- taproom::get_celltypes(df, 0.5)
+#     tibble(
+#       cell_id = cell_ids,
+#       cell_type = celltypes,
+#       user = user,
+#       iteration = iteration
+#     )
+#   }
+  
+#   df_all <- map_dfr(schapiro_users, read_user, path_for_sample)
+#   df_all$sample <- sample
+#   df_all
+# }
+
+get_df_for_sample <- function(sample, iteration) {
+  path_for_sample <- glue("{dir_astir}/assignments_{sample}_{{user}}_{iteration}.csv")
   
   read_user <- function(user, path) {
     input_path <- glue(path)
@@ -24,7 +51,8 @@ get_df_for_sample <- function(sample) {
     tibble(
       cell_id = cell_ids,
       cell_type = celltypes,
-      user = user
+      user = user,
+      iteration = iteration
     )
   }
   
@@ -33,7 +61,22 @@ get_df_for_sample <- function(sample) {
   df_all
 }
 
-df <- map_dfr(schapiro_alt_mask_samples, get_df_for_sample)
+#df <- map_dfr(schapiro_alt_mask_samples, get_df_for_sample)
+df <- lapply(schapiro_alt_mask_samples, function(x){
+  lapply(iteration, function(k){
+    get_df_for_sample(x, k)
+  }) %>% bind_rows()
+}) %>% bind_rows()
+
+head(df)
+
+df <- df %>%
+  mutate(user = case_when(user == 'Jackson' ~ 'Segmenter-1',
+                          user == 'Catena' ~ 'Segmenter-2',
+                          user == 'Schulz' ~ 'Segmenter-3'))
+
+#df$user <- paste0(df$user, "-", df$iteration)
+
 
 ggplot(df, aes(x = cell_type, fill = user)) +
   geom_bar(position="dodge") +
@@ -58,7 +101,7 @@ filter(df, sample == "Cy1x6_33") %>%
        title = "Cell types as inferred by Astir") +
   theme(legend.position = "bottom")
 
-pdf(snakemake@output[['supp_pdf']], width=5,height=3)
+pdf(snakemake@output[['supp_pdf']], width=7,height=3)
 print(last_plot())
 dev.off()
 
@@ -100,25 +143,43 @@ dev.off()
 
 # Clustering part ---------------------------------------------------------
 
-relevant_output <- dir(dir_other,full.names = TRUE)
+relevant_output <- dir(dir_other, full.names = TRUE, pattern = "Alternative_masks")
 
 clustering_outputs <- map_dfr(relevant_output, read_csv)
-clustering_outputs$user <- sapply(strsplit(clustering_outputs$origin,' - '), `[`, 2)
-clustering_outputs$sample <- sapply(strsplit(clustering_outputs$origin,' - '), `[`, 1)
+clustering_outputs$user <- sapply(strsplit(clustering_outputs$core,' - '), `[`, 2)
+clustering_outputs$sample <- sapply(strsplit(clustering_outputs$core,' - '), `[`, 1)
 
-clustering_outputs$method2 <- paste0(clustering_outputs$method, "-", clustering_outputs$params)
+clustering_outputs$seed[is.na(clustering_outputs$seed)] <- 0
 
-ggplot(clustering_outputs, aes(x = `cell type`, fill = user)) +
+clustering_outputs$method2 <- paste0(clustering_outputs$method, "-", clustering_outputs$params, "-", clustering_outputs$seed)
+
+ggplot(clustering_outputs, aes(x = `Manual_cell_type`, fill = user)) +
   geom_bar(position="dodge") +
   facet_grid(sample ~ method2)
 
 
+acdc_files <- dir(dir_other, full.names = TRUE, pattern = "ACDC")
+acdc_output <- map_dfr(acdc_files, read_tsv) %>%
+  dplyr::rename("Manual_cell_type" = "cell_type", "id" = "cell_id")
+acdc_output$method2 <- paste0(acdc_output$method, "-", acdc_output$seed)
+
+# Just adding the missing columns so that acdc results can be rowbound to all others
+acdc_output$cluster <- NA
+acdc_output$params <- NA
+acdc_output$GSVA_cell_type <- NA
+acdc_output$core <- paste0(acdc_output$sample, " - ", acdc_output$user)
+
+acdc_output <- acdc_output[,c("id", "cluster", "method", "params", "GSVA_cell_type", "Manual_cell_type", "core", "seed", "user", "sample", "method2")]
+
+clustering_outputs <- bind_rows(clustering_outputs, acdc_output)
 # Comparison --------------------------------------------------------------
 
-co <- dplyr::count(clustering_outputs, method2, user, sample, `cell type`) %>% 
-  dplyr::rename(method = method2, cell_type = `cell type`)
-ast <- dplyr::count(df, cell_type, user, sample) %>% 
-  mutate(method = "Astir") %>% 
+co <- dplyr::count(clustering_outputs, method2, user, sample, `Manual_cell_type`) %>% 
+  dplyr::rename(method = method2, cell_type = `Manual_cell_type`) %>%
+  filter(!grepl("other|unknown", cell_type))
+ast <- mutate(df, method = paste0("Astir-", iteration)) %>%
+ dplyr::count(cell_type, user, sample, method) %>% 
+  #mutate(method = "Astir") %>% 
   filter(!grepl("Other|Unknown", cell_type))
 
 df_all <- rbind(
