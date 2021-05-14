@@ -22,6 +22,8 @@ cell_types:
   Treg:
     - CD45
     - CD4
+    # - Vimentin
   Other immune:
     - CD45
+    # - Vimentin
 

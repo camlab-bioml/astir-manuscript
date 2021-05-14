@@ -146,7 +146,7 @@ cat("\n Reading ACDC \n")
 
 
 types_acdc <- dir(snakemake@params[['acdc_path']], 
-                      pattern=paste0("annotations_acdc_*.*",cohort), full.names=TRUE) %>% 
+                      pattern="lin_cycif_lung_acdc_assignments*", full.names=TRUE) %>% 
   map_dfr(read_tsv) %>% 
   rename(annotator_train = annotator, cell_type_predicted = cell_type)
 
