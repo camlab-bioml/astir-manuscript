@@ -5,6 +5,9 @@ suppressPackageStartupMessages({
   library(matrixStats)
 })
 
+
+source("pipeline/cla/helpers.R")
+
 #' We need:
 #' (1) train test directory
 #' (2) cohort name
@@ -20,23 +23,6 @@ print(snakemake@input)
 
 devtools::load_all(snakemake@params[['taproom_path']])
 
-acc_wrap <- function(tt) {
-  # annotated <- unique(as.character(tt$cell_type_annotated))
-  cell_types <- unique(intersect(tt$cell_type_annotated, tt$cell_type_predicted))
-  
-  tt$cell_type_annotated <- factor(tt$cell_type_annotated, levels = cell_types)
-  tt$cell_type_predicted <- factor(tt$cell_type_predicted, levels = cell_types)
-  
-  bind_rows(
-    kap(tt, cell_type_annotated, cell_type_predicted),
-    # f_meas(tt, cell_type_annotated, cell_type_predicted),
-    # precision(tt, cell_type_annotated, cell_type_predicted),
-    # recall(tt, cell_type_annotated, cell_type_predicted),
-    bal_accuracy(tt, cell_type_annotated, cell_type_predicted),
-    mcc(tt, cell_type_annotated, cell_type_predicted),
-    # j_index(tt, cell_type_annotated, cell_type_predicted),
-  )
-}
 
 cohort <- snakemake@params[['cohort']]
 
@@ -182,32 +168,34 @@ df_acdc <- inner_join(df_annot, types_acdc) %>%
 
 cat("\n Reading other \n")
 
-# df_other <- dir(snakemake@params[['other_workflow_path']],
-#     pattern=cohort,
-#     full.names=TRUE) %>% 
-#   map_dfr(read_csv)
+cohort_tmp <- gsub("-", "_", cohort, fixed=TRUE)
+
+df_other <- dir(snakemake@params[['other_workflow_path']],
+    pattern=cohort_tmp,
+    full.names=TRUE) %>% 
+  map_dfr(read_csv)
 
 
-# df_other <- gather(df_other, annotation_method, cell_type_predicted, -(id:params))
+df_other <- gather(df_other, annotation_method, cell_type_predicted, -(id:params))
 
-# df_other <- rename(df_other, cell_id = id)
+df_other <- rename(df_other, cell_id = id)
 
-# df_other$method <- paste0(df_other$method, "_", df_other$annotation_method)
+df_other$method <- paste0(df_other$method, "_", df_other$annotation_method)
 
-# df_other <- select(df_other, -annotation_method)
+df_other <- select(df_other, -annotation_method)
 
-# df_other <- inner_join(df_annot, df_other)
+df_other <- inner_join(df_annot, df_other)
 
-# df_other_acc <- df_other %>% mutate(
-#   cell_type_annotated = factor(cell_type_annotated, levels=cell_types),
-#   cell_type_predicted = factor(cell_type_predicted, levels=cell_types)
-# ) %>% 
-#   group_by(annotator_test, method, params) %>% 
-#   do(
-#     acc_wrap(.)
-#   ) %>% 
-#   ungroup() %>% 
-#   mutate(annotator_train = "None")
+df_other_acc <- df_other %>% mutate(
+  cell_type_annotated = factor(cell_type_annotated, levels=cell_types),
+  cell_type_predicted = factor(cell_type_predicted, levels=cell_types)
+) %>% 
+  group_by(annotator_test, method, params) %>% 
+  do(
+    acc_wrap(.)
+  ) %>% 
+  ungroup() %>% 
+  mutate(annotator_train = "None")
 
 # save.image("~/deleteme.rds  ")
 
@@ -218,9 +206,8 @@ cat("\n Reading other \n")
 
 df_plot <- bind_rows(
   df_astir_default,
-  df_astir_high_confidence,
   df_cytoflda,
-  # df_other_acc,
+  df_other_acc,
   df_acdc
 )
 
@@ -257,7 +244,7 @@ method_cols <- c(
 df_plot <- df_plot[!is.nan(df_plot$.estimate),]
 
 df_plot <- group_by(df_plot, .metric) %>%
-  mutate(norm_estimate = (.estimate - mean(.estimate)) / sd(.estimate) )
+  mutate(norm_estimate = (.estimate - mean(.estimate, na.rm=T)) / sd(.estimate, na.rm=T) )
 
 fill_cols <- c("None"="grey50",
                "Annotator-1"=scales::muted('blue'),
@@ -275,6 +262,7 @@ ggplot(df_plot, aes(x = forcats::fct_reorder(method, norm_estimate), y = .estima
         legend.position = "bottom",
         axis.text.x = element_text(size=8))
 
+df_plot$cohort <- snakemake@params[['cohort']]
 
 ggsave(snakemake@output[['plot']], width=10, height=10)
 

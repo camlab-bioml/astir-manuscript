@@ -1,0 +1,501 @@
+cell_id	cell_type	annotator
+BaselTMA_SP42_46_X10Y7_560	Endothelial	Annotator-2
+BaselTMA_SP43_170_X3Y3_1408	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_6_X11Y1_1704	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_1645	Epithelial (basal)	Annotator-2
+BaselTMA_SP43_170_X3Y3_1808	Unclear	Annotator-2
+BaselTMA_SP42_46_X10Y7_867	T cells	Annotator-2
+BaselTMA_SP43_122_X12Y8_363	Unclear	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_2261	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_6_X11Y1_1623	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_1749	Stromal	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_448	Stromal	Annotator-2
+BaselTMA_SP43_170_X3Y3_1017	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_122_X12Y8_1562	Stromal	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_107	Epithelial (other)	Annotator-2
+BaselTMA_SP43_122_X12Y8_1131	Unclear	Annotator-2
+BaselTMA_SP42_46_X10Y7_549	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_122_X12Y8_1842	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_46_X10Y7_2864	Stromal	Annotator-2
+BaselTMA_SP43_122_X12Y8_726	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X9Y4_185_38	Unclear	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_408	Epithelial (basal)	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_738	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_1916	Epithelial (basal)	Annotator-2
+BaselTMA_SP43_122_X12Y8_205	Stromal	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_913	Stromal	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_739	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_122_X12Y8_573	Stromal	Annotator-2
+BaselTMA_SP42_123_X8Y6_2	Stromal	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_2221	Unclear	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_2504	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_140_X10Y7_855	Unclear	Annotator-2
+BaselTMA_SP43_140_X10Y7_1690	Stromal	Annotator-2
+BaselTMA_SP42_6_X11Y1_448	Stromal	Annotator-2
+BaselTMA_SP43_140_X10Y7_1510	Stromal	Annotator-2
+BaselTMA_SP42_6_X11Y1_1654	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_122_X12Y8_2301	Unclear	Annotator-2
+BaselTMA_SP42_6_X11Y1_114	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_122_X12Y8_559	Stromal	Annotator-2
+BaselTMA_SP42_6_X11Y1_1290	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_1547	Epithelial (other)	Annotator-2
+BaselTMA_SP43_170_X3Y3_379	Unclear	Annotator-2
+BaselTMA_SP43_140_X10Y7_273	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_147_X6Y6_310	Endothelial	Annotator-2
+BaselTMA_SP43_122_X12Y8_1315	Stromal	Annotator-2
+BaselTMA_SP42_6_X11Y1_1226	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_140_X10Y7_410	Stromal	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_2229	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_147_X6Y6_20	T cells	Annotator-2
+BaselTMA_SP42_46_X10Y7_1815	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_2341	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_122_X12Y8_776	Stromal	Annotator-2
+BaselTMA_SP42_46_X10Y7_463	Unclear	Annotator-2
+BaselTMA_SP43_122_X12Y8_835	Stromal	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_1643	Unclear	Annotator-2
+BaselTMA_SP43_140_X10Y7_294	Epithelial (basal)	Annotator-2
+BaselTMA_SP43_147_X6Y6_13	Unclear	Annotator-2
+BaselTMA_SP43_122_X12Y8_2729	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_962	Macrophage	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_820	Epithelial (basal)	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_395	Epithelial (basal)	Annotator-2
+BaselTMA_SP43_140_X10Y7_1659	Epithelial (basal)	Annotator-2
+BaselTMA_SP43_170_X3Y3_1244	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_6_X11Y1_764	T cells	Annotator-2
+BaselTMA_SP43_170_X3Y3_1507	Unclear	Annotator-2
+BaselTMA_SP43_122_X12Y8_3109	Stromal	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_2381	Stromal	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_1945	Stromal	Annotator-2
+BaselTMA_SP43_170_X3Y3_1261	Stromal	Annotator-2
+BaselTMA_SP43_122_X12Y8_1280	Stromal	Annotator-2
+BaselTMA_SP42_6_X11Y1_134	Stromal	Annotator-2
+BaselTMA_SP43_140_X10Y7_1043	Epithelial (basal)	Annotator-2
+BaselTMA_SP42_46_X10Y7_1938	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_170_X3Y3_87	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_170_X3Y3_311	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_682	Epithelial (basal)	Annotator-2
+BaselTMA_SP43_170_X3Y3_1069	Stromal	Annotator-2
+BaselTMA_SP43_122_X12Y8_3377	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_122_X12Y8_209	Unclear	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_877	Epithelial (other)	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_2327	Stromal	Annotator-2
+BaselTMA_SP42_46_X10Y7_860	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_122_X12Y8_1178	Stromal	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_934	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_6_X11Y1_726	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_902	Stromal	Annotator-2
+BaselTMA_SP43_170_X3Y3_1741	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_1760	Stromal	Annotator-2
+BaselTMA_SP43_122_X12Y8_1693	Stromal	Annotator-2
+BaselTMA_SP42_6_X11Y1_1042	Stromal	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_1540	Epithelial (basal)	Annotator-2
+BaselTMA_SP43_122_X12Y8_1197	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_1653	Stromal	Annotator-2
+BaselTMA_SP42_46_X10Y7_2607	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_1176	Epithelial (basal)	Annotator-2
+BaselTMA_SP43_170_X3Y3_1003	Unclear	Annotator-2
+BaselTMA_SP42_46_X10Y7_2446	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_122_X12Y8_2788	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_6_X11Y1_120	Stromal	Annotator-2
+BaselTMA_SP42_46_X10Y7_558	Unclear	Annotator-2
+BaselTMA_SP42_46_X10Y7_286	T cells	Annotator-2
+BaselTMA_SP42_6_X11Y1_1545	B cells	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_2391	Epithelial (basal)	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_1619	Epithelial (basal)	Annotator-2
+BaselTMA_SP43_122_X12Y8_2265	Stromal	Annotator-2
+BaselTMA_SP43_122_X12Y8_3159	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_122_X12Y8_3388	Stromal	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_699	Stromal	Annotator-2
+BaselTMA_SP42_6_X11Y1_955	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_46_X10Y7_1293	Stromal	Annotator-2
+BaselTMA_SP42_6_X11Y1_1826	Stromal	Annotator-2
+BaselTMA_SP42_46_X10Y7_1675	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_1278	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_46_X10Y7_770	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_122_X12Y8_977	Stromal	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_2141	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_122_X12Y8_373	Stromal	Annotator-2
+BaselTMA_SP43_122_X12Y8_2426	Stromal	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_1317	Stromal	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_377	Stromal	Annotator-2
+BaselTMA_SP42_46_X10Y7_2457	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_140_X10Y7_103	Unclear	Annotator-2
+BaselTMA_SP43_140_X10Y7_510	Unclear	Annotator-2
+BaselTMA_SP43_122_X12Y8_1011	Stromal	Annotator-2
+BaselTMA_SP43_170_X3Y3_147	Stromal	Annotator-2
+BaselTMA_SP43_170_X3Y3_873	Stromal	Annotator-2
+BaselTMA_SP43_122_X12Y8_55	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_140_X10Y7_2	Unclear	Annotator-2
+BaselTMA_SP43_122_X12Y8_2579	Stromal	Annotator-2
+BaselTMA_SP42_46_X10Y7_315	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_170_X3Y3_1038	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_140_X10Y7_938	Stromal	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_248	Stromal	Annotator-2
+BaselTMA_SP43_122_X12Y8_1583	Stromal	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_1675	Stromal	Annotator-2
+BaselTMA_SP43_140_X10Y7_1270	Stromal	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_1375	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_1915	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_122_X12Y8_603	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_140_X10Y7_598	Epithelial (basal)	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_1882	Epithelial (basal)	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_2504	Epithelial (basal)	Annotator-2
+BaselTMA_SP42_6_X11Y1_1638	Stromal	Annotator-2
+BaselTMA_SP43_170_X3Y3_1464	Unclear	Annotator-2
+BaselTMA_SP43_122_X12Y8_952	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_123_X8Y6_66	Stromal	Annotator-2
+BaselTMA_SP43_140_X10Y7_485	Stromal	Annotator-2
+BaselTMA_SP43_122_X12Y8_1726	Stromal	Annotator-2
+BaselTMA_SP43_122_X12Y8_910	Stromal	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_381	Unclear	Annotator-2
+BaselTMA_SP43_122_X12Y8_1065	Stromal	Annotator-2
+BaselTMA_SP42_6_X11Y1_1512	B cells	Annotator-2
+BaselTMA_SP43_147_X6Y6_25	Unclear	Annotator-2
+BaselTMA_SP43_140_X10Y7_597	Unclear	Annotator-2
+BaselTMA_SP43_122_X12Y8_1341	Stromal	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_498	Unclear	Annotator-2
+BaselTMA_SP43_170_X3Y3_675	Unclear	Annotator-2
+BaselTMA_SP42_46_X10Y7_2206	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_170_X3Y3_1681	Unclear	Annotator-2
+BaselTMA_SP43_122_X12Y8_2161	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_864	Macrophage	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_1763	Epithelial (other)	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_1298	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_140_X10Y7_1576	Stromal	Annotator-2
+BaselTMA_SP43_140_X10Y7_832	T cells	Annotator-2
+BaselTMA_SP43_122_X12Y8_717	Unclear	Annotator-2
+BaselTMA_SP42_46_X10Y7_148	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_140_X10Y7_362	Stromal	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_1194	Stromal	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_684	Stromal	Annotator-2
+BaselTMA_SP43_140_X10Y7_1532	Unclear	Annotator-2
+BaselTMA_SP43_122_X12Y8_148	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_122_X12Y8_309	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_140_X10Y7_1734	Unclear	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_1071	Stromal	Annotator-2
+BaselTMA_SP42_46_X10Y7_1530	B cells	Annotator-2
+BaselTMA_SP43_122_X12Y8_998	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_46_X10Y7_529	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_1315	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_122_X12Y8_3413	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_1564	Epithelial (basal)	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_555	Stromal	Annotator-2
+BaselTMA_SP42_6_X11Y1_138	Stromal	Annotator-2
+BaselTMA_SP43_122_X12Y8_2794	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_46_X10Y7_2321	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_6_X11Y1_186	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_1799	Epithelial (basal)	Annotator-2
+BaselTMA_SP43_147_X6Y6_243	Unclear	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_114	Stromal	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_1266	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_170_X3Y3_1979	Stromal	Annotator-2
+BaselTMA_SP43_122_X12Y8_2928	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_140_X10Y7_443	Stromal	Annotator-2
+BaselTMA_SP42_6_X11Y1_1452	B cells	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_2406	Unclear	Annotator-2
+BaselTMA_SP43_140_X10Y7_910	Unclear	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_1486	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_140_X10Y7_520	Stromal	Annotator-2
+BaselTMA_SP43_122_X12Y8_3044	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_1027	Stromal	Annotator-2
+BaselTMA_SP42_46_X10Y7_1118	Epithelial (other)	Annotator-2
+BaselTMA_SP43_122_X12Y8_2800	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_2085	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_1280	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_160	Macrophage	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_913	T cells	Annotator-2
+BaselTMA_SP43_140_X10Y7_1565	Stromal	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_1468	Unclear	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_1658	Epithelial (basal)	Annotator-2
+BaselTMA_SP43_122_X12Y8_178	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_46_X10Y7_2678	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_140_X10Y7_456	T cells	Annotator-2
+BaselTMA_SP43_170_X3Y3_824	Unclear	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_2122	Stromal	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_1127	Stromal	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_570	Epithelial (other)	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_1956	Unclear	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_851	Unclear	Annotator-2
+BaselTMA_SP43_170_X3Y3_1656	Unclear	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_1525	Stromal	Annotator-2
+BaselTMA_SP42_123_X8Y6_339	Epithelial (basal)	Annotator-2
+BaselTMA_SP43_170_X3Y3_1021	Stromal	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_2329	Epithelial (other)	Annotator-2
+BaselTMA_SP43_170_X3Y3_1439	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_6_X11Y1_1518	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_614	Unclear	Annotator-2
+BaselTMA_SP43_140_X10Y7_1098	Epithelial (basal)	Annotator-2
+BaselTMA_SP43_170_X3Y3_614	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_122_X12Y8_1256	Stromal	Annotator-2
+BaselTMA_SP43_170_X3Y3_1701	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_170_X3Y3_179	Stromal	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_2337	Epithelial (basal)	Annotator-2
+BaselTMA_SP43_170_X3Y3_587	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_1728	Stromal	Annotator-2
+BaselTMA_SP42_46_X10Y7_1027	B cells	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_431	Stromal	Annotator-2
+BaselTMA_SP43_170_X3Y3_417	Stromal	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_315	Unclear	Annotator-2
+BaselTMA_SP42_46_X10Y7_492	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_170_X3Y3_1501	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_46_X10Y7_243	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_46_X10Y7_118	T cells	Annotator-2
+BaselTMA_SP42_123_X8Y6_200	Stromal	Annotator-2
+BaselTMA_SP42_46_X10Y7_1108	Stromal	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_1992	Unclear	Annotator-2
+BaselTMA_SP43_170_X3Y3_1073	Stromal	Annotator-2
+BaselTMA_SP43_122_X12Y8_3151	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_123_X8Y6_197	Stromal	Annotator-2
+BaselTMA_SP43_122_X12Y8_754	Stromal	Annotator-2
+BaselTMA_SP43_122_X12Y8_3279	Stromal	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_591	Epithelial (basal)	Annotator-2
+BaselTMA_SP43_140_X10Y7_1562	Epithelial (basal)	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_2559	Epithelial (basal)	Annotator-2
+BaselTMA_SP42_46_X10Y7_1209	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_140_X10Y7_706	Epithelial (basal)	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_2343	Unclear	Annotator-2
+BaselTMA_SP43_122_X12Y8_39	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_140_X10Y7_904	Stromal	Annotator-2
+BaselTMA_SP43_122_X12Y8_849	Stromal	Annotator-2
+BaselTMA_SP43_122_X12Y8_1984	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_46_X10Y7_715	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_122_X12Y8_3125	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_170_X3Y3_1035	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_46_X10Y7_2262	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_122_X12Y8_1244	Stromal	Annotator-2
+BaselTMA_SP43_170_X3Y3_1473	Stromal	Annotator-2
+BaselTMA_SP43_122_X12Y8_2390	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_122_X12Y8_596	T cells	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_335	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_46_X10Y7_1369	Stromal	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_2558	Unclear	Annotator-2
+BaselTMA_SP42_123_X8Y6_75	Stromal	Annotator-2
+BaselTMA_SP43_122_X12Y8_3153	Stromal	Annotator-2
+BaselTMA_SP42_46_X10Y7_2299	Stromal	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_2311	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_46_X10Y7_1923	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_170_X3Y3_1372	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_170_X3Y3_1157	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_2068	Epithelial (other)	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_772	Epithelial (basal)	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_84	Stromal	Annotator-2
+BaselTMA_SP42_46_X10Y7_2885	Unclear	Annotator-2
+BaselTMA_SP43_122_X12Y8_915	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_6_X11Y1_1641	Stromal	Annotator-2
+BaselTMA_SP42_46_X10Y7_1532	Epithelial (basal)	Annotator-2
+BaselTMA_SP42_46_X10Y7_1950	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_1203	Stromal	Annotator-2
+BaselTMA_SP42_46_X10Y7_2417	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_170_X3Y3_1903	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_524	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_46_X10Y7_2780	Epithelial (basal)	Annotator-2
+BaselTMA_SP42_6_X11Y1_1274	Stromal	Annotator-2
+BaselTMA_SP43_170_X3Y3_1158	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_2167	Stromal	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_1858	Epithelial (other)	Annotator-2
+BaselTMA_SP43_170_X3Y3_1076	Epithelial (basal)	Annotator-2
+BaselTMA_SP42_6_X11Y1_918	Unclear	Annotator-2
+BaselTMA_SP43_140_X10Y7_694	Epithelial (basal)	Annotator-2
+BaselTMA_SP42_6_X11Y1_1009	Epithelial (basal)	Annotator-2
+BaselTMA_SP43_170_X3Y3_1177	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_147_X6Y6_263	T cells	Annotator-2
+BaselTMA_SP42_6_X11Y1_1375	Stromal	Annotator-2
+BaselTMA_SP42_46_X10Y7_1146	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_140_X10Y7_124	Epithelial (basal)	Annotator-2
+BaselTMA_SP42_46_X10Y7_1726	Macrophage	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_1271	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_123_X8Y6_93	Stromal	Annotator-2
+BaselTMA_SP43_170_X3Y3_1	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_122_X12Y8_3376	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_170_X3Y3_1687	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_118	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_787	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_1865	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_123_X8Y6_331	Stromal	Annotator-2
+BaselTMA_SP43_140_X10Y7_297	Stromal	Annotator-2
+BaselTMA_SP43_122_X12Y8_1166	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_170_X3Y3_1151	Stromal	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_786	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_122_X12Y8_230	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_2240	Stromal	Annotator-2
+BaselTMA_SP43_140_X10Y7_716	Unclear	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_1544	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_13	Unclear	Annotator-2
+BaselTMA_SP43_140_X10Y7_573	Epithelial (basal)	Annotator-2
+BaselTMA_SP43_170_X3Y3_446	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_170_X3Y3_193	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_1722	T cells	Annotator-2
+BaselTMA_SP43_170_X3Y3_353	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_46_X10Y7_1723	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_122_X12Y8_171	Stromal	Annotator-2
+BaselTMA_SP42_6_X11Y1_1364	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_672	T cells	Annotator-2
+BaselTMA_SP42_46_X10Y7_1197	T cells	Annotator-2
+BaselTMA_SP43_140_X10Y7_1564	Stromal	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_43	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_170_X3Y3_726	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_122_X12Y8_2421	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_46_X10Y7_1939	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_122_X12Y8_2714	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_122_X12Y8_2999	Stromal	Annotator-2
+BaselTMA_SP43_122_X12Y8_2234	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_46_X10Y7_2883	T cells	Annotator-2
+BaselTMA_SP43_140_X10Y7_670	Epithelial (basal)	Annotator-2
+BaselTMA_SP42_46_X10Y7_390	T cells	Annotator-2
+BaselTMA_SP42_123_X8Y6_18	Stromal	Annotator-2
+BaselTMA_SP42_123_X8Y6_169	Epithelial (basal)	Annotator-2
+BaselTMA_SP43_170_X3Y3_1113	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_12	Epithelial (other)	Annotator-2
+BaselTMA_SP43_122_X12Y8_2793	Stromal	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_324	Stromal	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_405	Stromal	Annotator-2
+BaselTMA_SP43_170_X3Y3_570	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_34	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_122_X12Y8_1595	Stromal	Annotator-2
+BaselTMA_SP43_122_X12Y8_144	Stromal	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_732	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_123_X8Y6_44	Macrophage	Annotator-2
+BaselTMA_SP43_122_X12Y8_1759	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_123_X8Y6_332	Stromal	Annotator-2
+BaselTMA_SP43_147_X6Y6_238	Macrophage	Annotator-2
+BaselTMA_SP42_46_X10Y7_2288	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_46_X10Y7_297	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_6_X11Y1_638	Stromal	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_772	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_6_X11Y1_1162	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_1421	Stromal	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_444	Stromal	Annotator-2
+BaselTMA_SP43_170_X3Y3_1605	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_170_X3Y3_1636	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_140_X10Y7_436	Epithelial (basal)	Annotator-2
+BaselTMA_SP42_46_X10Y7_1353	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_122_X12Y8_1105	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_170_X3Y3_588	Stromal	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_1340	Unclear	Annotator-2
+BaselTMA_SP43_170_X3Y3_527	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_122_X12Y8_2335	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_2498	Epithelial (basal)	Annotator-2
+BaselTMA_SP42_6_X11Y1_1483	Stromal	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_2522	Unclear	Annotator-2
+BaselTMA_SP42_46_X10Y7_1636	T cells	Annotator-2
+BaselTMA_SP42_46_X10Y7_2450	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_122_X12Y8_1385	Stromal	Annotator-2
+BaselTMA_SP42_6_X11Y1_1779	Stromal	Annotator-2
+BaselTMA_SP42_46_X10Y7_513	T cells	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_1522	Epithelial (other)	Annotator-2
+BaselTMA_SP43_170_X3Y3_1478	Stromal	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_290	Unclear	Annotator-2
+BaselTMA_SP42_46_X10Y7_1714	Unclear	Annotator-2
+BaselTMA_SP42_6_X11Y1_1266	Stromal	Annotator-2
+BaselTMA_SP43_140_X10Y7_508	Stromal	Annotator-2
+BaselTMA_SP43_122_X12Y8_1932	Stromal	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_2448	Epithelial (other)	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_1043	Epithelial (basal)	Annotator-2
+BaselTMA_SP43_122_X12Y8_3041	Stromal	Annotator-2
+BaselTMA_SP42_46_X10Y7_2217	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_140_X10Y7_1023	T cells	Annotator-2
+BaselTMA_SP42_6_X11Y1_1626	Stromal	Annotator-2
+BaselTMA_SP43_170_X3Y3_154	Stromal	Annotator-2
+BaselTMA_SP43_170_X3Y3_494	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_251	Unclear	Annotator-2
+BaselTMA_SP43_140_X10Y7_1123	Epithelial (basal)	Annotator-2
+BaselTMA_SP43_170_X3Y3_1818	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_394	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_46_X10Y7_320	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_140_X10Y7_194	T cells	Annotator-2
+BaselTMA_SP42_6_X11Y1_939	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_183	T cells	Annotator-2
+BaselTMA_SP41_218_X9Y4_185_80	Stromal	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_2328	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_122_X12Y8_2802	Stromal	Annotator-2
+BaselTMA_SP42_6_X11Y1_966	Stromal	Annotator-2
+BaselTMA_SP43_140_X10Y7_738	T cells	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_1370	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_140_X10Y7_1583	Stromal	Annotator-2
+BaselTMA_SP42_6_X11Y1_1315	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_170_X3Y3_269	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_170_X3Y3_1607	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_170_X3Y3_288	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_140_X10Y7_1191	Stromal	Annotator-2
+BaselTMA_SP42_6_X11Y1_1019	Stromal	Annotator-2
+BaselTMA_SP43_170_X3Y3_1730	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_6_X11Y1_1389	Stromal	Annotator-2
+BaselTMA_SP43_122_X12Y8_2666	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_1356	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_46_X10Y7_1786	T cells	Annotator-2
+BaselTMA_SP42_46_X10Y7_1770	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_46_X10Y7_541	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_972	Epithelial (other)	Annotator-2
+BaselTMA_SP42_6_X11Y1_215	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_170_X3Y3_503	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_170_X3Y3_386	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_2402	Epithelial (basal)	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_1235	Stromal	Annotator-2
+BaselTMA_SP42_6_X11Y1_799	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_170_X3Y3_650	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_122_X12Y8_1060	Stromal	Annotator-2
+BaselTMA_SP43_122_X12Y8_975	Stromal	Annotator-2
+BaselTMA_SP43_140_X10Y7_676	Unclear	Annotator-2
+BaselTMA_SP43_122_X12Y8_3134	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_170_X3Y3_461	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_46_X10Y7_2360	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_140_X10Y7_514	Unclear	Annotator-2
+BaselTMA_SP43_122_X12Y8_1884	Stromal	Annotator-2
+BaselTMA_SP43_122_X12Y8_3306	Endothelial	Annotator-2
+BaselTMA_SP43_140_X10Y7_1055	Stromal	Annotator-2
+BaselTMA_SP42_6_X11Y1_1830	Stromal	Annotator-2
+BaselTMA_SP43_122_X12Y8_110	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_122_X12Y8_187	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_170_X3Y3_769	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_6_X11Y1_147	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_140_X10Y7_803	Stromal	Annotator-2
+BaselTMA_SP43_122_X12Y8_1927	Stromal	Annotator-2
+BaselTMA_SP43_122_X12Y8_2410	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_238	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_548	Unclear	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_406	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_170_X3Y3_1774	Stromal	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_1984	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_6_X11Y1_38	Stromal	Annotator-2
+BaselTMA_SP42_6_X11Y1_1249	Unclear	Annotator-2
+BaselTMA_SP42_46_X10Y7_2065	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_46_X10Y7_2021	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_46_X10Y7_1768	Endothelial	Annotator-2
+BaselTMA_SP42_6_X11Y1_1312	Stromal	Annotator-2
+BaselTMA_SP42_46_X10Y7_1358	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_122_X12Y8_2565	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_46_X10Y7_2	T cells	Annotator-2
+BaselTMA_SP42_46_X10Y7_1143	T cells	Annotator-2
+BaselTMA_SP43_140_X10Y7_219	Unclear	Annotator-2
+BaselTMA_SP43_122_X12Y8_2755	Unclear	Annotator-2
+BaselTMA_SP43_140_X10Y7_1781	Stromal	Annotator-2
+BaselTMA_SP42_46_X10Y7_2429	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_46_X10Y7_2569	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_383	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_187	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_122_X12Y8_1896	Stromal	Annotator-2
+BaselTMA_SP42_46_X10Y7_1450	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X9Y4_185_77	T cells	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_1705	Endothelial	Annotator-2
+BaselTMA_SP42_6_X11Y1_1550	Stromal	Annotator-2
+BaselTMA_SP43_140_X10Y7_36	Unclear	Annotator-2
+BaselTMA_SP43_147_X6Y6_29	T cells	Annotator-2
+BaselTMA_SP43_170_X3Y3_1674	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_625	Epithelial (basal)	Annotator-2
+BaselTMA_SP43_122_X12Y8_2955	Stromal	Annotator-2
+BaselTMA_SP42_46_X10Y7_916	Stromal	Annotator-2
+BaselTMA_SP42_46_X10Y7_1825	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_795	Unclear	Annotator-2
+BaselTMA_SP41_218_X10Y4_193_314	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_6_X11Y1_7	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_46_X10Y7_1560	Unclear	Annotator-2
+BaselTMA_SP43_170_X3Y3_1579	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_46_X10Y7_1647	Macrophage	Annotator-2
+BaselTMA_SP43_140_X10Y7_1290	Epithelial (basal)	Annotator-2
+BaselTMA_SP43_122_X12Y8_2153	Stromal	Annotator-2
+BaselTMA_SP43_170_X3Y3_1725	Stromal	Annotator-2
+BaselTMA_SP43_122_X12Y8_1211	Epithelial (luminal)	Annotator-2
+BaselTMA_SP43_170_X3Y3_1125	Epithelial (luminal)	Annotator-2
+BaselTMA_SP41_218_X9Y4_240_1024	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_6_X11Y1_987	Epithelial (luminal)	Annotator-2
+BaselTMA_SP42_46_X10Y7_2537	Epithelial (luminal)	Annotator-2

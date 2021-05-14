@@ -52,10 +52,15 @@ cla_outputs = {
     # 'jackson_annotations_fixed': [output_path + "cla/Basel_annotation_fixed.csv", output_path + "cla/Zurich_annotation_fixed.csv"],
     'anndata': expand(output_path + "anndata/{cohort}.h5ad", cohort=['basel','zurich1', 'wagner']),
     'annotation_results': annotation_results,
-    'plots': expand(output_path + "cla/output_figs_tables/cla_{what}_{cohort}.png", cohort=['zurich1','basel','wagner'], what=['annotation']),
+    'plots': expand(output_path + "cla/output_figs_tables/cla_{what}_{cohort}.png", cohort=['zurich1','basel','wagner', 'lin-cycif'], what=['annotation']),
     'wag_clear': output_path + "cla/wagner_clusters_by_cell_id.csv",
     'wag_clus': expand(output_path + "cla/output_figs_tables/wagner/cla_{what}_wagner.png",what=['cluster']),
-    'plots2': expand(output_path + "cla/output_figs_tables/cla_{what}_{cohort}.png", cohort=['zurich1','basel'], what=['cluster'])
+    'plots2': expand(output_path + "cla/output_figs_tables/cla_{what}_{cohort}.png", cohort=['zurich1','basel'], what=['cluster']),
+    'lin_subset': output_path + 'cla/lin-cycif-subset.h5ad',
+    'lin_cluster_results': output_path + "cla/output_figs_tables/lin-cycif/cla_cluster_lin-cycif.tsv",
+    'annotation_fig': output_path + "figures/cla/annotation.pdf",
+    'clustering_fig': output_path + "figures/cla/clustering.pdf",
+    'phenograph_fig': output_path + "figures/cla/phenograph.pdf"
 }
 
 
@@ -138,7 +143,7 @@ rule graph_annotation_accuracy:
         cohort='{cohort}',
         cytofLDA_path=output_path + "cla/",
         acdc_path=output_path + "cla/",
-        other_workflow_path=output_path + "results/other-methods-cell-type-assignments/",
+        other_workflow_path=output_path + "results/",
         taproom_path=config['taproom_path'],
     input:
         cla_outputs['annotation_results'],
@@ -158,7 +163,7 @@ rule graph_cluster_accuracy:
         cohort='{cohort}',
         cytofLDA_path=output_path + "cla/",
         acdc_path=output_path + "cla/",
-        other_workflow_path=output_path + "results/other-methods-cell-type-assignments/",
+        other_workflow_path=output_path + "results/",
         taproom_path=config['taproom_path'],
     input:
         coarse_fine_mapping=lambda wildcards: config['coarse_fine_mapping'][wildcards.cohort],
@@ -179,7 +184,7 @@ rule graph_cluster_accuracy_wagner:
         cohort='wagner',
         cytofLDA_path=output_path + "cla/",
         acdc_path=output_path + "cla/",
-        other_workflow_path=output_path + "results/other-methods-cell-type-assignments/",
+        other_workflow_path=output_path + "results/",
         taproom_path=config['taproom_path'],
     input:
         coarse_fine_mapping=config['coarse_fine_mapping']['wagner'],
@@ -193,4 +198,48 @@ rule graph_cluster_accuracy_wagner:
         tsv = output_path + "cla/output_figs_tables/wagner/cla_cluster_wagner.tsv",
     script:
         "graph-accuracy-vs-wagner.R"
-    
+
+rule graph_cluster_accuracy_lin:
+    params:
+        cohort='lin-cycif',
+        cytofLDA_path=output_path + "cla/",
+        acdc_path=output_path + "cla/",
+        other_workflow_path=output_path + "results/",
+        taproom_path=config['taproom_path'],
+    input:
+        clustering=config['cluster_mapping']['lin-cycif'],
+        tmp=cla_outputs['annotation_results'],
+        traintest = config['cla']['lin-cycif']['train_test'],
+        annotations= config['cla']['lin-cycif']['annotators'].values(),
+        astir_assignments=output_path+"astir_assignments/lin_cycif_astir_assignments.csv"
+    output:
+        plot = output_path + "cla/output_figs_tables/lin-cycif/cla_cluster_lin-cycif.png",
+        tsv = output_path + "cla/output_figs_tables/lin-cycif/cla_cluster_lin-cycif.tsv",
+    script:
+        "graph-accuracy-vs-clusters-lin.R"
+
+rule subset_lin:
+    input:
+        output_path + 'anndata/lin-cycif.h5ad'
+    output:
+        output_path + 'cla/lin-cycif-subset.h5ad'
+    shell:
+        'python pipeline/cla/subset-lin.py '
+        '--input_h5ad {input} '
+        '--output_h5ad {output} '
+
+rule cla_figure:
+    params:
+        output_fig_dir=output_path + "cla/output_figs_tables",
+    input:
+        cla_outputs['annotation_results'],
+        cla_outputs['wag_clus'],
+        cla_outputs['lin_cluster_results'],
+        cla_outputs['plots'],
+    output:
+        annotation=cla_outputs['annotation_fig'],
+        clustering=cla_outputs['clustering_fig'],
+        phenograph=cla_outputs['phenograph_fig'],
+    script:
+        'cla-fig.R'
+

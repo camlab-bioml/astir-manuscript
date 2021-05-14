@@ -1,0 +1,18 @@
+
+Lymphocyte:
+  - B cells
+  - T cells
+  
+Macrophage:
+  - Macrophage
+  
+Stromal:
+  - Stromal
+
+Endothelial:
+  - Endothelial
+
+Epithelial:
+  - Epithelial (basal)
+  - Epithelial (luminal)
+  - Epithelial (other)

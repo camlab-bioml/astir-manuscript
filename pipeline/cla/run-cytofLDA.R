@@ -70,7 +70,7 @@ data <- left_join(data, df_annot, by = "cell_id")
 data_train <- filter(data, cell_id %in% cell_ids_train)
 data_test <- filter(data, !(cell_id %in% cell_ids_train))
 
-print(paste("Data size", dim(data)))
+print(paste("Data train size", dim(data_train)))
 print(paste("Data test size", dim(data_test)))
 
 # stop("Done")

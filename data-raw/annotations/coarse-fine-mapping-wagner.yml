@@ -1,0 +1,14 @@
+
+Immune:
+  - Macrophage
+  - T cells
+
+Stromal:
+  - Stromal
+
+Endothelial:
+  - Endothelial
+
+Epithelial:
+  - Epithelial (basal)
+  - Epithelial (luminal)

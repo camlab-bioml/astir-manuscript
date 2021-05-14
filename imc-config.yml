@@ -39,8 +39,6 @@ lin_cycif:
 lin-cycif:
     marker_file: markers/lin_cycif-markers-v2.yml
 
-lin-cycif:
-    marker_file: markers/lin_cycif-markers.yml
 
 keren:
     marker_file: markers/keren-2018-markers-v1.yml
@@ -113,10 +111,10 @@ cla:
             "Annotator-1": data-raw/annotations/wagner/assignments-wagner_subset_for_annotation.csv-kieran.tsv
             "Annotator-2": data-raw/annotations/wagner/assignments-wagner_subset_for_annotation.csv-MG.tsv
         train_test: data-raw/annotations/wagner/wagner_train_test_split.tsv
-    # lin-cycif:
-    #     annotators:
-    #         "Annotator-1": data-raw/annotations/lin_cycif/assignments-lin_subset_for_annotation.csv-tmp.tsv
-    #     train_test: data-raw/annotations/lin_cycif/lin_train_test_split.tsv
+    lin-cycif:
+        annotators:
+            "Annotator-1": data-raw/annotations/lin_cycif/assignments-lin_subset_for_annotation.csv.tsv
+        train_test: data-raw/annotations/lin_cycif/lin_train_test_split.tsv
 
 coarse_fine_mapping: 
     basel: data-raw/annotations/coarse-fine-mapping.yml
@@ -127,7 +125,7 @@ cluster_mapping:
     basel: data-raw/annotations/cluster-mapping.yml
     zurich1: data-raw/annotations/cluster-mapping.yml
     wagner: data-raw/annotations/wagner/wagner-cluster-map.csv
-
+    lin-cycif: data-raw/annotations/lin_cycif/lin-clusters.tsv
 
 taproom_path: /home/campbell/share/projects/taproom
 

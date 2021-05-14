@@ -4,6 +4,9 @@ library(yardstick)
 library(yaml)
 library(matrixStats)
 
+
+source("pipeline/cla/helpers.R")
+
 #' We need:
 #' (1) train test 
 #' (2) cohort name
@@ -20,23 +23,6 @@ cohort <- snakemake@params[['cohort']]
 
 devtools::load_all(snakemake@params[['taproom_path']])
 
-acc_wrap <- function(tt) {
-  # annotated <- unique(as.character(tt$cell_type_annotated))
-  cell_types <- unique(intersect(tt$cell_type_annotated, tt$cell_type_predicted))
-  
-  tt$cell_type_annotated <- factor(tt$cell_type_annotated, levels = cell_types)
-  tt$cell_type_predicted <- factor(tt$cell_type_predicted, levels = cell_types)
-  
-  bind_rows(
-    kap(tt, cell_type_annotated, cell_type_predicted),
-    # f_meas(tt, cell_type_annotated, cell_type_predicted),
-    # precision(tt, cell_type_annotated, cell_type_predicted),
-    # recall(tt, cell_type_annotated, cell_type_predicted),
-    bal_accuracy(tt, cell_type_annotated, cell_type_predicted),
-    mcc(tt, cell_type_annotated, cell_type_predicted),
-    # j_index(tt, cell_type_annotated, cell_type_predicted),
-  )
-}
 
 coarse_mapping <- read_yaml(snakemake@input[['coarse_fine_mapping']])
 coarse_mapping <- unlist(Biobase::reverseSplit(coarse_mapping))
@@ -186,34 +172,36 @@ df_acdc <- inner_join(df_cluster, types_acdc) %>%
 
 cat("\n Reading Other \n")
 
-# df_other <- dir(snakemake@params[['other_workflow_path']],
-#     pattern=cohort,
-#     full.names=TRUE) %>% 
-#   map_dfr(read_csv)
+df_other <- dir(snakemake@params[['other_workflow_path']],
+    pattern=cohort,
+    full.names=TRUE) %>% 
+  map_dfr(read_csv)
 
-# df_other <- gather(df_other, annotation_method, cell_type_predicted, -(id:params))
+print(head(df_other))
 
-# df_other <- rename(df_other, cell_id = id)
+df_other <- gather(df_other, annotation_method, cell_type_predicted, -(id:params))
 
-# df_other$method <- paste0(df_other$method, "_", df_other$annotation_method)
+df_other <- rename(df_other, cell_id = id)
 
-# df_other <- select(df_other, -annotation_method)
+df_other$method <- paste0(df_other$method, "_", df_other$annotation_method)
+
+df_other <- select(df_other, -annotation_method)
 
 
-# df_other <- remap_to_coarse(df_other)
+df_other <- remap_to_coarse(df_other)
 
-# df_other <- inner_join(df_cluster, df_other, by="cell_id")
+df_other <- inner_join(df_cluster, df_other, by="cell_id")
 
-# df_other_acc <- df_other %>% mutate(
-#   cell_type_annotated = factor(cell_type_annotated, levels=cell_types),
-#   cell_type_predicted = factor(cell_type_predicted, levels=cell_types)
-# ) %>%
-#   group_by(method, params) %>%
-#   do(
-#     acc_wrap(.)
-#   ) %>%
-#   ungroup() %>%
-#   mutate(annotator_train = "None")
+df_other_acc <- df_other %>% mutate(
+  cell_type_annotated = factor(cell_type_annotated, levels=cell_types),
+  cell_type_predicted = factor(cell_type_predicted, levels=cell_types)
+) %>%
+  group_by(method, params) %>%
+  do(
+    acc_wrap(.)
+  ) %>%
+  ungroup() %>%
+  mutate(annotator_train = "None")
 
 
 
@@ -224,7 +212,7 @@ df_plot <- bind_rows(
   df_astir_default,
   # df_astir_high_confidence,
   df_cytoflda,
-  # df_other_acc,
+  df_other_acc,
   df_acdc
 )
 
@@ -273,6 +261,8 @@ ggplot(df_plot, aes(x = forcats::fct_reorder(method, norm_estimate), y = .estima
   labs(x = "Method", y = "Estimate") +
   scale_fill_manual(values=method_cols) +
   theme(legend.title = element_blank())
+
+df_plot$cohort <- snakemake@params[['cohort']]
 
 ggsave(snakemake@output[['plot']], width=10, height=10)
 
