@@ -65,7 +65,9 @@ cla_outputs = {
     'lin_lung_clustered': output_path + 'cla/lin-lung-clustered.h5ad',
     'astir': output_path + "cla/astir_assignments/lin_cycif_lung_astir_assignments.csv",
     'acdc': expand(output_path + "cla/lin_acdc_assignments/lin_cycif_lung_acdc_assignments_{method}.csv",
-    method=['absent', 'no-consider'])
+    method=['absent', 'no-consider']),
+    'cla_df': output_path + "figures/cla/cla_df.tsv",
+    'cytof_lda_fig': output_path + "figures/cla/cytoflda.pdf"
 }
 
 
@@ -264,6 +266,7 @@ rule cla_figure:
         annotation=cla_outputs['annotation_fig'],
         clustering=cla_outputs['clustering_fig'],
         phenograph=cla_outputs['phenograph_fig'],
+        cla_df=cla_outputs['cla_df'],
     script:
         'cla-fig.R'
 
@@ -340,5 +343,10 @@ rule cluster_lin_lung:
         '--input_h5ad {input} '
         '--output_h5ad {output} '
 
-
-
+rule cytoflda_fig:
+    input:
+        cla_outputs['cla_df'],
+    output:
+        cla_outputs['cytof_lda_fig'],
+    script:
+        'cytoflda-fig.R'

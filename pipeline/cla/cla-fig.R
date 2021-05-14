@@ -113,6 +113,8 @@ ggplot(df_cla, aes(x = factor(method,  levels = method_ordering), y = .estimate,
 
 ggsave(snakemake@output[['annotation']], width=8, height = 8)
 
+write_tsv(df_cla, snakemake@output[['cla_df']])
+
 # df_cla2 <- filter(df_cla, method_type != "Supervised", !grepl("high", method))
 # 
 # df_cla2 <- group_by(df_cla2, cohort, .metric, annotator_test) %>% 
@@ -229,7 +231,7 @@ ggsave(snakemake@output[['clustering']], width=8, height = 8)
 
 # Debug phenograph --------------------------------------------------------
 
-df_pg <- filter(df_cla, grepl("Phenograph", method), grepl("z_score", method))
+df_pg <- filter(df_clus, grepl("Phenograph", method), grepl("z_score", method))
 
 df_pg$k <- as.numeric(sapply(strsplit(df_pg$params, "_"), `[`, 4))
 df_pg$markers <- sapply(strsplit(df_pg$params, "_"), function(s) paste0(s[1:2], collapse="_"))
