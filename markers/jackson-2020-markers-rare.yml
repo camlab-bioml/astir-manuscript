@@ -1,0 +1,188 @@
+
+
+
+cell_types:
+  Stromal:
+    - Vimentin
+    - Fibronectin
+    - SMA
+    # - -E-Cadherin
+    # - -pan Cytokeratin
+  B cells:
+    - CD45
+    - CD20
+    # - -E-Cadherin
+    # - -pan Cytokeratin
+  T cells:
+    - CD45
+    - CD3    
+    # - -E-Cadherin
+    # - -pan Cytokeratin
+  # Epithelial:
+  #   - E-Cadherin
+  #   - pan Cytokeratin
+    # - -Vimentin
+    # - -Fibronectin
+    # - -CD3
+  Epithelial (PR+):
+    - E-Cadherin
+    - pan Cytokeratin
+    - Progesterone Receptor A/B antibody 1
+#     - -Vimentin
+#     - -Fibronectin
+# #    - Progesterone Receptor A/B antibody 2
+  # Epithelial (PR+ proliferative):
+  #   - E-Cadherin
+  #   - pan Cytokeratin
+  #   - Progesterone Receptor A/B antibody 1
+#     - -Vimentin
+#     - -Fibronectin
+# #    - Progesterone Receptor A/B antibody 2
+    - Ki-67
+  Epithelial (ER+):
+    - E-Cadherin
+    - pan Cytokeratin
+    - Rabbit IgG H L
+#     - -Vimentin
+#     - -Fibronectin
+  # Epithelial (ER+ proliferative):
+  #   - E-Cadherin
+  #   - pan Cytokeratin
+  #   - Rabbit IgG H L
+  #   - Ki-67
+#     - -Vimentin
+#     - -Fibronectin
+  Epithelial (ER+PR+):
+    - E-Cadherin
+    - pan Cytokeratin
+    - Rabbit IgG H L    
+    - Progesterone Receptor A/B antibody 1
+    # - Progesterone Receptor A/B antibody 2
+#     - -Vimentin
+#     - -Fibronectin
+#   Epithelial (ER+PR+ proliferative):
+#     - E-Cadherin
+#     - pan Cytokeratin
+#     - Rabbit IgG H L    
+#     - Progesterone Receptor A/B antibody 1
+#     # - Progesterone Receptor A/B antibody 2
+#     - Ki-67
+# #     - -Vimentin
+# #     - -Fibronectin
+  Epithelial (PR-ER-negative):
+    - E-Cadherin
+    - pan Cytokeratin
+#     - -Vimentin
+#     - -Fibronectin
+  Epithelial (PR-ER-negative proliferative):
+    - E-Cadherin
+    - pan Cytokeratin
+    - Ki-67
+#     - -Vimentin
+#     - -Fibronectin
+  Macrophage:
+    - CD45
+    - CD68    
+    # - -E-Cadherin
+    # - -pan Cytokeratin
+  Endothelial:
+    - vWF
+    - Vimentin    
+    # - -E-Cadherin
+    # - -pan Cytokeratin
+    
+
+cell_states:
+  none:
+    - Vimentin
+
+# Old below here
+
+# cell_types:
+#   Stromal:
+#     - Vimentin
+#     - Fibronectin
+#     - SMA
+#     - -E-Cadherin
+#     - -pan Cytokeratin
+#   B cells:
+#     - CD45
+#     - CD20
+#     - -E-Cadherin
+#     - -pan Cytokeratin
+#   T cells:
+#     - CD45
+#     - CD3    
+#     - -E-Cadherin
+#     - -pan Cytokeratin
+#   Epithelial (PR+):
+#     - E-Cadherin
+#     - pan Cytokeratin
+#     - Progesterone Receptor A/B antibody 1
+#     - -Vimentin
+#     - -Fibronectin
+# #    - Progesterone Receptor A/B antibody 2
+#   Epithelial (PR+ proliferative):
+#     - E-Cadherin
+#     - pan Cytokeratin
+#     - Progesterone Receptor A/B antibody 1
+#     - -Vimentin
+#     - -Fibronectin
+# #    - Progesterone Receptor A/B antibody 2
+#     - Ki-67
+#   Epithelial (ER+):
+#     - E-Cadherin
+#     - pan Cytokeratin
+#     - Rabbit IgG H L
+#     - -Vimentin
+#     - -Fibronectin
+#   Epithelial (ER+ proliferative):
+#     - E-Cadherin
+#     - pan Cytokeratin
+#     - Rabbit IgG H L
+#     - Ki-67
+#     - -Vimentin
+#     - -Fibronectin
+#   Epithelial (ER+PR+):
+#     - E-Cadherin
+#     - pan Cytokeratin
+#     - Rabbit IgG H L    
+#     - Progesterone Receptor A/B antibody 1
+#     - Progesterone Receptor A/B antibody 2
+#     - -Vimentin
+#     - -Fibronectin
+#   Epithelial (ER+PR+ proliferative):
+#     - E-Cadherin
+#     - pan Cytokeratin
+#     - Rabbit IgG H L    
+#     - Progesterone Receptor A/B antibody 1
+#     - Progesterone Receptor A/B antibody 2
+#     - Ki-67
+#     - -Vimentin
+#     - -Fibronectin
+#   Epithelial (PR-ER-negative):
+#     - E-Cadherin
+#     - pan Cytokeratin
+#     - -Vimentin
+#     - -Fibronectin
+#   Epithelial (PR-ER-negative proliferative):
+#     - E-Cadherin
+#     - pan Cytokeratin
+#     - Ki-67
+#     - -Vimentin
+#     - -Fibronectin
+#   Macrophage:
+#     - CD45
+#     - CD68    
+#     - -E-Cadherin
+#     - -pan Cytokeratin
+#   Endothelial:
+#     - vWF
+#     - Vimentin    
+#     - -E-Cadherin
+#     - -pan Cytokeratin
+    
+
+# cell_states:
+#   none:
+#     - Vimentin

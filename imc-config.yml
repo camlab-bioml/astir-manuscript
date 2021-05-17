@@ -113,7 +113,8 @@ cla:
         train_test: data-raw/annotations/wagner/wagner_train_test_split.tsv
     lin-cycif:
         annotators:
-            "Annotator-1": data-raw/annotations/lin_cycif/assignments-lin_subset_for_annotation.csv.tsv
+            "Annotator-1": data-raw/annotations/lin_cycif/assignments-lin_subset_for_annotation.csv-KC.tsv
+            "Annotator-2": data-raw/annotations/lin_cycif/assignments-lin_subset_for_annotation-MG.csv.tsv           
         train_test: data-raw/annotations/lin_cycif/lin_train_test_split.tsv
 
 coarse_fine_mapping: 
@@ -125,7 +126,7 @@ cluster_mapping:
     basel: data-raw/annotations/cluster-mapping.yml
     zurich1: data-raw/annotations/cluster-mapping.yml
     wagner: data-raw/annotations/wagner/wagner-cluster-map.csv
-    lin-cycif: data-raw/annotations/lin_cycif/lin-clusters.tsv
+    lin-cycif: data-raw/annotations/lin_cycif/lin-clusters-annotated.tsv
 
 taproom_path: /home/campbell/share/projects/taproom
 

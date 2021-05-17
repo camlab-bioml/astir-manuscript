@@ -30,6 +30,7 @@ cla_files <- dir(output_fig_dir, pattern="annotation*.*tsv", full.names=TRUE)
 
 df_cla <- map_dfr(cla_files, read_tsv)
 
+df_cla$method <- gsub("Manual", "z_score", df_cla$method, fixed=TRUE)
 
 df_cla <- filter(df_cla, !grepl("high", method))
 
@@ -90,6 +91,7 @@ df_cla_sum <- group_by(df_cla, .metric, method, method_type, cohort) %>%
 #   theme(legend.position = "top",
 #         panel.background = element_rect(fill='grey95'))
 
+
 ggplot(df_cla, aes(x = factor(method,  levels = method_ordering), y = .estimate, fill = method_type)) +
   geom_bar(stat='summary', alpha = 0.8) +
   # geom_boxplot() +
@@ -110,6 +112,8 @@ ggplot(df_cla, aes(x = factor(method,  levels = method_ordering), y = .estimate,
         panel.background = element_rect(fill='grey95'))
 
 ggsave(snakemake@output[['annotation']], width=8, height = 8)
+
+write_tsv(df_cla, snakemake@output[['cla_df']])
 
 # df_cla2 <- filter(df_cla, method_type != "Supervised", !grepl("high", method))
 # 
@@ -141,6 +145,8 @@ cluster_files <- c(cluster_files, file.path(output_fig_dir, "wagner/cla_cluster_
 cluster_files <- c(cluster_files, file.path(output_fig_dir, "lin-cycif/cla_cluster_lin-cycif.tsv"))
 
 df_clus <- map_dfr(cluster_files, read_tsv)
+
+df_clus$method <- gsub("Manual", "z_score", df_clus$method, fixed=TRUE)
 
 df_clus <- filter(df_clus, !grepl("high", method))
 
@@ -198,6 +204,8 @@ df_clus_sum <- group_by(df_clus, .metric, method, method_type, cohort) %>%
 #   theme(legend.position = "top",
 #         panel.background = element_rect(fill='grey95'))
 
+
+
 ggplot(df_clus, aes(x = factor(method,  levels = method_ordering), y = .estimate, fill = method_type)) +
   geom_bar(stat='summary', alpha = 0.8) +
   # geom_boxplot() +
@@ -223,7 +231,7 @@ ggsave(snakemake@output[['clustering']], width=8, height = 8)
 
 # Debug phenograph --------------------------------------------------------
 
-df_pg <- filter(df_cla, grepl("Phenograph", method), grepl("Manual", method))
+df_pg <- filter(df_clus, grepl("Phenograph", method), grepl("z_score", method))
 
 df_pg$k <- as.numeric(sapply(strsplit(df_pg$params, "_"), `[`, 4))
 df_pg$markers <- sapply(strsplit(df_pg$params, "_"), function(s) paste0(s[1:2], collapse="_"))
