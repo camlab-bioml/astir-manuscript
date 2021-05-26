@@ -176,7 +176,7 @@ cat("\n Reading other \n")
 cohort_tmp <- gsub("-", "_", cohort, fixed=TRUE)
 
 df_other <- dir(snakemake@params[['other_workflow_path']],
-    pattern=cohort_tmp,
+    pattern = paste0("GSVA-assignment-*.*", cohort_tmp),
     full.names=TRUE) %>% 
   map_dfr(read_csv)
 

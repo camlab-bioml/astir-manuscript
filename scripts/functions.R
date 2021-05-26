@@ -179,6 +179,18 @@ assign_clusters <- function(expression_mat, markers){
       dplyr::group_by(cluster) %>% 
       dplyr::mutate(thresh_score = score == max(score)) %>% 
       filter(thresh_score == TRUE)
+
+    cluster_count <- cluster_assignment %>%
+      group_by(cluster) %>%
+      tally() %>%
+      dplyr::rename("cluster_count" = "n")
+
+    cluster_assignment <- left_join(cluster_assignment, cluster_count) %>%
+      mutate(GSVA_cell_type = case_when(cluster_count > 1 ~ "Unknown",
+                                        TRUE ~ GSVA_cell_type)) %>% 
+      distinct() %>%
+      select(-cluster_count)
+
   }else{
     cluster_assignment <- NULL
   }
@@ -208,10 +220,39 @@ manual_cluster_assignment <- function(aggregated_expression, markers){
     dplyr::mutate(biggest = mean == max(mean)) %>% 
     filter(biggest == TRUE) %>% 
     dplyr::mutate(cluster = as.character(cluster))
+
+  cluster_count <- manual_annotation %>%
+      group_by(cluster) %>%
+      tally() %>%
+      dplyr::rename("cluster_count" = "n")
+
+  manual_annotation <- left_join(manual_annotation, cluster_count) %>%
+      mutate(Manual_cell_type = case_when(cluster_count > 1 ~ "Unknown",
+                                          TRUE ~ Manual_cell_type)) %>% 
+      distinct() %>%
+      select(-cluster_count)
   
   select(manual_annotation, Manual_cell_type, cluster)
 }
 
 
 
+astir_paper_theme <- function() {
+  cowplot::theme_cowplot(font_size = 12) +
+    theme(strip.background = element_rect(fill = "white"),
+          strip.text = element_text(face="bold"),
+          legend.text=element_text(size=12),
+          legend.title=element_text(face = "bold", size=14))
+}
 
+
+cohort_colours <- function(){
+  pal <- wes_palette("Darjeeling2", 4, type = c("discrete"))
+  
+  cohort_cols <- c(
+    "Basel" = pal[1],
+    "Zurich1" = pal[2],
+    "Wagner" = pal[3],
+    "Schapiro" = pal[4]
+  )
+}

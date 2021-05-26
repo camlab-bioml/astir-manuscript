@@ -244,15 +244,15 @@ rule graph_cluster_accuracy_lin:
     script:
         "graph-accuracy-vs-clusters-lin.R"
 
-# rule subset_lin:
-#     input:
-#         output_path + 'anndata/lin-cycif.h5ad'
-#     output:
-#         output_path + 'cla/lin-cycif-subset.h5ad'
-#     shell:
-#         'python pipeline/cla/subset-lin.py '
-#         '--input_h5ad {input} '
-#         '--output_h5ad {output} '
+rule subset_lin:
+    input:
+        output_path + 'anndata/lin-cycif.h5ad'
+    output:
+        output_path + 'cla/lin-cycif-subset.h5ad'
+    shell:
+        'python pipeline/cla/subset-lin.py '
+        '--input_h5ad {input} '
+        '--output_h5ad {output} '
 
 rule cla_figure:
     params:
@@ -261,7 +261,8 @@ rule cla_figure:
         cla_outputs['annotation_results'],
         cla_outputs['wag_clus'],
         cla_outputs['lin_cluster_results'],
-        cla_outputs['plots'],
+        cla_outputs['plots']
+    container: "astir-manuscript.sif"
     output:
         annotation=cla_outputs['annotation_fig'],
         clustering=cla_outputs['clustering_fig'],
