@@ -1,7 +1,9 @@
 library(ggalluvial)
 library(tidyverse)
 library(devtools)
-devtools::load_all("../taproom/")
+library(taproom)
+source("scripts/functions.R")
+#devtools::load_all("../taproom/")
 
 #read in all 
 args <- commandArgs(trailingOnly = TRUE)
@@ -23,22 +25,25 @@ rem <- bind_rows(rem_none, rem_stromal, rem_macrophages, rem_endothelial) %>%
   mutate(condition = factor(condition, levels = c("None", "Stromal", 
                                                  "Stromal-Macrophage",
                                                  "Stromal-Macrophage-Endothelial"))) %>%
-  mutate(cell_type = ifelse(cell_type == "T cell", "T cells", cell_type)) %>%
-  mutate(cell_type = ifelse(cell_type == "B cell", "B cells", cell_type))
+  mutate(Manual_cell_type = ifelse(Manual_cell_type == "T cell", "T cells", Manual_cell_type)) %>%
+  mutate(Manual_cell_type = ifelse(Manual_cell_type == "B cell", "B cells", Manual_cell_type))
 
 keep_cells <- rem %>% filter(condition == "None") %>% 
-  filter(cell_type == "Stromal" | 
-           cell_type == "Endothelial" |
-           cell_type == "Macrophage") %>% pull(id)
+  filter(Manual_cell_type == "Stromal" | 
+           Manual_cell_type == "Endothelial" |
+           Manual_cell_type == "Macrophage") %>% pull(id)
 
+if(length(keep_cells) == 0){
+  keep_cells <- unique(rem$id)
+}
 
 
 # Plot
 pdf(paste0(output_dir, "GSVA-robustness-alluv_", cohort, "_", method, "_", clusters, "_", markers, ".pdf"), height = 4.3, width = 8.5)
 rem %>% filter(id %in% keep_cells) %>% 
   mutate(condition = str_replace_all(condition, "-", "\n")) %>%
-  ggplot(aes(x = condition, stratum = cell_type, alluvium = id, 
-             fill = cell_type)) +
+  ggplot(aes(x = condition, stratum = Manual_cell_type, alluvium = id, 
+             fill = Manual_cell_type)) +
   geom_stratum(color = "black", alpha = 0.5) +
   stat_flow() + 
   labs(y = "Cells", x = "Cell type(s) for which markers were removed",

@@ -5,15 +5,15 @@ library(tidyverse)
 library(devtools)
 library(scater)
 library(ggalluvial)
-devtools::load_all('~/taproom/')
-source("~/imc-2020/scripts/functions.R")
+devtools::load_all("../taproom/")
+
+source("scripts/functions.R")
 
 args <- commandArgs(trailingOnly = TRUE)
 
 ### [GET PARAMETERS] #####
 cells <- args[1]
 celltypes <- args[2]
-#cellstates <- args[3]
 clusters <- args[3]
 cohort <- args[4]
 method <- args[5]
@@ -21,8 +21,6 @@ clustering_params <- args[6]
 output_dir <- args[7]
 
 ### [READ IN DATA] #####
-thresh <- 0.5
-
 # read in data 
 sce <- readRDS(cells)
 if(cohort == "lin_cycif" | cohort == "wagner" | cohort == "schapiro" | cohort == "keren"){
@@ -32,7 +30,7 @@ if(cohort == "lin_cycif" | cohort == "wagner" | cohort == "schapiro" | cohort ==
 
 type <- read_csv(celltypes)
 
-type$cell_type <- get_celltypes(select(type, -X1), thresh) 
+type$cell_type <- get_celltypes(select(type, -X1)) 
 type <- select(type, X1, cell_type) %>%
   column_to_rownames("X1")
 colData(sce)["cell_type"] <- type[colnames(sce),]
