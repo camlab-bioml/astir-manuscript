@@ -5,18 +5,10 @@ library(ggpubr)
 
 devtools::load_all("../taproom/")
 
-zurich <- readRDS("output/squirrel/sces/zurich1_sce.rds")
-zurich_assignments <- read_csv("output/squirrel/astir_assignments/zurich1_astir_assignments.csv")
-zurich_meta <- read_csv("data-raw/jackson-2020/SingleCell_and_Metadata/ZurichTMA/Zuri_PatientMetadata.csv")
 
-# List all cores used for supplementary figure
-selected_cores <- c("SP43_137_X9Y3", "slide_37_Cy1x8", "slide_66_Cy4x1", 
-                    "SP41_126_X14Y7", "SP42_185_X7Y5", "slide_33_Cy7x3", 
-                    "SP43_102_X1Y4", "SP43_270_X6Y8", "slide_21_Cy5x8", 
-                    "SP43_172_X9Y2", "SP42_189_X5Y5", "slide_25_By15x1",
-                    "SP42_59_X3Y9", "SP42_64_X14Y4", "SP42_171_X2Y7", 
-                    "SP41_191_X15Y7", "slide_52_Cy3x1", "SP42_127_X2Y8", 
-                    "SP41_133_X3Y6", "slide_35_By15x5")
+# Read in data
+zurich <- readRDS("output/cardinal/sces/zurich1_sce.rds")
+zurich_assignments <- read_csv("output/squirrel/astir_assignments/zurich1_astir_assignments.csv")
 
 # Get the maximum probability for each cell
 max_prob <- zurich_assignments %>% 
@@ -28,161 +20,155 @@ max_prob <- zurich_assignments %>%
 max_prob_df <- tibble(cell = zurich_assignments$X1, 
                       max_prob = max_prob)
 
-# Get all cells on cores of interest & merge with prob & slide size
-plotted <- zurich[,grepl(paste(selected_cores, collapse = "|"), colnames(zurich))] %>% 
-  colData() %>% 
-  as.data.frame() %>% 
-  select(Location_Center_X, Location_Center_Y) %>% 
-  rownames_to_column("cell") %>% 
-  left_join(max_prob_df) %>% 
-  mutate(core = sub("_[^_]+$", "", cell)) %>% 
-  left_join(select(zurich_meta, core, Height_FullStack, Width_FullStack))
 
-all_zurich <- zurich %>% 
-  colData %>% 
-  as.data.frame() %>% 
-  select(Location_Center_X, Location_Center_Y) %>% 
-  rownames_to_column("cell") %>% 
-  left_join(max_prob_df) %>% 
-  mutate(core = sub("_[^_]+$", "", cell)) %>% 
-  left_join(select(zurich_meta, core, Height_FullStack, Width_FullStack))
-
-
-assign_margin_cells <- function(df){
-  df %>% 
-    group_by(core) %>% 
-    mutate(core_area = Height_FullStack * Width_FullStack) %>% 
-    mutate(inner_height = sqrt((core_area * Height_FullStack) / (2 * Width_FullStack))) %>% 
-    mutate(inner_width = sqrt((core_area * Width_FullStack) / (2 * Height_FullStack))) %>% 
-    mutate(x_margin = (Width_FullStack - inner_width) / 2) %>% 
-    mutate(y_margin = (Height_FullStack - inner_height) / 2) %>% 
-    mutate(location = ifelse(Location_Center_X > x_margin & 
-                               Location_Center_X  < (inner_width + x_margin) &
-                               Location_Center_Y > y_margin &
-                               Location_Center_Y < (inner_height + y_margin), "inner", "outer"))
-}
-
-plot_max_prob_violin <- function(df){
-  df %>% 
-    ggplot(aes(x = location, y = max_prob)) +
-    geom_violin() +
-    labs(y = "Maximum probability assigned to each cell") +
-    astir_paper_theme() + 
-    stat_compare_means(method = "t.test", label.x = 1.4, label.y = 1.01)
-}
-
-classified_cells <- assign_margin_cells(plotted)
-all_cells <- assign_margin_cells(all_zurich)
-  
-plot_max_prob_violin(classified_cells)
-plot_max_prob_violin(all_cells)
-  
-
-
-
-rand_sample <- unique(all_zurich$core)[1:12]
-
-
-all_cells %>% 
-  filter(core %in% rand_sample) %>%
-  ggplot(aes(x = Location_Center_X, y = Location_Center_Y, color = location)) +
-  geom_point()+
-  facet_wrap(~core, scales = "free")
-
-
-cells_per_core <- all_cells %>% 
-  group_by(core) %>% 
-  tally()
-
-summary(cells_per_core$n)
-
-over_500_cores <- cells_per_core %>% 
-  filter(n > 500) %>% 
-  pull(core)
-
-all_cells %>% 
-  filter(core %in% over_500_cores) %>% 
-  plot_max_prob_violin()
-
-
-
-
-
-average_max_prob_per_core <- all_cells %>% 
-  group_by(core) %>% 
-  summarize(mean = mean(max_prob))
-
-
-
-
-low_prob_cores <- average_max_prob_per_core %>% 
-  filter(mean < mean(.$mean)) %>% 
-  pull(core)
-
-all_cells %>% 
-  filter(core %in% low_prob_cores) %>% 
-  plot_max_prob_violin()
-
-
-
-
-
-ratio <- all_cells %>% 
-  group_by(core, location) %>% 
-  summarize(mean = mean(max_prob)) %>% 
-  pivot_wider(names_from = "location", values_from = "mean") %>% 
-  mutate(inner_outer_ration = inner/outer) %>% 
-  left_join(cells_per_core)
-
-
-ratio %>% 
-  ggplot(aes(x = n, y = inner_outer_ration)) +
-  geom_point() +
-  #labs(y = "Mean probability assigned to each core") +
-  astir_paper_theme()
-
-
-
-
-### TRY BAD CORES
-bad_staining_cores <- c(all_cells$core[grepl("Ay14", all_cells$core)], 
-                        all_cells$core[grepl("Ay15", all_cells$core)]) %>% 
-  unique()
-
-
+# Select Ay16
 Ay16 <- zurich[,grepl("Ay16", colnames(zurich))]
-Ay16x1 <- zurich[,grepl("Ay16x1", colnames(Ay16))]
-assays(Ay16x1)$raw_imc [1:3,1:3]
 
+# Get the probabilites associated with cells on Ay16
 Ay16_prob <- max_prob_df[grepl("Ay16", max_prob_df$cell),]
 names <-  Ay16_prob %>% 
   pull(cell)
 
 Ay16_prob$core <- sapply(strsplit(names, "_"), function(x) x[4])
 
+get_p <- function(x){
+  p <- t.test(x1_4, x, alternative = "less")$p.value
+  
+  if(p == 0 | p < 2.2e-16){
+    p <- "p < 2.2e-16"
+  } else{
+    p <- signif(p, 3)
+  }
+  
+  p
+}
+
+x1_4 <- filter(Ay16_prob, grepl("Ay16x1|Ay16x2|Ay16x3|Ay16x4", core)) %>% 
+  pull(max_prob)
+x_5 <- filter(Ay16_prob, core == "Ay16x5") %>% 
+  pull(max_prob)
+x_6 <- filter(Ay16_prob, core == "Ay16x6") %>% 
+  pull(max_prob)
+x_7 <- filter(Ay16_prob, core == "Ay16x7") %>% 
+  pull(max_prob)
+x_8 <- filter(Ay16_prob, core == "Ay16x8") %>% 
+  pull(max_prob)
+
+x5.p <- get_p(x_5)
+x6.p <- get_p(x_6)
+x7.p <- get_p(x_7)
+x8.p <- get_p(x_8)
+
+# Plot probability
+pdf("output/cardinal/figures/Staining_Astir_probability_Ay16.pdf", width = 7, height = 5.2)
 Ay16_prob %>% 
-  ggplot(aes(x = core, y = max_prob)) +
-  geom_violin() +
-  astir_paper_theme() 
+  ggplot(aes(x = core, y = max_prob, fill = core)) +
+  geom_boxplot() +
+  # x1-4
+  annotate("segment", x = "Ay16x1", xend = "Ay16x4", y = 0.5, yend = 0.5) +
+  # x5
+  annotate("segment", x = 2.5, xend = 2.5, y = 0.5, yend = 0.12) +
+  
+  annotate("segment", x = 2.5, xend = "Ay16x5", y = 0.33, yend = 0.33) +
+  annotate("segment", x = "Ay16x5", xend = "Ay16x5", y = 0.33, yend = 0.35) +
+  annotate("text", x = 3.75, y = 0.36, label = x5.p, hjust = 0.5) +
+  
+  # x6
+  annotate("segment", x = 2.5, xend = "Ay16x6", y = 0.26, yend = 0.26) +
+  annotate("segment", x = "Ay16x6", xend = "Ay16x6", y = 0.26, yend = 0.28) +
+  annotate("text", x = 4, y = 0.29, label = x6.p, hjust = 0.5) +
+  
+  # x7
+  annotate("segment", x = 2.5, xend = "Ay16x7", y = 0.19, yend = 0.19) +
+  annotate("segment", x = "Ay16x7", xend = "Ay16x7", y = 0.19, yend = 0.21) +
+  annotate("text", x = 4.75, y = 0.22, label = x7.p, hjust = 0.5) +
+  
+  # x8
+  annotate("segment", x = 2.5, xend = "Ay16x8", y = 0.12, yend = 0.12) +
+  annotate("segment", x = "Ay16x8", xend = "Ay16x8", y = 0.12, yend = 0.14) +
+  annotate("text", x = 5.25, y = 0.15, label = x8.p, hjust = 0.5) +
+  
+  ylim(0,1) +
+  labs(x = "Sample", y = "Maximum probability") +
+  scale_fill_brewer(palette = "Blues") +
+  astir_paper_theme() +
+  theme(legend.position = "None",
+        axis.text = element_text(size = 16),
+        axis.title = element_text(size = 20),
+        axis.text.x = element_text(angle = 45, hjust = 1))
+dev.off()
 
 
-
+# Get raw imc values (row sums over all channels)
 raw_imc <- assays(Ay16)$raw_imc %>% 
   t() %>% 
   as.data.frame() %>% 
   rownames_to_column("cell")
 
 raw_imc$total_raw_signal <- select(raw_imc, -cell) %>% rowSums()
-
 raw_imc$core <- sapply(strsplit(raw_imc$cell, "_"), function(x) x[4])
 
-raw_imc %>% 
-  ggplot(aes(x = core, y = `pan Cytokeratin`)) +
-  geom_violin() +
-  astir_paper_theme()
+
+
+# Plot raw imc values
+pdf("output/cardinal/figures/Staining_raw_signal_Ay16.pdf", width = 7, height = 5.2)
+
+x1_4 <- filter(raw_imc, grepl("Ay16x1|Ay16x2|Ay16x3|Ay16x4", core)) %>% 
+  pull(total_raw_signal)
+x_5 <- filter(raw_imc, core == "Ay16x5") %>% 
+  pull(total_raw_signal)
+x_6 <- filter(raw_imc, core == "Ay16x6") %>% 
+  pull(total_raw_signal)
+x_7 <- filter(raw_imc, core == "Ay16x7") %>% 
+  pull(total_raw_signal)
+x_8 <- filter(raw_imc, core == "Ay16x8") %>% 
+  pull(total_raw_signal)
+
+
+x5.p <- get_p(x_5)
+x6.p <- get_p(x_6)
+x7.p <- get_p(x_7)
+x8.p <- get_p(x_8)
+
 
 raw_imc %>% 
-  ggplot(aes(x = core, y = total_raw_signal)) +
-  geom_violin() +
-  astir_paper_theme()
+  ggplot(aes(x = core, y = total_raw_signal, fill = core)) +
+  geom_boxplot() +
+  # x1-4
+  annotate("segment", x = "Ay16x1", xend = "Ay16x4", y = 100, yend = 100) +
+  
+  # x5
+  annotate("segment", x = 2.5, xend = 2.5, y = 100, yend = 460) +
+  
+  annotate("segment", x = 2.5, xend = "Ay16x5", y = 250, yend = 250) +
+  annotate("segment", x = "Ay16x5", xend = "Ay16x5", y = 250, yend = 240) +
+  annotate("text", x = 3.75, y = 265, label = x5.p, hjust = 0.5) +
+  
+  # x6
+  annotate("segment", x = 2.5, xend = "Ay16x6", y = 320, yend = 320) +
+  annotate("segment", x = "Ay16x6", xend = "Ay16x6", y = 320, yend = 310) +
+  annotate("text", x = 4, y = 335, label = x6.p, hjust = 0.5) +
+  
+  # x7
+  annotate("segment", x = 2.5, xend = "Ay16x7", y = 390, yend = 390) +
+  annotate("segment", x = "Ay16x7", xend = "Ay16x7", y = 390, yend = 380) +
+  annotate("text", x = 4.75, y = 405, label = x7.p, hjust = 0.5) +
+  
+  # x8
+  annotate("segment", x = 2.5, xend = "Ay16x8", y = 460, yend = 460) +
+  annotate("segment", x = "Ay16x8", xend = "Ay16x8", y = 460, yend = 450) +
+  annotate("text", x = 5.25, y = 475, label = x8.p, hjust = 0.5) +
+  
+
+  labs(x = "Sample", y = "Total raw signal") +
+  scale_fill_brewer(palette = "Blues") +
+  astir_paper_theme() +
+  theme(legend.position = "None",
+        axis.text = element_text(size = 16),
+        axis.title = element_text(size = 20),
+        axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+
+dev.off()
 
