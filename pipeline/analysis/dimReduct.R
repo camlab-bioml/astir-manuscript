@@ -29,6 +29,8 @@ output_dir_res <- args[7]
 ### [GET SCE OBJECTS] #####
 #basel <- assignIdentity(basel_cells, basel_types, basel_states)$sce
 basel <- readRDS(basel_cells)
+assays(basel)$raw_imc <- NULL
+assays(basel)$logcounts_unwinsorized <- NULL
 
 basel_type <- read_csv(basel_types)
 
@@ -45,6 +47,8 @@ colData(basel)["cell_type"] <- basel_type[colnames(basel),]
 
 #zurich1 <- assignIdentity(zurich1_cells, zurich1_types, zurich1_states)$sce
 zurich1 <- readRDS(zurich1_cells)
+assays(zurich1)$raw_imc <- NULL
+assays(zurich1)$logcounts_unwinsorized <- NULL
 
 zurich1_type <- read_csv(zurich1_types)
 zurich1_type$cell_type <- get_celltypes(select(zurich1_type, -X1)) 
@@ -59,6 +63,8 @@ colData(zurich1)["cell_type"] <- zurich1_type[colnames(zurich1),]
 
 #wagner <- assignIdentity(wagner_cells, wagner_types, wagner_states)$sce
 wagner <- readRDS(wagner_cells)
+assays(wagner)$raw_imc <- NULL
+assays(wagner)$logcounts_unwinsorized <- NULL
 
 wagner_type <- read_csv(wagner_types)
 wagner_type$cell_type <- get_celltypes(select(wagner_type, -X1)) 

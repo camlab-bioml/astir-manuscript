@@ -5,13 +5,13 @@ date: "May 29, 2020"
 output: html_document
 params:
   markers: "specified_markers"
-  create_csv: FALSE
   cells: "../../output/v4/zurich1_subset/zurich1_subset_sce.rds"
   celltypes: "../../output/v4/zurich1_subset/zurich1_subset_assignments_type.csv"
   cellstates: "../../output/v4/zurich1_subset/zurich1_subset_assignments_state.csv" 
   cohort: "zurich1"
   markers_list: ""
   output_results: ""
+  seed: NULL
 ---
 
 ```{r setup, include=FALSE}
@@ -64,7 +64,9 @@ ClusterX <- sce %>% colData() %>% as.data.frame() %>% select(id, "clusterX")
 rownames(ClusterX) <- c()
 ClusterX$method <- "ClusterX"
 ClusterX$params <- paste(params$markers, "Default", sep = "_")
-write.csv(ClusterX, file = paste0(params$output_results, "ClusterX_clusters_", params$cohort,
-                                  "_", params$markers, "_default.csv"),
-          col.names = T, row.names = F, sep = ",", quotes = F)
+
+
+file_name <- paste0(params$output_results, "ClusterX_clusters_", params$cohort, "_", params$markers, "_default.csv")
+
+write.csv(ClusterX, file = file_name, col.names = T, row.names = F, sep = ",", quote = F)
 ```

@@ -69,7 +69,7 @@ manual_annotation <- manual_cluster_assignment(hclust_assignment$expression, mar
   dplyr::rename("hclust_cluster" = "cluster") %>% 
   left_join(cluster_cut) %>% 
   ungroup() %>% 
-  select(-hclust_cluster) %>% 
+  #select(-hclust_cluster) %>% 
   mutate(FlowSOM_cluster = as.numeric(FlowSOM_cluster))
 
 
@@ -77,10 +77,32 @@ manual_annotation <- manual_cluster_assignment(hclust_assignment$expression, mar
 assigned_clustering <- left_join(assigned_clustering, manual_annotation, 
                                  by = c("cluster" = "FlowSOM_cluster"))
 
-write_csv(assigned_clustering, snakemake@output[['csv']])
+
+if(snakemake@wildcards[['markers']] == 'all_markers'){
+  hand_annotation <- tibble(hclust_cluster = as.character(seq(1:8)),
+                            Hand_annotation = c('Epithelial (luminal)', 'Epithelial (luminal)', 'Epithelial (luminal)',
+                              'Epithelial (basal)', 'T cells', 'Macrophage', 'Epithelial (luminal)', 'Stromal'))
+}else if(snakemake@wildcards[['markers']] == 'specified_markers'){
+  hand_annotation <- tibble(hclust_cluster = as.character(seq(1:8)),
+                            Hand_annotation = c('Epithelial (luminal)', 'Macrophage', 'Stromal', 'Epithelial (luminal)',
+                              'Epithelial (basal)', 'Epithelial (luminal)', 'Stromal', 'Epithelial (luminal)'))
+}
+
+head(assigned_clustering)
+
+hand_annotation
+
+left_join(assigned_clustering, hand_annotation)
+
+save_assignments <- left_join(assigned_clustering, hand_annotation) %>%
+  dplyr::select(id, Hand_annotation)
+#save_assignments <- dplyr::select(assigned_clustering, id, hand_annotation)
+
+save_assignments
+write_csv(save_assignments, snakemake@output[['csv']])
 
 
-sce$`FlowSOM cell type` <- assigned_clustering$Manual_cell_type
+sce$`FlowSOM cluster` <- assigned_clustering$hclust_cluster
 
 
 # Create heatmap
@@ -88,6 +110,26 @@ sce$`FlowSOM cell type` <- assigned_clustering$Manual_cell_type
 lineage_markers <- markers$cell_types %>% 
   unlist() %>% unique()
 
-pdf(snakemake@output[['heatmap']])
-createHeatmap(sce[lineage_markers, ], cell_type_column = 'FlowSOM cell type')
+pdf(snakemake@output[['heatmap']], width = 11, height = 7)
+  lc <- t(as.matrix(assay(sce[lineage_markers, ], 'logcounts')))
+  lc <- scale(lc)
+
+  lc[lc > 2] <- 2
+  lc[lc < -2] <- -2
+  
+  cell_types = colData(sce)[[ 'FlowSOM cluster' ]] %>% as.character()
+
+  celltype_annot <- HeatmapAnnotation(`Cell type` = cell_types, 
+                                      which="column")#,
+                                      #col = list(`Cell type` = rainbow(8)))  
+  
+  type_exprs <- Heatmap(t(lc), 
+                        name = "Expression",
+                        column_title = "Cell",
+                        col=viridis(100),
+                        top_annotation = celltype_annot,
+                        show_column_names = FALSE,
+                        column_order = order(cell_types))
+  type_exprs
+  #createHeatmap(sce[lineage_markers, ], cell_type_column = 'FlowSOM cluster')
 dev.off()

@@ -29,7 +29,18 @@ parser$add_argument('--schapiro_files', type = 'character', nargs = '+')
 parser$add_argument('--wagner_files', type = 'character', nargs = '+')
 parser$add_argument('--lin_files', type = 'character', nargs = '+')
 parser$add_argument('--zurich_files', type = 'character', nargs = '+')
-parser$add_argument('--acdc_files', type = 'character', nargs = '+')
+
+parser$add_argument('--acdc_absent_basel', type = 'character', nargs = '+')
+parser$add_argument('--acdc_no_consider_basel', type = 'character', nargs = '+')
+parser$add_argument('--acdc_absent_schapiro', type = 'character', nargs = '+')
+parser$add_argument('--acdc_no_consider_schapiro', type = 'character', nargs = '+')
+parser$add_argument('--acdc_absent_wagner', type = 'character', nargs = '+')
+parser$add_argument('--acdc_no_consider_wagner', type = 'character', nargs = '+')
+parser$add_argument('--acdc_absent_zurich', type = 'character', nargs = '+')
+parser$add_argument('--acdc_no_consider_zurich', type = 'character', nargs = '+')
+parser$add_argument('--acdc_absent_lin', type = 'character', nargs = '+')
+parser$add_argument('--acdc_no_consider_lin', type = 'character', nargs = '+')
+
 parser$add_argument('--output_heatmap', type = 'character', nargs = '+')
 
 args <- parser$parse_args()
@@ -49,7 +60,7 @@ create_expression_mat <- function(sce, astir_assignment){
   expression <- logcounts(sce) %>% 
     t() %>% 
     as_tibble() %>% 
-     mutate(id = colnames(sce))
+    mutate(id = colnames(sce))
   
   expression <- expression %>% 
     left_join(select(astir_assignment, id, cluster)) %>% 
@@ -86,23 +97,29 @@ wagner_markers <- read_markers(args$wagner_markers)
 lin_markers <- read_markers(args$lin_markers)
 
 # Cluster assignments
-create_counts <- function(expression, markers, cohort){
+create_counts <- function(expression, markers, cohort, method){
   GSVA_Astir_celltypes <- expression %>% 
     filter(!cluster %in% c("Other", "Unknown")) %>% 
     assign_clusters(markers)
   
-  astir_counts <- GSVA_Astir_celltypes$assignment %>% 
-    group_by(GSVA_cell_type) %>% 
+  astir_counts <- manual_cluster_assignment(GSVA_Astir_celltypes$expression, markers) %>%
+    group_by(Manual_cell_type) %>%
     tally() %>% 
-    mutate(cohort = cohort, method = "Astir")
-  astir_counts <- astir_counts[,c("cohort", "method", "GSVA_cell_type", "n")]
+    mutate(cohort = cohort, method = method)
+
+  # astir_counts <- GSVA_Astir_celltypes$assignment %>% 
+  #   group_by(GSVA_cell_type) %>% 
+  #   tally() %>% 
+  #   mutate(cohort = cohort, method = method)
+  astir_counts <- astir_counts[,c("cohort", "method", "Manual_cell_type", "n")] %>%
+    dplyr::rename('cell_type' = 'Manual_cell_type')
 }
 
-basel_counts <- create_counts(basel_expression, basel_markers, "Basel")
-schapiro_counts <- create_counts(schapiro_expression, schapiro_markers, "Schapiro")
-wagner_counts <- create_counts(wagner_expression, wagner_markers, "Wagner")
-zurich_counts <- create_counts(zurich_expression, zurich_markers, "Zurich")
-lin_counts <- create_counts(lin_expression, lin_markers, "Lin")
+basel_counts <- create_counts(basel_expression, basel_markers, "Basel", "Astir")
+schapiro_counts <- create_counts(schapiro_expression, schapiro_markers, "Schapiro", "Astir")
+wagner_counts <- create_counts(wagner_expression, wagner_markers, "Wagner", "Astir")
+zurich_counts <- create_counts(zurich_expression, zurich_markers, "Zurich", "Astir")
+lin_counts <- create_counts(lin_expression, lin_markers, "Lin", "Astir")
 
 
 
@@ -113,7 +130,7 @@ read_in_cohort <- function(files, cohort){
                 mutate(cohort = cohort)
     
     data <- data %>%
-        select(-c(id, Manual_cell_type)) %>% 
+        select(-c(id, GSVA_cell_type)) %>% 
         distinct(.keep_all = TRUE)
 
     data <- data %>%
@@ -121,65 +138,77 @@ read_in_cohort <- function(files, cohort){
         mutate(params = str_replace(params, "_", "-")) %>% 
         mutate(method = paste0(method, "-", params)) %>% 
         select(-params) %>%
-        dplyr::rename("cell_type" = "GSVA_cell_type")
+        dplyr::rename("cell_type" = "Manual_cell_type")
     
     data
 }
-# basel <- lapply(args$basel_files, read_csv) %>% 
-#   bind_rows() %>% 
-#   mutate(cohort = "Basel")
+
 basel <- read_in_cohort(args$basel_files, "Basel")
-head(basel)
-# schapiro <- lapply(args$schapiro_files, read_csv) %>% 
-#   bind_rows() %>% 
-#   mutate(cohort = "Schapiro")
 schapiro <- read_in_cohort(args$schapiro_files, "Schapiro")
-head(schapiro)
-# wagner <- lapply(args$wagner_files, read_csv) %>% 
-#   bind_rows() %>% 
-#   mutate(cohort = "Wagner")
 wagner <- read_in_cohort(args$wagner_files, "Wagner")
-head(wagner)
-# zurich <- lapply(args$zurich_files, read_csv) %>% 
-#   bind_rows() %>% 
-#   mutate(cohort = "Zurich")
 zurich <- read_in_cohort(args$zurich_files, "Zurich")
-head(zurich)
-# lin <- lapply(args$lin_files, read_csv) %>% 
-#   bind_rows() %>% 
-#   mutate(cohort = "Lin")
 lin <- read_in_cohort(args$lin_files, "Lin")
-head(lin)
-
-acdc <- lapply(args$acdc_files, read_tsv) %>% 
-  bind_rows()
-acdc_count <- acdc %>% 
-  select(-c(cell_id, annotator)) %>% 
-  group_by(cohort, method, cell_type) %>%
-  distinct() %>% 
-  tally()
-
-acdc_count <- acdc_count %>% 
-  mutate(cohort = case_when(
-    cohort == "zurich1" ~ "Zurich",
-    cohort == "basel" ~ "Basel",
-    cohort == "schapiro" ~ "Schapiro",
-    cohort == "wagner", ~ "Wagner",
-    cohort == "lin-cycif" ~ "Lin"))
 
 
-# all_cohorts <- bind_rows(basel, schapiro, wagner, zurich, lin) %>% 
-#   mutate(params = str_replace(params, "_", " ")) %>% 
-#   mutate(params = str_replace(params, "_", "-")) %>% 
-#   mutate(method = paste0(method, "-", params)) %>% 
-#   select(-params)
-all_cohorts <- bind_rows(basel, schapiro, wagner, zurich, lin)
+acdc_counts <- function(file, sce, markers, cohort, method){
+  acdc_assignment <- read_tsv(file) %>% 
+    dplyr::rename("cluster" = "cell_type") %>%
+    dplyr::rename("id" = "cell_id")
+
+  expression <- create_expression_mat(sce, acdc_assignment)
+
+  create_counts(expression, markers, cohort, method)
+}
+
+basel_acdc_absent <- acdc_counts(args$acdc_absent_basel, basel_sce, basel_markers, "Basel", "ACDC absent")
+basel_acdc_no_consider <- acdc_counts(args$acdc_no_consider_basel, basel_sce, basel_markers, "Basel", "ACDC no-consider")
+
+schapiro_acdc_absent <- acdc_counts(args$acdc_absent_schapiro, schapiro_sce, schapiro_markers, "Schapiro", "ACDC absent")
+schapiro_acdc_no_consider <- acdc_counts(args$acdc_no_consider_schapiro, schapiro_sce, schapiro_markers, "Schapiro", "ACDC no-consider")
+
+wagner_acdc_absent <- acdc_counts(args$acdc_absent_wagner, wagner_sce, wagner_markers, "Wagner", "ACDC absent")
+wagner_acdc_no_consider <- acdc_counts(args$acdc_no_consider_wagner, wagner_sce, wagner_markers, "Wagner", "ACDC no-consider")
+
+zurich_acdc_absent <- acdc_counts(args$acdc_absent_zurich, zurich_sce, zurich_markers, "Zurich", "ACDC absent")
+zurich_acdc_no_consider <- acdc_counts(args$acdc_no_consider_zurich, zurich_sce, zurich_markers, "Zurich", "ACDC no-consider")
+
+lin_acdc_absent <- acdc_counts(args$acdc_absent_lin, lin_sce, lin_markers, "Lin", "ACDC absent")
+lin_acdc_no_consider <- acdc_counts(args$acdc_no_consider_lin, lin_sce, lin_markers, "Lin", "ACDC no-consider")
+
+acdc_count <- bind_rows(basel_acdc_absent, basel_acdc_no_consider, 
+                        schapiro_acdc_absent, schapiro_acdc_no_consider,
+                        wagner_acdc_absent, wagner_acdc_no_consider,
+                        zurich_acdc_absent, zurich_acdc_no_consider,
+                        lin_acdc_absent, lin_acdc_no_consider)
+# acdc <- lapply(args$acdc_files, read_tsv) %>% 
+#   bind_rows() %>%
+#   filter(cell_type != "unknown")
+# acdc_count <- acdc %>% 
+#   select(-c(cell_id, annotator)) %>% 
+#   group_by(cohort, method, cell_type) %>%
+#   distinct() %>% 
+#   tally()
+
+
+
+# acdc_count <- acdc_count %>% 
+#   mutate(cohort = case_when(
+#     cohort == "zurich1" ~ "Zurich",
+#     cohort == "basel" ~ "Basel",
+#     cohort == "lin-cycif" ~ "Lin",
+#     cohort == "schapiro" ~ "Schapiro",
+#     cohort == "wagner" ~ "Wagner"))
+
+
+
+all_cohorts <- bind_rows(basel, schapiro, wagner, zurich, lin) %>% 
+  mutate(method = case_when(
+    grepl("Phenograph", method) == TRUE ~ gsub("_", "", method), 
+    TRUE ~ method))
 
 
 # All counts for other methods
 all_counts <- all_cohorts %>% 
-#   select(-id) %>% 
-#   distinct(.keep_all = TRUE) %>% 
   dplyr::group_by(cohort, method, cell_type) %>% 
   tally() %>% 
   ungroup()
@@ -189,7 +218,6 @@ all_counts$n[is.na(all_counts$cell_type)] <- NA
 # Add other method counts and astir counts
 all_counts <- bind_rows(all_counts, basel_counts, schapiro_counts, wagner_counts,
                         zurich_counts, lin_counts, acdc_count)
-
 
 
 # Calculate scores for all methods across all cohorts
@@ -348,7 +376,7 @@ lin.hm <- plot_eval_heatmap(counts_df = all_counts,
 
 
 
-pdf(file = args$output_heatmap, width = 14, height = 9)
+pdf(file = args$output_heatmap, width = 14, height = 7.5)
   hm_list = basel.hm + schapiro.hm + wagner.hm + zurich.hm + lin.hm
   draw(hm_list, ht_gap = unit(0.5, "cm"))
 dev.off()

@@ -4,7 +4,8 @@ library(dplyr)
 library(devtools)
 library(wesanderson)
 library(cowplot)
-devtools::load_all("~/taproom")
+library(taproom)
+source("scripts/functions.R")
 
 args <- commandArgs(trailingOnly = TRUE)
 

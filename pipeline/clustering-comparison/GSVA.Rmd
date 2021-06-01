@@ -14,15 +14,16 @@ params:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = '~/imc-2020/')
+knitr::opts_knit$set(root.dir = '../../')
 library(devtools)
 library(SingleCellExperiment)
 library(scater)
 library(tidyverse)
 library(GSVA)
 library(ggalluvial)
-source("~/imc-2020/scripts/functions.R")
-devtools::load_all("../taproom/")
+library(taproom)
+source("../../scripts/functions.R")
+#devtools::load_all("../../../taproom/")
 ```
 
 Read in data
@@ -43,74 +44,58 @@ file$params <- NULL
 
 
 markers_remove <- unlist(strsplit(markers_rem, split = "-"))
-
-#methodOutputs <- lapply(files, function(f) {
-#  cluster_df <- read_csv(f)
-#  names(cluster_df)[2] <- "cluster"
-#  cluster_df$cluster <- as.character(cluster_df$cluster)
-#  cluster_df$method <- paste0(cluster_df$method, "-", cluster_df$params)
-#  cluster_df$params <- NULL
-#  cluster_df
-#}) %>% 
-#  bind_rows()
-```
-
-Define function
-```{r}
-get_enrichment <- function(cells, markers_list, condition){
-  gsva <- gsva(logcounts(cells),
-               markers_list,
-               method="gsva")
-  
-  df_gsva <- t(gsva) %>% 
-    as.data.frame() %>% 
-    rownames_to_column("id") %>% 
-    gather(pathway, score, -id) %>% 
-    as_tibble()
-  
-  methods <- inner_join(file, df_gsva, by = "id")
-  
-  methods.summary <- group_by(methods, pathway, method, cluster) %>% 
-    dplyr::summarize(mean_score = mean(score)) %>% 
-    ungroup() %>% 
-    group_by(pathway, method) %>% 
-    mutate(mean_score = (mean_score - mean(mean_score)) / sd(mean_score)) %>% 
-    ungroup() %>% 
-    group_by(cluster, method) %>% 
-    mutate(thresh_score = mean_score == max(mean_score)) %>% 
-    filter(thresh_score == TRUE)
-  
-  cell_assigned <- left_join(select(methods, -score), 
-                             select(methods.summary, -mean_score), 
-                             by = c("method", "pathway", "cluster")) %>% 
-    filter(thresh_score == TRUE) %>% 
-    select(-thresh_score)
-
-  colnames(cell_assigned) <- c("id", "cluster", "method", "cell_type")
-  cell_assigned$condition <- condition
-  
-  cell_assigned
-}
 ```
 
 GSVA
 ```{r}
-final_markers <- markers[!names(markers) %in% markers_remove]
+final_markers <- list(cell_types = markers[!names(markers) %in% markers_remove])
 
-# Run GSVA
-gsva <- get_enrichment(cells, final_markers, paste(markers_remove, collapse = "-"))
+expression_mat <- logcounts(cells) %>% 
+  t() %>% 
+  as_tibble() %>% 
+  mutate(id = colnames(cells))
+
+expression_mat <- expression_mat %>% 
+  left_join(select(file, id, cluster)) %>% 
+  select(-id)
+
+assignments <- assign_clusters(expression_mat, final_markers)
+assigned <- assignments$assignment
+aggregated_expression <- assignments$expression
+
+if(is.null(assigned)){
+  assigned_clustering <- file
+  assigned_clustering$GSVA_cell_type <- NA
+}else{
+  assigned_clustering <- left_join(file, select(assigned, cluster, GSVA_cell_type))
+}
 ```
 
 ```{r}
-method <- unique(gsva$method)
+if(nrow(aggregated_expression) > 1){
+  manual_annotation <- manual_cluster_assignment(assignments$expression, final_markers)
 
-if(cohort == "basel" & grepl('specified', csvs) & grepl('ClusterX', csvs)){
-  method <- "ClusterX-specified_markers_default"
+  assigned_clustering <- left_join(assigned_clustering, manual_annotation)
+}else{
+  assigned_clustering$Manual_cell_type <- NA
 }
+```
 
-split_one <- strsplit(method[1], "-")
-split_two <- strsplit(split_one[[1]][2], "_")
+```{r}
+assigned_clustering$condition <- paste(markers_remove, collapse = "-")
+# method <- unique(file$method)
 
-write_csv(gsva, paste0(output_dir, "GSVA-Other-methods-robustness_", cohort, "_", split_one[[1]][1], "_", tolower(split_two[[1]][3]), "_", paste(split_two[[1]][1:2], collapse = "-"), "_", paste(markers_remove, collapse = "-"), ".csv"))
+# if(cohort == "basel" & grepl('specified', csvs) & grepl('ClusterX', csvs)){
+#   method <- "ClusterX-specified_markers_default"
+# }
+
+# split_one <- strsplit(method[1], "-")
+# split_two <- strsplit(split_one[[1]][2], "_")
+
+# write_csv(assigned_clustering, paste0(output_dir, "GSVA-Other-methods-robustness_", cohort, "_", split_one[[1]][1], "_", 
+#                                       paste0(tolower(split_two[[1]][3]), split_two[[1]][4]), "_", 
+#                                       paste(split_two[[1]][1:2], collapse = "-"), "_", paste(markers_remove, collapse = "-"), ".csv"))
+
+write_csv(assigned_clustering, output_dir)
 ```
 

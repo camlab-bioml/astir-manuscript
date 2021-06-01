@@ -6,7 +6,7 @@ library(scater)
 library(ComplexHeatmap)
 library(devtools)
 library(viridis)
-devtools::load_all("~/taproom")
+devtools::load_all("../taproom")
 source("scripts/functions.R")
 
 ### [READ IN DATA] #####

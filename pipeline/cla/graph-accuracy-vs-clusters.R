@@ -172,11 +172,17 @@ df_acdc <- inner_join(df_cluster, types_acdc) %>%
 # Alternative workflows ---------------------------------------------------
 
 cat("\n Reading Other \n")
+other_path <- dir(snakemake@params[['other_workflow_path']],
+    pattern= "GSVA-assignment-",
+    full.names=TRUE)
+other_path <- other_path[grepl(cohort, other_path)]
 
-df_other <- dir(snakemake@params[['other_workflow_path']],
-    pattern=cohort,
-    full.names=TRUE) %>% 
-  map_dfr(read_csv)
+other_path
+
+df_other <- other_path %>% 
+ map_dfr(read_csv)
+
+head(df_other)
 
 df_other <- gather(df_other, annotation_method, cell_type_predicted, -(id:params))
 
