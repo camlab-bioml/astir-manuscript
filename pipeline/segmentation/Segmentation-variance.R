@@ -5,14 +5,15 @@ library(DelayedArray)
 library(ggpubr)
 library(RColorBrewer)
 library(colorspace)
-devtools::load_all("../taproom/")
+library(taproom)
+source("scripts/functions.R")
 
 ### List all the files
-acdc_files <- dir("output/cardinal/results/alternative_masks/", full.names = TRUE, 
+acdc_files <- dir(snakemake@params[['dir_other']], full.names = TRUE, 
                   pattern = "ACDC")
-other_files <- dir("output/cardinal/results/alternative_masks/", full.names = TRUE,
+other_files <- dir(snakemake@params[['dir_other']], full.names = TRUE,
                    pattern = "Alternative_masks")
-astir_files <- dir("output/cardinal/schapiro_astir_assignments_alt_mask/", full.names = TRUE,
+astir_files <- dir(snakemake@params[['dir_astir']], full.names = TRUE,
                    pattern = "assignments")
 
 ### Read in ACDC & other
@@ -24,8 +25,8 @@ other$seed[is.na(other$seed)] <- 0
 ### Define all necessary variables to read in astir & read in
 schapiro_alt_mask_samples <- c('Cy1x5_32', 'Cy1x6_33', 'Cy1x8_35')
 schapiro_users <- c('Catena', 'Jackson', 'Schulz')
-iteration <- c('0', '1', '2', '3', '4')
-dir_astir <- "output/cardinal/schapiro_astir_assignments_alt_mask/"
+iteration <- c('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
+dir_astir <- snakemake@params[['dir_astir']]
 
 get_df_for_sample <- function(sample, iteration) {
   path_for_sample <- glue("{dir_astir}/assignments_{sample}_{{user}}_{iteration}.csv")
@@ -140,13 +141,17 @@ plot_order <- cell_proportion_meanSD %>%
   arrange(.$mean_sd) %>% pull(algorithm)
 
 
-plot_order <- rowMeans(order) %>% sort()
+# print("plot order")
+# print(plot_order)
+# plot_order <- rowMeans(plot_order) %>% sort()
 
 cell_proportion_meanSD$algorithm <- factor(cell_proportion_meanSD$algorithm, levels = plot_order)
 
+print(cell_proportion_meanSD)
 
+pdf(snakemake@output[['pdf']], width = 2.5, height = 4.5)
 cell_proportion_meanSD %>% 
-  ggplot(aes(x = algorithm, y = sd, color = algorithm, fill = algorithm)) +
+  ggplot(aes(x = algorithm, y = mean_sd, color = algorithm, fill = algorithm)) +
   geom_boxplot(lwd = 1.5, fatten = 0.8) +
   scale_color_manual(values = cols) +
   scale_fill_manual(values = lighten(cols, amount = 0.9)) +
@@ -154,6 +159,7 @@ cell_proportion_meanSD %>%
   astir_paper_theme() +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
         legend.position = "none")
+dev.off()
 
 
 
