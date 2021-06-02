@@ -98,7 +98,7 @@ ggplot(df_cla, aes(x = factor(method,  levels = method_ordering), y = .estimate,
   # geom_segment(data = df_cla_sum, aes(x = factor(method,  levels = method_ordering), xend=method, y=min_value, yend=mean_value, colour=method_type),
                # size=5) +
   geom_quasirandom(shape=21, size=2.5) + 
-  facet_grid(.metric ~ cohort, scales = "free_y")  +
+  facet_grid(.metric ~ cohort, scales = "free")  +
   astir_paper_theme() +
   theme(axis.text.x = element_text(angle = 60, vjust = 1, hjust=1)) +
   labs(x = "Method", y = "Estimate",

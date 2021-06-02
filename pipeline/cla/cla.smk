@@ -174,7 +174,9 @@ rule graph_annotation_accuracy:
         cla_outputs['annotation_results'],
         traintest = lambda wildcards: config['cla'][wildcards.cohort]['train_test'],
         annotations=lambda wildcards: config['cla'][wildcards.cohort]['annotators'].values(),
-        astir_assignments=output_path+"astir_assignments/{cohort}_astir_assignments.csv"
+        astir_assignments=output_path+"astir_assignments/{cohort}_astir_assignments.csv",
+        flowsom_manual_csv_all = output_path + 'results/Flowsom_k90/GSVA-assignment-FlowSOM-basel-all_markers-k90.csv',
+        flowsom_manual_csv_specified = output_path + 'results/Flowsom_k90/GSVA-assignment-FlowSOM-basel-specified_markers-k90.csv'
         # astir_assignments="astir_basel_assignments-withneg.csv",
     output:
         plot = output_path + "cla/output_figs_tables/cla_annotation_{cohort}.png",

@@ -204,17 +204,59 @@ df_other_acc <- df_other %>% mutate(
 
 # save.image("~/deleteme.rds  ")
 
+# add flowsom manual ------------------------------------------------------------
+cat("New code\n\n\n\n\n\nMore new\n\n\n")
+# Add in flowsom interpretation if Basel
+if(cohort == "basel") {
+  df_flowsom_manual_all <- read_csv(snakemake@input[['flowsom_manual_csv_all']]) %>%
+    mutate(method = "FlowSOM_metacluster", params="all_markers")
+
+  df_flowsom_manual_specified <- read_csv(snakemake@input[['flowsom_manual_csv_specified']]) %>%
+    mutate(method = "FlowSOM_metacluster", params = "specified")
+
+  df_flowsom_manual <- bind_rows(df_flowsom_manual_all, df_flowsom_manual_specified) %>%
+    dplyr::rename(cell_id = id)
+
+  df_flowsom_manual <- inner_join(df_annot, df_flowsom_manual)
+
+  df_flowsom_manual_acc <- df_flowsom_manual %>% mutate(
+    cell_type_annotated = factor(cell_type_annotated, levels=cell_types),
+    cell_type_predicted = factor(Hand_annotation, levels=cell_types)
+  ) %>% 
+    group_by(annotator_test, method, params) %>% 
+    do(
+      acc_wrap(.)
+    ) %>% 
+    ungroup() %>% 
+    mutate(annotator_train = "None")
+
+  df_flowsom_manual_acc
+
+  # Overall plot ------------------------------------------------------------
+  df_plot <- bind_rows(
+    df_astir_default,
+    df_cytoflda,
+    df_other_acc,
+    df_acdc,
+    df_flowsom_manual_acc
+  )
+}else{
+  df_plot <- bind_rows(
+    df_astir_default,
+    df_cytoflda,
+    df_other_acc,
+    df_acdc
+  )
+}
+
 # Overall plot ------------------------------------------------------------
 
-
-# Overall plot ------------------------------------------------------------
-
-df_plot <- bind_rows(
-  df_astir_default,
-  df_cytoflda,
-  df_other_acc,
-  df_acdc
-)
+# df_plot <- bind_rows(
+#   df_astir_default,
+#   df_cytoflda,
+#   df_other_acc,
+#   df_acdc
+# )
 
 df_plot$annotator_test <- paste("Test annotator: ", df_plot$annotator_test)
 
