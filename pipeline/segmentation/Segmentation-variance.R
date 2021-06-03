@@ -9,11 +9,14 @@ library(taproom)
 source("scripts/functions.R")
 
 ### List all the files
-acdc_files <- dir(snakemake@params[['dir_other']], full.names = TRUE, 
+acdc_files <- dir("output/phoenix/results/alternative_masks/", #snakemake@params[['dir_other']], 
+                  full.names = TRUE, 
                   pattern = "ACDC")
-other_files <- dir(snakemake@params[['dir_other']], full.names = TRUE,
+other_files <- dir("output/phoenix/results/alternative_masks/", #snakemake@params[['dir_other']], 
+                   full.names = TRUE,
                    pattern = "Alternative_masks")
-astir_files <- dir(snakemake@params[['dir_astir']], full.names = TRUE,
+astir_files <- dir("output/phoenix/schapiro_astir_assignments_alt_mask/", #snakemake@params[['dir_astir']], 
+                   full.names = TRUE,
                    pattern = "assignments")
 
 ### Read in ACDC & other
@@ -26,7 +29,7 @@ other$seed[is.na(other$seed)] <- 0
 schapiro_alt_mask_samples <- c('Cy1x5_32', 'Cy1x6_33', 'Cy1x8_35')
 schapiro_users <- c('Catena', 'Jackson', 'Schulz')
 iteration <- c('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
-dir_astir <- snakemake@params[['dir_astir']]
+dir_astir <- "output/phoenix/schapiro_astir_assignments_alt_mask/"#snakemake@params[['dir_astir']]
 
 get_df_for_sample <- function(sample, iteration) {
   path_for_sample <- glue("{dir_astir}/assignments_{sample}_{{user}}_{iteration}.csv")
@@ -116,7 +119,7 @@ cell_proportion_sd <- cell_proportion_mean %>%
 
 # Remove any method that is NA
 cell_proportion_sd_no_na <- cell_proportion_sd %>% 
-  pivot_wider(names_from = method, values_from = sd) %>% 
+  pivot_wider(names_from = method, values_from = sd) %>% View
   select_if(~ !any(is.na(.))) %>% 
   pivot_longer(-c(sample, cell_type), names_to = "method", values_to = "sd")
 
@@ -130,14 +133,14 @@ cell_proportion_meanSD <- cell_proportion_sd_no_na %>%
   group_by(algorithm, sample, cell_type) %>% 
   summarize(mean_sd = mean(sd))
 
-display.brewer.pal(n = 5, name = "Set1")
+
 cols <- brewer.pal(n = 5, name = "Set1")[c(2,4,5,3)]
 # Get plotting order
 plot_order <- cell_proportion_meanSD %>% 
   ungroup() %>% 
   select(-c(cell_type, sample)) %>% 
   group_by(algorithm) %>% 
-  summarise(mean_sd = mean(sd)) %>% 
+  summarise(mean_sd = mean(mean_sd)) %>% 
   arrange(.$mean_sd) %>% pull(algorithm)
 
 
@@ -145,9 +148,10 @@ plot_order <- cell_proportion_meanSD %>%
 # print(plot_order)
 # plot_order <- rowMeans(plot_order) %>% sort()
 
-cell_proportion_meanSD$algorithm <- factor(cell_proportion_meanSD$algorithm, levels = plot_order)
+cell_proportion_meanSD$algorithm <- factor(cell_proportion_meanSD$algorithm, 
+                                           levels = plot_order)
 
-print(cell_proportion_meanSD)
+
 
 pdf(snakemake@output[['pdf']], width = 2.5, height = 4.5)
 cell_proportion_meanSD %>% 
@@ -165,139 +169,39 @@ dev.off()
 
 
 ## Scatterplot
-# 
-# within_segmenter_sd <- seg_clean %>%
-#   group_by(cell_type, sample, method, user, iteration) %>% 
-#   tally() %>% 
-#   ungroup() %>% 
-#   group_by(cell_type, sample, method, user) %>% 
-#   mutate(within_segmenter_sd = sd(n)) %>% 
-#   mutate(norm_within_segmenter_sd = within_segmenter_sd / n)
-#   
-# seg_clean %>% 
-#   group_by(cell_type, sample, method, user, iteration) %>% 
-#   tally() %>% 
-#   ungroup() %>% 
-#   
-# 
-# left_join(select(within_segmenter_sd,
-#                  -within_segmenter_sd), sd_data) %>% 
-#   mutate(Algorithm = case_when(grepl("acdc", method) ~ "ACDC",
-#                                grepl("FlowSOM", method) ~ "FlowSOM",
-#                                TRUE ~ method)) %>% 
-#   filter(!grepl("Phenograph|ClusterX", method)) %>% 
-#   ggplot(aes(x = norm_within_segmenter_sd, y = norm_sd)) +
-#   geom_point() +
-#   labs(x = "Within segmenter standard deviation (normalized by cell count)",
-#        y = "Across segmenter standard deviation\n(normalized by cell count)") + 
-#   facet_wrap(~Algorithm) +
-#   astir_paper_theme()
-# 
-# 
-# 
-# 
-# 
-# 
-# df %>% 
-#   group_by(sample, iteration, user, cell_type) %>% 
-#   tally() %>% 
-#   ggplot(aes(x = cell_type, y = n)) +
-#   geom_bar(stat = 'identity')+
-#   facet_grid(sample ~ user + iteration) +
-#   theme(axis.text.x = element_text(angle = 45, hjust = 1))
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# df %>% 
-#   pivot_wider(names_from = cell_type, values_from = iteration)
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# ### Average number of cells
-# mean_cells <- seg %>% 
-#   group_by(sample, method, user, iteration, cell_type) %>% 
-#   tally() %>% 
-#   ungroup() %>% 
-#   group_by(sample, method, cell_type) %>% 
-#   summarize(mean = mean(n)) %>% 
-#   ungroup()
-# 
-# 
-# mean_is_assigned <- seg %>% 
-#   mutate(is_assigned = (!grepl("Unknown|unknown|Other", cell_type))) %>% 
-#   group_by(sample, method, iteration, user) %>% 
-#   summarize(is_assigned = count(is_assigned == TRUE)) %>% 
-#   ungroup() %>% 
-#   group_by(sample, method) %>% 
-#   summarize(mean_is_assigned = mean(is_assigned))
-# 
-# left_join(mean_is_assigned, total_cells) %>% 
-#   mutate(fraction_assigned = mean_is_assigned / mean_cell_no) %>% 
-#   ggplot(aes(x = method, y = fraction_assigned)) +
-#   geom_bar(stat = 'identity') +
-#   facet_wrap(~sample) +
-#   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
-# 
-# 
-# seg %>% 
-#   group_by(sample, method, user, iteration, cell_type) %>% 
-#   tally() %>% 
-#   filter(iteration == 0 & user == "Catena")
-# 
-# 
-# 
-# total_cells <- df %>% 
-#   filter(iteration == 0) %>% 
-#   group_by(sample, user) %>% 
-#   tally() %>% 
-#   ungroup() %>% 
-#   group_by(sample) %>% 
-#   mutate(mean_cell_no = mean(n)) %>% 
-#   select(sample, mean_cell_no) %>% 
-#   distinct()
-# 
-# 
-# 
-# mean_cells %>% 
-#   filter(!grepl("Unknown|unknown|Other", cell_type)) %>% 
-#   group_by(sample, method) %>% 
-#   summarize(assigned_average_numeber = sum(mean)) %>% 
-#   left_join(total_cells) %>% 
-#   mutate(fraction_assigned_cells = assigned_average_numeber / mean_cell_no) %>% 
-#   ggplot(aes(x = method, y = fraction_assigned_cells)) +
-#   geom_bar(stat = 'identity') +
-#   facet_wrap(~sample, ncol = 3) +
-#   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# acdc_clean <- acdc %>% filter(cell_type != "unknown")
-# 
-# 
-# acdc_clean %>% 
-#   select(-c(cell_id, cohort)) %>% 
-#   mutate(sample = paste(sample, " - ", method)) %>% 
-#   group_by(sample, user, cell_type, iteration) %>% 
-#   tally() %>% #View() 
-#   ggplot(aes(x = cell_type, y = n, color = user)) +
-#   geom_point() +
-#   labs(y = "number of cells") +
-#   #scale_fill_discrete() +
-#   facet_wrap(~sample, ncol = 5) +
-#   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
-  
+algorithmic_sd <- cell_counts %>% 
+  mutate(fraction = n / total_cells) %>% 
+  select(-n, -total_cells) %>% 
+  ungroup() %>% 
+  group_by(method, sample, user, cell_type) %>% 
+  summarize(algorithmic_sd = sd(fraction)) %>% 
+  ungroup()
+
+clean_algorithmic_sd <- algorithmic_sd %>% 
+  filter(!grepl("ClusterX|Pheno", method))
+
+
+test <- cell_proportion_sd_no_na %>% 
+  mutate(algorithm = case_when(grepl("acdc", method) ~ "ACDC",
+                               grepl("ClusterX", method) ~ "ClusterX",
+                               grepl("FlowSOM", method) ~ "FlowSOM",
+                               grepl("Phenograph", method) ~ "Phenograph",
+                               TRUE ~ method))
+
+
+pdf(snakemake@output[['suppl_pdf']], width = 4, height = 7)
+inner_join(clean_algorithmic_sd, 
+           cell_proportion_sd_no_na) %>% 
+  mutate(algorithm = case_when(grepl("acdc", method) ~ "ACDC",
+                               grepl("ClusterX", method) ~ "ClusterX",
+                               grepl("FlowSOM", method) ~ "FlowSOM",
+                               grepl("Phenograph", method) ~ "Phenograph",
+                               TRUE ~ method)) %>% 
+  ggplot(aes(x = sd, y = algorithmic_sd)) +
+  geom_point(size = 3) +
+  labs(x = "Mean standard deviation in cell type\nproportion between segmentations",
+       y = "Standard deviation in cell type\nproportions between seeds") +
+  astir_paper_theme() +
+  theme(strip.text = element_text(size = 18)) +
+  facet_wrap(~algorithm)
+dev.off()
