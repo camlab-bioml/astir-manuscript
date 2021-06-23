@@ -7,6 +7,9 @@ library(cowplot)
 library(taproom)
 source("scripts/functions.R")
 
+pal <- c("#ECCBAE", "#046C9A", "#D69C4E", "#ABDDDE")
+cohort_cols <- c(pal[1], pal[3], pal[2])
+
 args <- commandArgs(trailingOnly = TRUE)
 
 rds <- args[1]
@@ -39,7 +42,7 @@ dev.off()
 png(paste0(output_dir, "tSNE_cohort-", a, ".png"), width = 2709, height = 2000, res = 300)
 tsne_p <- ggplot(tsne, aes(x = `tSNE Dim1`, y = `tSNE Dim2`)) +
   geom_point(aes(color = cohort, alpha = a)) +
-  scale_color_manual(values = cohort_colours(), name = "Cohort") +
+  scale_color_manual(values = cohort_cols, name = "Cohort") +
   scale_alpha(guide = 'none') +
   astir_paper_theme() +
   theme(axis.text = element_text(size = 18),

@@ -4,9 +4,11 @@
 segmentation_output = {
     'astir_assignments': expand(
         output_path + "schapiro_astir_assignments_alt_mask/assignments_{alt_s}_{user}_{iteration}.csv",
-        alt_s=schapiro_alt_mask_samples,user=schapiro_users, iteration = range(5)
+        alt_s=schapiro_alt_mask_samples,user=schapiro_users, iteration = range(10)
     ),
     'figure': output_path + "figures/segmentation/segmentation.pdf",
+    'boxplot': output_path + 'figures/segmentation/boxplot-segmentation.pdf',
+    'suppl_pdf': output_path + 'figures/segmentation/intra-vs-inter-segmentiation-variance.pdf',
     'supplementary_figure': output_path + "figures/segmentation/segmentation-supplemenary.pdf"
 }
 
@@ -75,3 +77,20 @@ rule segmentation_figures:
     script:
         "segmentation-consistency.R"
 
+
+
+rule segmentation_figures2:
+    params:
+        dir_astir = output_path + "schapiro_astir_assignments_alt_mask",
+        dir_other = output_path + "results/alternative_masks/"
+    input: 
+        segmentation_output['astir_assignments'],
+        alt_masks['alt-mask-cell-type-identification-csv'],
+        alt_masks['alt-mask-cell-type-identification-csv-seed'],
+        alt_masks['acdc']
+    container: "astir-manuscript.sif"
+    output:
+        pdf = segmentation_output['boxplot'],
+        suppl_pdf = segmentation_output['suppl_pdf']
+    script:
+        "Segmentation-variance.R"

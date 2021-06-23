@@ -59,7 +59,7 @@ thresh <- 0.5
 sce <- readRDS(cells)
 type <- read_csv(type)
 
-type$cell_type <- get_celltypes(select(type, -X1), thresh) 
+type$cell_type <- get_celltypes(select(type, -X1)) 
 type <- select(type, X1, cell_type) %>%
   column_to_rownames("X1")
 colData(sce)["cell_type"] <- type[colnames(sce),]
@@ -98,8 +98,8 @@ if(cohort == "basel" | cohort == "zurich1"){
                      "Vimentin", "Fibronectin")
   title <- "Schapiro"
 }else if(cohort == "lin_cycif"){
-  protein.order <- c("Vimentin", "E_Cadherin", "Keratin")
-  correct_names <- c("Vimentin", "E-Cadherin", "Keratin")
+  protein.order <- c("Vimentin", "Ecad", "Keratin", "Ki67", "PDL1", "CD45", "CD4")
+  correct_names <- c("Vimentin", "E-Cadherin", "Keratin", "Ki67", "PDL1", "CD45", "CD4")
 
   title <- "Lin"
 }

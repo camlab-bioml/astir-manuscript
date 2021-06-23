@@ -12,12 +12,16 @@ imbalance_output = {
 
 rule imbalance_figures:
     params:
-        input_dir_astir = output_path + "results/imbalance",
-        input_dir_other = output_path + "results/epithelial_overclustering",
+        input_dir_astir = output_path + "results/imbalance/",
+        input_dir_other = output_path + "results/epithelial_overclustering/",
         input_dir_acdc = output_path + "results/imbalance/acdc/"
+    container: "astir-manuscript.sif"
     input:
         imbalance_output['astir_assignments'],
         imbalance_output['acdc'],
+        epithelial_overclustering['ClusterX_assignments'],
+        epithelial_overclustering['Phenograph_assignments_csv'],
+        epithelial_overclustering['FlowSOM_assignments_csv']
     output:
         pdf = imbalance_output['imbalance_fig'],
     script:

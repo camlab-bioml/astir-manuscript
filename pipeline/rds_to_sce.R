@@ -3,13 +3,16 @@ library(SingleCellExperiment)
 library(scater)
 library(stringr)
 library(dplyr)
+library(argparse)
 
-args = commandArgs(trailingOnly = TRUE)
-#print(args)
-#rds <- args[1] %>%
-#  str_replace_all("\\[|\\]|'", "")
+parser <- ArgumentParser()
+parser$add_argument('--rds', type = 'character', nargs = '+')
+parser$add_argument('--output', type = 'character')
+args <- parser$parse_args()
 
-rds <- unlist(strsplit(args[1], split = ","))
+#args = commandArgs(trailingOnly = TRUE)
+#rds <- unlist(strsplit(args[1], split = " "))
+#print(args[1])
 
 createSCE <- function(files){
   listSCE <- lapply(files, readRDS)
@@ -22,6 +25,6 @@ createSCE <- function(files){
   sce
 }
 
-sce <- createSCE(rds)
+sce <- createSCE(args$rds)
 
-saveRDS(sce, file = args[2])
+saveRDS(sce, file = args$output)

@@ -5,7 +5,9 @@ library(ggalluvial)
 devtools::load_all("../taproom/")
 
 create_assignments <- function(path, markers){
+  print(path)
   df <- read_csv(path)
+  print(df)
   cell_names <- df$X1
   df$X1 <- NULL
   cell_types <- get_celltypes(df)
@@ -21,18 +23,13 @@ basel_Cyto7 <- create_assignments(snakemake@input[['cyto7']],
                                   "Cytokeratin 7")
 basel_Cyto7_19 <- create_assignments(snakemake@input[['cyto7_19']],
                                      "Cytokeratin 7\nCytokeratin 19")
-basel_Cyto7_19_18 <- create_assignments(snakemake@input[['cyto7_19_8-18']],
-                                        "Cytokeratin 7\nCytokeratin 19\nCytokeratin 8/18")
-basel_Cyto7_19_18_pan <- create_assignments(snakemake@input[['cyto7_19_8-18_pan']],
-                                            "Cytokeratin 7\nCytokeratin 19\nCytokeratin 8/18\nPan Cytokeratin")
+basel_Cyto7_19_18 <- create_assignments(snakemake@input[['all_luminal']],
+                                        "All luminal\nmarkers")
 
-
-marker_removal <- bind_rows(basel_all, basel_Cyto7, basel_Cyto7_19, 
-                            basel_Cyto7_19_18, basel_Cyto7_19_18_pan) %>% 
+marker_removal <- bind_rows(basel_all, basel_Cyto7, basel_Cyto7_19, basel_Cyto7_19_18) %>% 
   mutate(markers_removed = factor(markers_removed, levels = c("None", "Cytokeratin 7",
                                              "Cytokeratin 7\nCytokeratin 19",
-                                             "Cytokeratin 7\nCytokeratin 19\nCytokeratin 8/18",
-                                             "Cytokeratin 7\nCytokeratin 19\nCytokeratin 8/18\nPan Cytokeratin")))
+                                             "All luminal\nmarkers")))
 
 
 pdf(snakemake@output[['pdf']])
@@ -48,3 +45,6 @@ marker_removal %>%
   astir_paper_theme() +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 dev.off()
+
+#sce <- readRDS(snakemake@input[['sce']])
+#pdf(snakemake@output[['heatmap']])

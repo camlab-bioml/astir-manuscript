@@ -31,8 +31,13 @@ ha <- HeatmapAnnotation(`Cell Type` = type$cell_type,
                         which = "column",
                         col = list(`Cell Type` = jackson_basel_colours()))
 
+if(cohort == "zurich1"){
+        w <- 4000
+}else{
+        w <- 2990
+}
 # Do the plotting
-pdf(paste0(output_dir, "celltype_probability_", cohort, ".pdf"), width = 16)
+png(paste0(output_dir, "celltype_probability_", cohort, ".png"), width = w, height = 1000, res = 300)
 Heatmap(t(type.mat), 
         col = viridis(100), 
         name = "Expression", 

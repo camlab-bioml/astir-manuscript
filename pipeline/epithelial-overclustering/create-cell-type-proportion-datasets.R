@@ -3,7 +3,8 @@
 library(tidyverse)
 library(devtools)
 library(DelayedArray)
-devtools::load_all("../taproom/")
+library(taproom)
+#devtools::load_all("../taproom/")
 
 args <- commandArgs(trailingOnly = TRUE)
 astir_assignments <- args[1]

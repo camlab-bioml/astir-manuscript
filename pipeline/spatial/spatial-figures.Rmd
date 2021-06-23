@@ -29,7 +29,7 @@ suppressPackageStartupMessages({
   library(survminer)
 })
 
-devtools::load_all("/home/ltri/campbell/share/projects/taproom")
+devtools::load_all("../taproom")
 ```
 
 # Read in data
@@ -183,7 +183,8 @@ df_test %>%
   geom_smooth(method="lm", colour = "darkred", linetype=2) +
   scale_x_continuous(breaks = scales::pretty_breaks(n = 3)) +
   theme(strip.text = element_text(face="bold"),
-        strip.background = element_rect(fill='white')) +
+        strip.background = element_rect(fill='white'),
+        axis.text = element_text(size = 10)) +
   labs(x = "Effect size (Basel cohort)", y = "Effect size (Zurich cohort)")
 ```
 ```{r}

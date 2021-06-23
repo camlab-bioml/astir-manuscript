@@ -57,7 +57,8 @@ rule dist_report:
     output:
         html=output_path + "spatial/spatial_report_{dataset}.html",
         rds=output_path + "spatial/rds_output_{dataset}.rds",
-        scree_plot=output_path + "figures/supplementary/scree-plot-spatial-{dataset}.png",
+        scree_plot=output_path + "figures/supplementary/scree-plot-spatial-{dataset}.png"
+    container: "astir-manuscript.sif"
     shell:
         "Rscript -e \"Sys.setenv(RSTUDIO_PANDOC='/home/ltri/campbell/share/software/pandoc-2.9.2.1/bin'); "
         "rmarkdown::render('pipeline/spatial/distance-clustering.Rmd',   "
@@ -89,7 +90,8 @@ rule spatial_figures:
         kaplan_meier = output_path + "figures/spatial/km.pdf",
         pathway_fig = output_path + "figures/spatial/pathway_fig.pdf",
         spatial_heatmap = output_path + "figures/spatial/heatmap.pdf",
-        pathologist = output_path + "figures/spatial/pathologist.pdf",
+        pathologist = output_path + "figures/spatial/pathologist.pdf"
+    container: "astir-manuscript.sif"
     shell:
         "Rscript -e \"Sys.setenv(RSTUDIO_PANDOC='/home/ltri/campbell/share/software/pandoc-2.9.2.1/bin'); "
         "rmarkdown::render('pipeline/spatial/spatial-figures.Rmd',   "

@@ -53,10 +53,6 @@ sce$cluster <- astir_types[colnames(sce)]
 
 # Create list of files to be read in
 files <- unlist(strsplit(params$csvs, split = " "))
-#files <- dir(params$output_dir, 
-#             pattern=paste0("clusters_", params$cohort, "*.*"), 
-#             full.names = TRUE)
-
 print(files)
 ```
 

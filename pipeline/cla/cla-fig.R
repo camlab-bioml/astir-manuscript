@@ -142,7 +142,7 @@ write_tsv(df_cla, snakemake@output[['cla_df']])
 
 cluster_files <- dir(output_fig_dir, pattern="cluster*.*tsv", full.names=TRUE)
 cluster_files <- c(cluster_files, file.path(output_fig_dir, "wagner/cla_cluster_wagner.tsv"))
-cluster_files <- c(cluster_files, file.path(output_fig_dir, "lin-cycif/cla_cluster_lin-cycif.tsv"))
+#cluster_files <- c(cluster_files, file.path(output_fig_dir, "lin-cycif/cla_cluster_lin-cycif.tsv"))
 
 df_clus <- map_dfr(cluster_files, read_tsv)
 
@@ -225,13 +225,14 @@ ggplot(df_clus, aes(x = factor(method,  levels = method_ordering), y = .estimate
   theme(legend.position = "top",
         panel.background = element_rect(fill='grey95'))
 
-ggsave(snakemake@output[['clustering']], width=8, height = 8)
-
+ggsave(snakemake@output[['clustering']], width=6.1, height = 8)
 
 
 # Debug phenograph --------------------------------------------------------
 
 df_pg <- filter(df_clus, grepl("Phenograph", method), grepl("z_score", method))
+
+write_csv(df_pg, "phenograph-debug.csv")
 
 df_pg$k <- as.numeric(sapply(strsplit(df_pg$params, "_"), `[`, 4))
 df_pg$markers <- sapply(strsplit(df_pg$params, "_"), function(s) paste0(s[1:2], collapse="_"))

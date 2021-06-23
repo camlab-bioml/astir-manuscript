@@ -72,7 +72,7 @@ df_sc <- read_csv(argv$input_sc)
 df_loc <- read_csv(argv$input_loc)
 
 cores <- sort(unique(df_sc$core))
-cores <- cores[!grepl("Liver", cores)]
+cores <- cores[!grepl("Liver|control|non-breast", cores)]
 
 for(core in cores) {
   write_one_sce(core, df_sc, df_loc, argv$output_dir)

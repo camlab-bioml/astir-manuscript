@@ -5,8 +5,11 @@ library(SingleCellExperiment)
 library(tidyverse)
 library(scater)
 library(circlize)
+library(ComplexHeatmap)
 source("scripts/functions.R")
-devtools::load_all("~/taproom/")
+#library(taproom)
+library(devtools)
+devtools::load_all("../taproom/")
 
 args <- commandArgs(trailingOnly = TRUE)
 cells <- args[1]
@@ -41,60 +44,60 @@ if(cohort == "zurich1"){
     w = 16
 }
 
-if(cohort == "lin_cycif"){
-    cell_type_probs <- read_csv(args[2]) %>% column_to_rownames("X1")
-    types <- colnames(cell_type_probs) 
+# if(cohort == "lin_cycif"){
+#     cell_type_probs <- read_csv(args[2]) %>% column_to_rownames("X1")
+#     types <- colnames(cell_type_probs) 
 
-    colData(sce)[types] <- cell_type_probs[colnames(sce),]
+#     colData(sce)[types] <- cell_type_probs[colnames(sce),]
 
-    col_fun = colorRamp2(c(0, 0.5, 1), c("#440154FF", "#218F8DFF", "#FDE725FF"))
+#     col_fun = colorRamp2(c(0, 0.5, 1), c("#440154FF", "#218F8DFF", "#FDE725FF"))
 
-    createHeatmap <- function(sce,
-                            cell_type_column = "cell_type",
-                            assay = "logcounts",
-                            thresh = 2) {
-    assay <- "logcounts"
-    thresh <- 0.7
-    lc <- t(as.matrix(assay(sce, assay)))
-    lc <- scale(lc)
+#     createHeatmap <- function(sce,
+#                             cell_type_column = "cell_type",
+#                             assay = "logcounts",
+#                             thresh = 2) {
+#     assay <- "logcounts"
+#     thresh <- 0.7
+#     lc <- t(as.matrix(assay(sce, assay)))
+#     lc <- scale(lc)
     
-    lc[lc > thresh] <- thresh
-    lc[lc < -thresh] <- -thresh
+#     lc[lc > thresh] <- thresh
+#     lc[lc < -thresh] <- -thresh
     
-    cell_types = colData(sce)[[ cell_type_column ]]
+#     cell_types = colData(sce)[[ cell_type_column ]]
 
-    stromal = log(1 - colData(sce)[["Stromal"]] + 0.001)
-    other = log(1 - colData(sce)[["Other"]] + 0.001)
-    epithelial = log(1 - colData(sce)[["Epithelial"]] + 0.001)
+#     stromal = log(1 - colData(sce)[["Stromal"]] + 0.001)
+#     other = log(1 - colData(sce)[["Other"]] + 0.001)
+#     epithelial = log(1 - colData(sce)[["Epithelial"]] + 0.001)
 
-    min.v <- min(c(stromal, other, epithelial))
-    max.v <- max(c(stromal, other, epithelial))
+#     min.v <- min(c(stromal, other, epithelial))
+#     max.v <- max(c(stromal, other, epithelial))
 
-    print(min.v)
-    print(max.v)
+#     print(min.v)
+#     print(max.v)
 
-    col_fun = colorRamp2(c(min.v, max.v), c("#440154FF", "#FDE725FF"))
+#     col_fun = colorRamp2(c(min.v, max.v), c("#440154FF", "#FDE725FF"))
     
-    celltype_annot <- HeatmapAnnotation(`Cell type` = cell_types, 
-                                        stromal_prob = stromal,
-                                        other_prob = other,
-                                        epithelial_prob = epithelial,
-                                        which="column",
-                                        col = list(`Cell type` = jackson_basel_colours(),
-                                                    stromal_prob = col_fun,
-                                                    other_prob = col_fun,
-                                                    epithelial_prob = col_fun))  
+#     celltype_annot <- HeatmapAnnotation(`Cell type` = cell_types, 
+#                                         stromal_prob = stromal,
+#                                         other_prob = other,
+#                                         epithelial_prob = epithelial,
+#                                         which="column",
+#                                         col = list(`Cell type` = jackson_basel_colours(),
+#                                                     stromal_prob = col_fun,
+#                                                     other_prob = col_fun,
+#                                                     epithelial_prob = col_fun))  
     
-    type_exprs <- Heatmap(t(lc), 
-                            name = "Expression",
-                            column_title = "Cell",
-                            col=viridis(100),
-                            top_annotation = celltype_annot,
-                            show_column_names = FALSE,
-                            column_order = order(cell_types))
-    type_exprs
-}
-}
+#     type_exprs <- Heatmap(t(lc), 
+#                             name = "Expression",
+#                             column_title = "Cell",
+#                             col=viridis(100),
+#                             top_annotation = celltype_annot,
+#                             show_column_names = FALSE,
+#                             column_order = order(cell_types))
+#     type_exprs
+# }
+# }
 
 pdf(paste0(output_dir, "Astir_expressionHeatmap_specifiedMarkers_", cohort, ".pdf"), width = w, height = 6)
     createHeatmap(sce[unique(unlist(markers$cell_types)),])

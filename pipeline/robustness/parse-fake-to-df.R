@@ -10,11 +10,12 @@ suppressPackageStartupMessages({
   library(matrixStats) 
   library(pheatmap)
   library(glue)
-  library(taproom)
   library(yaml)
   library(stringdist)
   library(argparse)
 })
+
+devtools::load_all("../taproom/")
 
 
 parser <- ArgumentParser(description = "Spatial locations for core")

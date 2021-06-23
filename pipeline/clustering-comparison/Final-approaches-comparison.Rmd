@@ -34,8 +34,8 @@ library(ggpubr)
 library(ComplexHeatmap)
 library(GSVA)
 library(tidyverse)
+library(taproom)
 source("../../scripts/functions.R")
-devtools::load_all('../../../taproom/')
 ```
 
 Read in data
@@ -194,9 +194,6 @@ plottingOrder = all_scores_wide %>%
     rownames()
   
 plot_eval_heatmap <- function(counts_df, scores_df, plottingOrder, select_cohort){
-  # counts_df <- all_counts
-  # scores_df <- all_scores
-  # select_cohort <- "Wagner"
   # filter dataframes to select required data
   cohort_counts <- filter(counts_df, cohort == select_cohort)
   cohort_scores <- filter(scores_df, cohort == select_cohort) %>% 

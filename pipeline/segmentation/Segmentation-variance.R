@@ -119,7 +119,7 @@ cell_proportion_sd <- cell_proportion_mean %>%
 
 # Remove any method that is NA
 cell_proportion_sd_no_na <- cell_proportion_sd %>% 
-  pivot_wider(names_from = method, values_from = sd) %>% View
+  pivot_wider(names_from = method, values_from = sd) %>%
   select_if(~ !any(is.na(.))) %>% 
   pivot_longer(-c(sample, cell_type), names_to = "method", values_to = "sd")
 
@@ -134,7 +134,7 @@ cell_proportion_meanSD <- cell_proportion_sd_no_na %>%
   summarize(mean_sd = mean(sd))
 
 
-cols <- brewer.pal(n = 5, name = "Set1")[c(2,4,5,3)]
+cols <- brewer.pal(n = 5, name = "Set1")[c(2,5,4,3)]
 # Get plotting order
 plot_order <- cell_proportion_meanSD %>% 
   ungroup() %>% 
@@ -149,7 +149,7 @@ plot_order <- cell_proportion_meanSD %>%
 # plot_order <- rowMeans(plot_order) %>% sort()
 
 cell_proportion_meanSD$algorithm <- factor(cell_proportion_meanSD$algorithm, 
-                                           levels = plot_order)
+                                           levels = c("Astir", "Phenograph", "FlowSOM", "ClusterX"))
 
 
 
@@ -189,7 +189,7 @@ test <- cell_proportion_sd_no_na %>%
                                TRUE ~ method))
 
 
-pdf(snakemake@output[['suppl_pdf']], width = 4, height = 7)
+pdf(snakemake@output[['suppl_pdf']], width = 6, height = 7)
 inner_join(clean_algorithmic_sd, 
            cell_proportion_sd_no_na) %>% 
   mutate(algorithm = case_when(grepl("acdc", method) ~ "ACDC",

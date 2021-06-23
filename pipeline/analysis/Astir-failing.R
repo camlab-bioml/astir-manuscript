@@ -5,77 +5,57 @@ library(tidyverse)
 library(RColorBrewer)
 devtools::load_all("../taproom/")
 
+sce <- readRDS(snakemake@input[['sce']])#"output/phoenix/sces/zurich1_sce.rds")
+clusters <- read_csv(snakemake@input[['clusters']])#"output/phoenix/results/GSVA-assignment-Phenograph-zurich1-all_markers-k40.csv")
 
-### Read in data
-
-sce <- readRDS("output/phoenix/sces/zurich1_sce.rds")
-clusters <- read_csv("output/phoenix/results/GSVA-assignment-Phenograph-zurich1-all_markers-k40.csv")
 
 
 sce$cell_type <- clusters$Manual_cell_type
 sce$cluster <- clusters$cluster
 
-# Scale data
-lc <- t(as.matrix(assay(sce, 'logcounts')))
-lc <- scale(lc)
-lc[lc > 2] <- 2
-lc[lc < -2] <- -2
 
 
-# Select markers and clusters
-# Clusters to remove
-exclude_clusters <- c(61, 8, 17, 52, 25, 6, 10, 60, 50)
-
-# Get all cells I want to plot
-interesting_cells <- clusters %>% 
-  filter(Manual_cell_type == "Epithelial (luminal)" &
-           !(cluster %in% exclude_clusters))
-
-interesting_cells_id <- interesting_cells$id
-
-# Select interesting clusters
 interesting_markers <- c("E-Cadherin", "c-Myc", 
                          "phospho S6", "phospho mTOR", "Cytokeratin 8/18", 
                          "Cytokeratin 19", "pan Cytokeratin",
                          "Cytokeratin 7", "Twist", "Vimentin", "SMA")
 
-interesting_expression_mat <- lc[interesting_cells_id, interesting_markers]
+exclude_clusters <- c(61, 8, 17, 52, 25, 6, 10, 60, 50)
 
-# Get clusters for each cell
-clusters <- interesting_cells$cluster
+epi_sce <- sce[interesting_markers, (sce$cell_type == "Epithelial (luminal)" &
+                                       !(sce$cluster %in% exclude_clusters))]
 
-# Define heatmap color function 
-cols <- function(){
-  cluster_no <- unique(clusters) %>% length()
+lc <- t(as.matrix(assay(epi_sce, 'logcounts')))
+lc <- scale(lc)
+
+lc[lc > 2] <- 2
+lc[lc < -2] <- -2
+
+cluster = colData(epi_sce)[[ 'cluster' ]]
+
+rainbow_cols <- function(){
+  cluster_no <- unique(cluster) %>% length()
   cluster_col <- brewer.pal(n = cluster_no, name = "Set1")
-  names(cluster_col) <- unique(clusters) %>% as.character()
+  names(cluster_col) <- unique(cluster)
   cluster_col
 }
 
-
-# Create annotation
-celltype_annot <- HeatmapAnnotation(`Phenograph Cluster` = as.character(clusters),
+celltype_annot <- HeatmapAnnotation(`Phenograph Cluster` = as.character(cluster),
                                     which="column",
-                                    col = list(cluster = cols()),
-                                    legend_direction = "horizontal")  
+                                    annotation_legend_param = list(title = "Phenograph\nCluster"),
+                                    col = list(`Phenograph Cluster` = rainbow_cols()))  
 
-# Create heatmap
-type_exprs <- Heatmap(t(interesting_expression_mat), 
-                      name = "Z-Scaled Expression",
+type_exprs <- Heatmap(t(lc), 
+                      name = "Z-Scaled\nExpression",
                       column_title = "Cell",
                       col=viridis(100),
                       top_annotation = celltype_annot,
                       show_column_names = FALSE,
-                      column_order = order(clusters))
+                      column_order = order(cluster))
 
-
-
+pdf(snakemake@output[['heatmap']], height = 3.5, width = 8)
 type_exprs
+dev.off()
 
 
 
-# expression change
-# 1. cluster = phenograph cluster
-# 2. expression = zscaled expression
-# 3. annotations above each other
-# 4. cluster colors

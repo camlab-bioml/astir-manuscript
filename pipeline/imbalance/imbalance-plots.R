@@ -3,6 +3,7 @@
 suppressPackageStartupMessages({
   library(tidyverse)
   library(cowplot)
+  library(DelayedArray)
 })
 
 count <- dplyr::count
@@ -78,7 +79,8 @@ read_other <- function(f) {
   names(df)[2] <- "cluster"
   df <- rename(df, 
                p_epithelial = percent_epithelial,
-               celltype = cell_type)
+               celltype = Manual_cell_type)
+               #celltype = cell_type)
   df <- mutate(df, workflow = paste0(method, " - ", params))
 
   df$p_epithelial <- as.numeric(df$p_epithelial)
@@ -99,11 +101,12 @@ read_other <- function(f) {
   df_count
 }
 
-# df_other <- map_dfr(files, read_other)
+df_other <- map_dfr(files, read_other)
 
 df_astir$p_epithelial <- as.numeric(df_astir$p_epithelial)
 df_acdc$p_epithelial <- as.numeric(df_acdc$p_epithelial)
-df <- bind_rows(df_astir, df_acdc)
+df <- bind_rows(df_astir, df_acdc, df_other)
+
 
 # write_csv(df, "df_imbalance.csv")
 
@@ -118,12 +121,12 @@ filter(df, grepl("Epithelial", celltype)) %>%
   geom_line(aes(group = workflow, y = 100 * prop_celltype), size = 1.2, alpha = 0.3) +
   geom_point(data = df_mean, aes(y = 100 * mean_prop_celltype)) +
   geom_line(data = df_mean, aes(y = 100 * mean_prop_celltype), size = 1.5) +
-  facet_wrap(~ method) +
+  facet_wrap(~ method, nrow = 1) +
   astir_paper_theme() +
   scale_colour_brewer(palette = "Set1", guide = FALSE) +
   labs(
     x = "% cells epithelial in sample",
-    y = "% cells assigned to epithelial"
+    y = "% cells assigned\nto epithelial"
   )
 
 n_cell_plot <- last_plot()
@@ -135,13 +138,13 @@ filter(df, grepl("Epithelial", celltype)) %>%
   geom_line(aes(group = workflow, y = n_cluster), size = 1.2, alpha = 0.3) +
   geom_point(data = df_mean, aes(y = mean_n_cluster)) +
   geom_line(data = df_mean, aes(y = mean_n_cluster), size = 1.5) +
-  facet_wrap(~ method) +
+  facet_wrap(~ method, nrow = 1) +
   scale_y_log10()+
   astir_paper_theme() +
   scale_colour_brewer(palette = "Set1", guide = FALSE) +
   labs(
     x = "% cells epithelial in sample",
-    y = "# clusters corresponding to epithelial"
+    y = "# clusters corresponding\nto epithelial"
   )
 
 prop_cell_plot <- last_plot()
@@ -154,6 +157,6 @@ plot_grid(
 
 save.image("tpm.rds")
 
-pdf(snakemake@output[['pdf']], width=4,height=5.2)
+pdf(snakemake@output[['pdf']], width=7,height=4)
 print(last_plot())
 dev.off()

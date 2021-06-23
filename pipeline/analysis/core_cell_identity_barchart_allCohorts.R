@@ -6,7 +6,13 @@ library(cowplot)
 library(devtools)
 library(DelayedArray)
 
-devtools::load_all("../taproom/")
+devtools::load_all("../taproom")
+source("scripts/functions.R")
+
+pal <- c("#ECCBAE", "#046C9A", "#D69C4E", "#ABDDDE")
+cohort_cols <- c(pal[1], pal[4], pal[3], pal[2])
+
+#names(cohort_cols) <- c("Basel", "Zurich1", "Wagner", "Schapiro")
 
 ### [READ IN ARGUMENTS] #####
 args <- commandArgs(trailingOnly = TRUE)
@@ -83,7 +89,7 @@ pdf(paste0(output_dir, "allCohort_core_cell_identity_barchart.pdf"), width = 14,
   
   h2 <- ggplot(cores, aes(x = core, y = n, fill = Cohort)) +
     geom_bar(stat = "identity", position = "fill") +
-    scale_fill_manual(values = cohort_colours()) +
+    scale_fill_manual(values = cohort_cols) +
     astir_paper_theme() +
     xlab("") + ylab("") + 
     theme(plot.margin = unit(c(1,0,-1.5,0), "lines"),

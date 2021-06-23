@@ -92,7 +92,6 @@ lin_cycif_output = {
     'loom': output_path + "looms/lin_cycif.loom",
 }
 
-
 rule read_lin_cycif:
     input:
         scdata="data-raw/lin-2019-deepcell/summarized_expression/expression_Composite-{sample_id}.tsv"

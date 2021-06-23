@@ -2,6 +2,7 @@ library(tidyverse)
 library(SingleCellExperiment)
 library(GSVA)
 library(devtools)
+library(RColorBrewer)
 devtools::load_all("../taproom/")
 source("scripts/functions.R")
 
@@ -110,6 +111,12 @@ sce$`FlowSOM cluster` <- assigned_clustering$hclust_cluster
 lineage_markers <- markers$cell_types %>% 
   unlist() %>% unique()
 
+rainbow_cols <- function(n){
+  cluster_col <- brewer.pal(n = n, name = "Set1")
+  names(cluster_col) <- 1:n
+  cluster_col
+}
+
 pdf(snakemake@output[['heatmap']], width = 11, height = 7)
   lc <- t(as.matrix(assay(sce[lineage_markers, ], 'logcounts')))
   lc <- scale(lc)
@@ -120,8 +127,9 @@ pdf(snakemake@output[['heatmap']], width = 11, height = 7)
   cell_types = colData(sce)[[ 'FlowSOM cluster' ]] %>% as.character()
 
   celltype_annot <- HeatmapAnnotation(`Cell type` = cell_types, 
-                                      which="column")#,
-                                      #col = list(`Cell type` = rainbow(8)))  
+                                      which="column",
+                                      annotation_legend_param = list(title = "Metacluster"),
+                                      col = list(`Cell type` = rainbow_cols(8)))  
   
   type_exprs <- Heatmap(t(lc), 
                         name = "Expression",

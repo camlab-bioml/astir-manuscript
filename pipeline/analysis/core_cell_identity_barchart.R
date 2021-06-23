@@ -3,7 +3,8 @@
 library(tidyverse)
 library(devtools)
 library(DelayedArray)
-devtools::load_all("~/taproom/")
+library(taproom)
+source("scripts/functions.R")
 
 ### [READ IN ARGUMENTS] #####
 args <- commandArgs(trailingOnly = TRUE)

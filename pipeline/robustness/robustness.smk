@@ -16,7 +16,7 @@ def remove_punc(s):
     s = s.replace(" ", "")
     return s.translate(str.maketrans('', '', string.punctuation))
 
-cohorts = ['basel', 'zurich1', 'wagner', 'schapiro', 'keren']
+cohorts = ['basel', 'zurich1', 'wagner', 'schapiro']
 
 celltypes_to_remove = {}
 
@@ -215,6 +215,7 @@ rule make_figs:
         html=output_path + "robustness/robustness-figs.html",
         output_fig_removed=robustness_output['figure_removed'],
         output_fig_added=robustness_output['figure_added']
+    container: "astir-manuscript.sif"
     shell:
         "Rscript -e \"Sys.setenv(RSTUDIO_PANDOC='/home/ltri/campbell/share/software/pandoc-2.9.2.1/bin'); "
         "rmarkdown::render('pipeline/robustness/new-figs.Rmd',   "

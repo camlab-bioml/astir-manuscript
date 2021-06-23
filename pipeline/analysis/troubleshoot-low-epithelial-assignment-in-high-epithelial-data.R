@@ -3,34 +3,38 @@ library(ggalluvial)
 library(devtools)
 library(SingleCellExperiment)
 library(broom)
+library(ComplexHeatmap)
 source("scripts/functions.R")
 devtools::load_all("../taproom/")
 
 # Read in phenograph and astir assignments
-phenograph_path <- "output/squirrel/results/epithelial_overclustering/"
-phenograph_files <- dir(phenograph_path, pattern = "Epithelial_overclustering_Phenograph_clusters-")
-phenograph_assignments <- lapply(paste0(phenograph_path, phenograph_files), read_csv) %>% 
-  bind_rows
+phenograph_assignments <- lapply(snakemake@input[['phenograph_assignments']], read_csv) %>%
+  bind_rows()
+#phenograph_path <- "output/squirrel/results/epithelial_overclustering/"
+#phenograph_files <- dir(phenograph_path, pattern = "Epithelial_overclustering_Phenograph_clusters-")
+#phenograph_assignments <- lapply(paste0(phenograph_path, phenograph_files), read_csv) %>% 
+#  bind_rows
 
-astir_assignments <- read_csv("output/squirrel/astir_assignments/basel_astir_assignments.csv")
-astir_assignments <- astir_assignments %>% 
+#"output/squirrel/astir_assignments/basel_astir_assignments.csv")
+astir_assignments <- read_csv(snakemake@input[['astir_assignments']]) %>%
   column_to_rownames("X1") %>% 
   mutate(cell_type = get_celltypes(.)) %>% 
   select(cell_type) %>% 
   rownames_to_column("id") %>% 
   dplyr::rename("astir_cell_type" = "cell_type")
 
-markers <- read_markers("markers/jackson-2020-markers-v4.yml")
+markers <- read_markers(snakemake@input[['markers']])#"markers/jackson-2020-markers-v4.yml")
 lineage_markers <- markers$cell_types[c("Epithelial (luminal)", "T cells", "Macrophage", "Stromal")] %>% 
   unlist() %>% unique()
 names(lineage_markers) <- NULL
 
 # Read in basel expression data
-basel_imc <- readRDS("output/squirrel/sces/basel_sce.rds")
+basel_imc <- readRDS(snakemake@input[['sce']])#"output/squirrel/sces/basel_sce.rds")
 
 # process data
 phenograph_assignments <- phenograph_assignments %>% 
-  dplyr::rename("phenograph_cell_type" = "cell type") %>% 
+  select(-GSVA_cell_type) %>%
+  dplyr::rename("phenograph_cell_type" = "Manual_cell_type") %>% 
   pivot_longer(-c("id", "phenograph_cell_type", "method", "params", "percent_epithelial"),
                values_to = "cluster", names_to = "k") %>% 
   drop_na(cluster) %>% 
@@ -41,28 +45,30 @@ all_k20 <- phenograph_assignments %>%
   filter(params == "all_markers_k20")
 
 ### Alluvial plot 
-all_k20 %>% 
-  select(percent_epithelial, astir_cell_type, phenograph_cell_type, cluster) %>% 
-  group_by(percent_epithelial, astir_cell_type, phenograph_cell_type, cluster) %>% 
-  tally() %>% 
-  mutate(percent_epithelial = paste0("Percent epithelial: ", percent_epithelial)) %>% 
-  ggplot(aes(y = n, axis1 = astir_cell_type, axis2 = cluster, axis3 = phenograph_cell_type)) +
-    geom_alluvium(aes(fill = astir_cell_type)) +
-    geom_stratum(width = 1/5, fill = "grey", color = "black") +
-    geom_text(stat = "stratum", aes(label = after_stat(
-      ifelse(as.numeric(stratum) %in% c(1,2,3,4), 
-             as.character(stratum), 
-             NA)))) +
-    labs(y = "Cells", fill = "Astir cell types") +
-    scale_y_continuous(expand = c(0, 0)) +
-    scale_x_discrete(limits = c("Astir\ncell\ntype", "Phenograph\ncluster", "Phenograph\nGSVA\ncell type"), 
-                     expand = c(.2, .3)) +
-    facet_wrap(~percent_epithelial, ncol = 2) +
-    astir_paper_theme() +
-    scale_fill_manual(values = jackson_basel_colours()) +
-    theme(axis.ticks = element_blank(),
-          axis.title = element_text(size = 14),
-          strip.text.x = element_text(size = 14))
+pdf(snakemake@output[['alluvial']], width = 10, height = 12)
+  all_k20 %>% 
+    select(percent_epithelial, astir_cell_type, phenograph_cell_type, cluster) %>% 
+    group_by(percent_epithelial, astir_cell_type, phenograph_cell_type, cluster) %>% 
+    tally() %>% 
+    mutate(percent_epithelial = paste0("Percent epithelial: ", percent_epithelial)) %>% 
+    ggplot(aes(y = n, axis1 = astir_cell_type, axis2 = cluster, axis3 = phenograph_cell_type)) +
+      geom_alluvium(aes(fill = astir_cell_type)) +
+      geom_stratum(width = 1/5, fill = "grey", color = "black") +
+      geom_text(stat = "stratum", aes(label = after_stat(
+        ifelse(as.numeric(stratum) %in% c(1,2,3,4), 
+              as.character(stratum), 
+              NA)))) +
+      labs(y = "Cells", fill = "Astir cell types") +
+      scale_y_continuous(expand = c(0, 0)) +
+      scale_x_discrete(limits = c("Astir\ncell type", "Phenograph\ncluster", "Phenograph\nZ-score\ncell type"), 
+                      expand = c(.2, .3)) +
+      facet_wrap(~percent_epithelial, ncol = 2) +
+      astir_paper_theme() +
+      scale_fill_manual(values = jackson_basel_colours()) +
+      theme(axis.ticks = element_blank(),
+            axis.title = element_text(size = 14),
+            strip.text.x = element_text(size = 14))
+dev.off()
 
 
 
@@ -164,16 +170,19 @@ combined_lms <- rbind(epi_macro_30, epi_macro_99,
                       epi_stromal_30, epi_stromal_99,
                       epi_T_cells_30, epi_T_cells_99)
 
-combined_lms %>% 
-  mutate(percent_epithelial = paste("Percent epithelial:", percent_epithelial)) %>% 
-  ggplot(aes(x = Protein, y = estimate, fill = comparison)) +
-  geom_boxplot() +
-  labs(title = "Epithelial (luminal) vs Macrophages, Stromal & T cells", fill = "Comparison") +
-  scale_fill_manual(values = jackson_basel_colours()) +
-  astir_paper_theme() +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
-  geom_hline(yintercept = 0, color = "red") +
-  facet_wrap(~percent_epithelial, ncol = 1)
+pdf(snakemake@output[['lm']], width = 7, height = 5)
+  combined_lms %>% 
+    mutate(percent_epithelial = paste("Percent epithelial:", percent_epithelial)) %>% 
+    ggplot(aes(x = Protein, y = estimate, fill = comparison)) +
+    geom_boxplot() +
+    labs(title = "Epithelial (luminal) vs Macrophages, Stromal & T cells", fill = "Comparison") +
+    scale_fill_manual(values = jackson_basel_colours()) +
+    astir_paper_theme() +
+    labs(y = "Estimate") +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+    geom_hline(yintercept = 0, color = "red") +
+    facet_wrap(~percent_epithelial, ncol = 1)
+dev.off()
 
 
 
@@ -192,9 +201,9 @@ nonScaledHeatmap <- function(sce, scale_to = 1, max_out = NA){
   
   celltypes <- colData(sce)[["phenograph_cell_type"]]
   
-  celltype_annot <- HeatmapAnnotation(`Phenograph GSVA cell type` = celltypes, 
+  celltype_annot <- HeatmapAnnotation(`Phenograph Z-score cell type` = celltypes, 
                                       which="column",
-                                      col = list(`Phenograph GSVA cell type` = jackson_basel_colours()))  
+                                      col = list(`Phenograph Z-score cell type` = jackson_basel_colours()))  
   
   type_exprs <- Heatmap(t(lc), 
                         name = "Expression",
@@ -206,8 +215,19 @@ nonScaledHeatmap <- function(sce, scale_to = 1, max_out = NA){
   type_exprs
 }
 
-nonScaledHeatmap(imc_k20_30_sce[lineage_markers,])
-nonScaledHeatmap(imc_k20_30_sce[lineage_markers,], max_out = 4)
-nonScaledHeatmap(imc_k20_99_sce[lineage_markers,])
-nonScaledHeatmap(imc_k20_99_sce[lineage_markers,], max_out = 4)
+pdf(snakemake@output[['scaled_30']], height = 4, width = 7)
+  nonScaledHeatmap(imc_k20_30_sce[lineage_markers,])
+dev.off()
+
+pdf(snakemake@output[['max_4_30']], height = 4, width = 7)
+  nonScaledHeatmap(imc_k20_30_sce[lineage_markers,], max_out = 4)
+dev.off()
+
+pdf(snakemake@output[['scaled_99']], height = 4, width = 7)
+  nonScaledHeatmap(imc_k20_99_sce[lineage_markers,])
+dev.off()
+
+pdf(snakemake@output[['max_4_99']], height = 4, width = 7)
+  nonScaledHeatmap(imc_k20_99_sce[lineage_markers,], max_out = 4)
+dev.off()
 
