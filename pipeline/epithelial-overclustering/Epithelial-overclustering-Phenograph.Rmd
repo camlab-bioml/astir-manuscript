@@ -6,7 +6,7 @@ output: html_document
 params:
   markers: "all_markers"
   cells: "../../output/squirrel/sces/basel_sce.rds"
-  cellSubset: "output/squirrel/results/epithelial_overclustering/luminal-0.3.csv" 
+  cellSubset: "../../output/squirrel/results/epithelial_overclustering/luminal-0.3.csv" 
   markers_list: "../../markers/jackson-2020-markers-v4.yml"
   output_results: ""
   percent_luminal: ""

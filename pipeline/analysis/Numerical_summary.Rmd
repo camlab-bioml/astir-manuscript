@@ -4,22 +4,18 @@ author: "Michael Geuenich"
 date: "July 28, 2020"
 output: html_document
 params:
-  basel_type: "../../output/squirrel/astir_assignments/basel_astir_assignments.csv"
-  basel_state: "../../output/v6/astir_assignments/basel_astir_assignments_state.csv"
+  basel_type: "../../output/phoenix/astir_assignments/basel_astir_assignments.csv"
   basel_metadata: "../../data-raw/metadata/basel_PatientMetadata.csv"
 
-  zurich_type: "../../output/squirrel/astir_assignments/zurich1_astir_assignments.csv"
-  zurich_state: "../../output/v6/astir_assignments/zurich1_astir_assignments_state.csv"
+  zurich_type: "../../output/phoenix/astir_assignments/zurich1_astir_assignments.csv"
   zurich_metadata: "../../data-raw/metadata/zurich1_PatientMetadata.csv"
 
-  schapiro_type: "../../output/squirrel/astir_assignments/schapiro_astir_assignments.csv"
-  schapiro_state: "../../output/v6/astir_assignments/schapiro_astir_assignments_state.csv"
+  schapiro_type: "../../output/phoenix/astir_assignments/schapiro_astir_assignments.csv"
   
-  wagner_type: "../../output/squirrel/astir_assignments/wagner_astir_assignments.csv"
-  wagner_state: "../../output/v6/astir_assignments/wagner_astir_assignments_state.csv"
+  wagner_type: "../../output/phoenix/astir_assignments/wagner_astir_assignments.csv"
   wagner_metadata: "../../data-raw/metadata/wagner-clinical-characteristics.csv"
   
-  lin_type: "../../output/squirrel/astir_assignments/lin_cycif_astir_assignments.csv"
+  lin_type: "../../output/phoenix/astir_assignments/lin_cycif_astir_assignments.csv"
 ---
 
 ```{r setup, include=FALSE, message=FALSE}
@@ -41,7 +37,6 @@ basel_types <- read_csv(params$basel_type) %>%
   select(X1, cell_type) %>% 
   mutate(cohort = "basel")
 
-#basel_states <- read_csv(params$basel_state) %>% select(-X1)
 basel_metadata <- read_csv(params$basel_metadata)
 
 schapiro_types <- read_csv(params$schapiro_type) %>% 
@@ -49,14 +44,13 @@ schapiro_types <- read_csv(params$schapiro_type) %>%
   select(X1, cell_type) %>% 
   mutate(cohort = "schapiro")
 
-#schapiro_states <- read_csv(params$schapiro_state) %>% select(-X1)
 
 wagner_types <- read_csv(params$wagner_type) %>% 
   mutate(cell_type = get_celltypes(select(., -X1))) %>% 
   select(X1, cell_type) %>% 
   mutate(cohort = "wagner")
 
-#wagner_states <- read_csv(params$wagner_state) %>% select(-X1)
+
 wagner_metadata <- read_csv(params$wagner_metadata)
 
 zurich_types <- read_csv(params$zurich_type) %>% 
@@ -64,7 +58,7 @@ zurich_types <- read_csv(params$zurich_type) %>%
   select(X1, cell_type) %>% 
   mutate(cohort = "zurich")
 
-#zurich_states <- read_csv(params$zurich_state) %>% select(-X1)
+
 zurich_metadata <- read_csv(params$zurich_metadata)
 
 lin_types <- read_csv(params$lin_type) %>%
