@@ -1,0 +1,71 @@
+---
+title: "FlowSOM"
+author: "Michael Geuenich"
+date: "May 29, 2020"
+output: html_document
+params:
+  markers: "specified_markers"
+  cells: "../../output/v4/zurich1_subset/zurich1_subset_sce.rds"
+  celltypes: "../../output/v4/zurich1_subset/zurich1_subset_assignments_type.csv"
+  cohort: "zurich1"
+  markers_list: ""
+  output_results: ""
+  cluster_options: ""
+  cancer: ""
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = '../../')
+library(SingleCellExperiment)
+library(tidyverse)
+library(devtools)
+library(factoextra)
+library(scater)
+library(dichromat)
+library(cytofkit)
+library(taproom)
+```
+
+First read in all sc data and assign cell type
+```{r message=F, warning=F}
+sce <- readRDS(params$cells)
+```
+
+```{r}
+if(params$markers == "all_markers"){
+  imc.data <- t(logcounts(sce))
+
+}else if(params$markers == "specified_markers"){
+  markers <- read_markers(params$markers_list)
+  
+  imc.data <- t(logcounts(sce[unique(unlist(markers$cell_types)),]))
+  evalStatement <- T
+}
+
+if(params$cohort != "basel" & params$cohort != "zurich1"){
+  # add a cell ID for schapiro
+  sce$id <- colnames(sce)
+}
+```
+
+```{r}
+# FlowSOM - just going with the number of cell types for now
+imc.flowSOM.cluster <- cytof_cluster(xdata = imc.data, method = "FlowSOM",
+                                     FlowSOM_k = as.integer(params$cluster_options))
+sce$FlowSOM.k4 <- imc.flowSOM.cluster
+```
+
+Write out the files as csvs.
+```{r eval=params$create_csv}
+flowSOM_k4 <- sce %>% colData() %>% as.data.frame() %>% select(id, "FlowSOM.k4")
+rownames(flowSOM_k4) <- c()
+flowSOM_k4$method <- "FlowSOM"
+flowSOM_k4$params <- paste(params$markers, paste0("k", params$cluster_options), sep = "_")
+flowSOM_k4$cancer <- params$cancer
+write.csv(flowSOM_k4, file = paste0(params$output_results, "FlowSOM_clusters_", 
+                                    params$cohort, "_", params$cancer, "_", params$markers, 
+                                    "_k", params$cluster_options, ".csv"),
+          col.names = T, row.names = F, sep = ",", quote = FALSE)
+```

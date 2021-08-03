@@ -1,0 +1,72 @@
+---
+title: "Rphenograph"
+author: "Michael Geuenich"
+date: "May 29, 2020"
+output: html_document
+params:
+  markers: "specified_markers"
+  cells: "../../output/v4/zurich1_subset/zurich1_subset_sce.rds"
+  celltypes: "../../output/v4/zurich1_subset/zurich1_subset_assignments_type.csv"
+  cellstates: "../../output/v4/zurich1_subset/zurich1_subset_assignments_state.csv" 
+  cohort: "zurich1"
+  markers_list: ""
+  output_results: ""
+  cluster_options: ""
+  cancer: ""
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = '../../')
+library(SingleCellExperiment)
+library(tidyverse)
+library(devtools)
+library(factoextra)
+library(scater)
+library(dichromat)
+library(cytofkit)
+library(taproom)
+```
+
+First read in all sc data and assign cell type
+```{r message=F, warning=F}
+# read in data
+sce <- readRDS(params$cells)
+```
+
+```{r include=F}
+if(params$markers == "all_markers"){
+  imc.data <- t(logcounts(sce))
+}else if(params$markers == "specified_markers"){
+  markers <- read_markers(params$markers_list)
+
+  imc.data <- t(logcounts(sce[unique(unlist(markers$cell_types)),]))
+}
+
+if(params$cohort != "basel" & params$cohort != "zurich1"){
+  # add a cell ID for schapiro
+  sce$id <- colnames(sce)
+}
+```
+
+```{r}
+# Find clusters using different methods
+imc.pheno.cluster.k10 <- cytof_cluster(xdata = imc.data, method = "Rphenograph",
+                                   Rphenograph_k = as.integer(params$cluster_options))
+
+# Add newly defined clusters to sc data
+sce$phenograph.k10 <- imc.pheno.cluster.k10
+```
+
+Write out the results to csv files.
+
+```{r}
+phenograph.k10 <- sce %>% colData() %>% as.data.frame() %>% select(id, "phenograph.k10")
+rownames(phenograph.k10) <- c()
+phenograph.k10$method <- "Phenograph"
+phenograph.k10$params <- paste(params$markers, paste0("k", params$cluster_options), sep = "_")
+write.csv(phenograph.k10, file = paste0(params$output_results, "Phenograph_clusters_", 
+                                        params$cohort, "_", params$cancer, "_", params$markers, 
+                                        "_k", params$cluster_options, ".csv"),
+          col.names = T, row.names = F, sep = ",", quote = FALSE)
+```

@@ -1,0 +1,73 @@
+---
+title: "ClusterX"
+author: "Michael Geuenich"
+date: "May 29, 2020"
+output: html_document
+params:
+  markers: "specified_markers"
+  create_csv: FALSE
+  cells: "../../output/v4/zurich1_subset/zurich1_subset_sce.rds"
+  celltypes: "../../output/v4/zurich1_subset/zurich1_subset_assignments_type.csv"
+  cellstates: "../../output/v4/zurich1_subset/zurich1_subset_assignments_state.csv" 
+  cohort: "zurich1"
+  markers_list: ""
+  output_results: ""
+  cancer: ""
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = '../../')
+library(SingleCellExperiment)
+library(tidyverse)
+library(devtools)
+library(factoextra)
+library(scater)
+library(dichromat)
+library(cytofkit)
+library(taproom)
+```
+
+
+First read in all sc data and assign cell type
+```{r message=F, warning=F}
+# read in data 
+sce <- readRDS(params$cells)
+```
+
+```{r}
+if(params$markers == "all_markers"){
+  imc.data <- t(logcounts(sce))
+}else if(params$markers == "specified_markers"){
+  markers <- read_markers(params$markers_list)
+  
+  imc.data <- t(logcounts(sce[unique(unlist(markers$cell_types)),]))
+  evalStatement <- T
+}
+
+if(params$cohort != "basel" & params$cohort != "zurich1"){
+  # add a cell ID for schapiro
+  sce$id <- colnames(sce)
+}
+```
+
+```{r}
+# ClusterX requires a tsne plot to start with
+imc.tsne <- cytof_dimReduction(data=imc.data, method = "tsne")
+saveRDS(imc.tsne, "clusterX.tsne.troubleshoot.rds")
+imc.clusterX.cluster <- cytof_cluster(ydata = imc.tsne, method = "ClusterX")
+
+sce$clusterX <- imc.clusterX.cluster
+```
+
+
+```{r}
+ClusterX <- sce %>% colData() %>% as.data.frame() %>% select(id, "clusterX")
+rownames(ClusterX) <- c()
+ClusterX$method <- "ClusterX"
+ClusterX$params <- paste(params$markers, "Default", sep = "_")
+ClusterX$cancer <- params$cancer
+write.csv(ClusterX, file = paste0(params$output_results, "ClusterX_clusters_", params$cohort,
+                                  "_", params$cancer, "_", params$markers, "_default.csv"),
+          col.names = T, row.names = F, sep = ",")
+```
